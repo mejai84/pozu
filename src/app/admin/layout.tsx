@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +14,7 @@ const sidebarItems = [
     { icon: UtensilsCrossed, label: "Productos", href: "/admin/products" },
     { icon: Users, label: "Clientes", href: "/admin/customers" },
     { icon: Users, label: "Empleados", href: "/admin/employees" },
+    { icon: BarChart3, label: "Reportes", href: "/admin/reports" },
     { icon: Settings, label: "Configuración", href: "/admin/settings" },
 ]
 
@@ -21,6 +22,7 @@ import Image from "next/image"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { NotificationBell } from "@/components/admin/notification-bell"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
@@ -72,17 +74,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex min-h-screen bg-background">
             {/* Sidebar */}
             <aside className="w-64 border-r border-white/10 bg-card/50 hidden md:flex flex-col">
-                <div className="h-20 flex items-center px-6 border-b border-white/10 gap-3">
-                    <Image
-                        src="/images/logo.jpg"
-                        alt="Logo"
-                        width={32}
-                        height={32}
-                        className="rounded-full"
-                    />
-                    <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        POZU ADMIN
-                    </span>
+                <div className="h-20 flex items-center justify-between px-6 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                        <Image
+                            src="/images/logo.jpg"
+                            alt="Logo"
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                        />
+                        <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            POZU ADMIN
+                        </span>
+                    </div>
+                    <NotificationBell />
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
