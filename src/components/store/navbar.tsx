@@ -21,6 +21,8 @@ export function Navbar() {
     const [products, setProducts] = useState<any[]>([])
     const [categories, setCategories] = useState<any[]>([])
 
+    const [showCombos, setShowCombos] = useState(false)
+
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,6 +41,7 @@ export function Navbar() {
 
         // Fetch data for the quick menu
         fetchQuickData()
+        fetchSettings()
 
         return () => subscription.unsubscribe()
     }, [])
@@ -52,6 +55,19 @@ export function Navbar() {
 
         if (!error && data) {
             setIsAdmin(data.role === 'admin' || data.role === 'staff')
+        }
+    }
+
+    const fetchSettings = async () => {
+        const { data } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'feature_flags')
+            .single()
+
+        if (data?.value) {
+            const features = data.value as any
+            setShowCombos(!!features.enable_combos)
         }
     }
 
@@ -75,10 +91,10 @@ export function Navbar() {
 
     const isActive = (path: string) => pathname === path
 
-    const navLinks = [
+    const navLinks: { href: string; label: string; hasDropdown?: boolean }[] = [
         { href: "/", label: "Inicio" },
-        { href: "/menu", label: "Menú", hasDropdown: true },
-        { href: "/combos", label: "Combos" },
+        { href: "/menu", label: "Menú" },
+        ...(showCombos ? [{ href: "/combos", label: "Combos" }] : []),
         { href: "/nosotros", label: "Nosotros" },
     ]
 

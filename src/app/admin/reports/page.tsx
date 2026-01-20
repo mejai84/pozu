@@ -12,9 +12,24 @@ import {
     Users,
     Loader2,
     Filter,
-    BarChart3
+    BarChart3,
+    Mail,
+    Send,
+    X
 } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    BarChart,
+    Bar
+} from 'recharts'
+import { sendReportEmail } from "./actions"
 
 interface ReportData {
     totalRevenue: number
@@ -31,6 +46,10 @@ export default function ReportsPage() {
     const [reportData, setReportData] = useState<ReportData | null>(null)
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
+
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
+    const [emailAddress, setEmailAddress] = useState('')
+    const [sendingEmail, setSendingEmail] = useState(false)
 
     useEffect(() => {
         generateReport()
@@ -122,6 +141,26 @@ export default function ReportsPage() {
         }
     }
 
+    const handleSendEmail = async () => {
+        if (!emailAddress || !reportData) return
+
+        setSendingEmail(true)
+        try {
+            const result = await sendReportEmail(emailAddress, reportData)
+            if (result.success) {
+                alert('Email enviado correctamente!')
+                setIsEmailModalOpen(false)
+            } else {
+                alert('Error al enviar email: ' + result.error)
+            }
+        } catch (error) {
+            console.error(error)
+            alert('Error al enviar el email')
+        } finally {
+            setSendingEmail(false)
+        }
+    }
+
     const exportToCSV = () => {
         if (!reportData) return
 
@@ -150,12 +189,11 @@ export default function ReportsPage() {
     }
 
     const exportToPDF = async () => {
-        // For now, just open print dialog
         window.print()
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -165,6 +203,14 @@ export default function ReportsPage() {
                     <p className="text-muted-foreground">Analiza el rendimiento de tu negocio</p>
                 </div>
                 <div className="flex gap-2">
+                    <Button
+                        onClick={() => setIsEmailModalOpen(true)}
+                        variant="outline"
+                        disabled={!reportData}
+                        className="gap-2"
+                    >
+                        <Mail className="w-4 h-4" /> Email
+                    </Button>
                     <Button
                         onClick={exportToCSV}
                         variant="outline"
@@ -247,6 +293,70 @@ export default function ReportsPage() {
                 )}
             </div>
 
+            {isEmailModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+                    <div className="bg-card border border-white/10 p-6 rounded-2xl w-full max-w-md shadow-2xl relative animate-in zoom-in-95">
+                        <button
+                            onClick={() => setIsEmailModalOpen(false)}
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-white"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                <Mail className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold">Enviar Reporte</h3>
+                                <p className="text-sm text-muted-foreground">Envía este resumen por correo electrónico</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm font-medium mb-1 block">Dirección de Email</label>
+                                <input
+                                    type="email"
+                                    placeholder="ejemplo@pozu.com"
+                                    value={emailAddress}
+                                    onChange={(e) => setEmailAddress(e.target.value)}
+                                    className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-colors"
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setIsEmailModalOpen(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    className="flex-1 font-bold"
+                                    onClick={handleSendEmail}
+                                    disabled={sendingEmail || !emailAddress}
+                                >
+                                    {sendingEmail ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Enviando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-4 h-4 mr-2" />
+                                            Enviar Reporte
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {loading ? (
                 <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -304,51 +414,110 @@ export default function ReportsPage() {
                         </div>
                     </div>
 
-                    <div className="grid lg:grid-cols-2 gap-6">
-                        {/* Top Products */}
-                        <div className="bg-card border border-white/10 rounded-2xl p-6">
-                            <h3 className="text-xl font-bold mb-6">Top 10 Productos</h3>
-                            <div className="space-y-3">
-                                {reportData.topProducts.map((product, i) => (
-                                    <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-muted-foreground font-mono text-sm">#{i + 1}</span>
-                                            <div>
-                                                <div className="font-bold">{product.name}</div>
-                                                <div className="text-xs text-muted-foreground">{product.sales} unidades</div>
-                                            </div>
-                                        </div>
-                                        <span className="font-mono font-bold text-primary">{product.revenue.toFixed(2)}€</span>
-                                    </div>
-                                ))}
+                    <div className="grid lg:grid-cols-2 gap-8">
+                        {/* Daily Revenue Chart */}
+                        <div className="bg-card border border-white/10 rounded-2xl p-6 lg:col-span-2">
+                            <h3 className="text-xl font-bold mb-6">Tendencia de Ingresos</h3>
+                            <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={reportData.dailyRevenue}>
+                                        <defs>
+                                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                                        <XAxis
+                                            dataKey="date"
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(value: string) => new Date(value).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
+                                        />
+                                        <YAxis
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(value: number) => `${value}€`}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
+                                            labelStyle={{ color: '#888' }}
+                                            formatter={(value: number) => [`${value.toFixed(2)}€`, 'Ingresos']}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="revenue"
+                                            stroke="#eab308"
+                                            fillOpacity={1}
+                                            fill="url(#colorRevenue)"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
                             </div>
                         </div>
 
-                        {/* Daily Revenue Chart (Simplified) */}
+                        {/* Top Products Chart */}
                         <div className="bg-card border border-white/10 rounded-2xl p-6">
-                            <h3 className="text-xl font-bold mb-6">Ingresos Diarios</h3>
-                            <div className="space-y-2">
-                                {reportData.dailyRevenue.slice(-10).map((day, i) => {
-                                    const maxRevenue = Math.max(...reportData.dailyRevenue.map(d => d.revenue))
-                                    const width = (day.revenue / maxRevenue) * 100
+                            <h3 className="text-xl font-bold mb-6">Top Productos por Ingresos</h3>
+                            <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart layout="vertical" data={reportData.topProducts.slice(0, 5)}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" horizontal={true} vertical={false} />
+                                        <XAxis type="number" hide />
+                                        <YAxis
+                                            dataKey="name"
+                                            type="category"
+                                            width={100}
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: '#ffffff10' }}
+                                            contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
+                                            formatter={(value: number) => [`${value.toFixed(2)}€`, 'Ingresos']}
+                                        />
+                                        <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
 
-                                    return (
-                                        <div key={i} className="space-y-1">
-                                            <div className="flex justify-between text-xs">
-                                                <span className="text-muted-foreground">{new Date(day.date).toLocaleDateString('es-ES')}</span>
-                                                <span className="font-mono font-bold">{day.revenue.toFixed(2)}€</span>
-                                            </div>
-                                            <div className="h-8 bg-white/5 rounded-lg overflow-hidden">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-primary to-secondary flex items-center justify-end px-2"
-                                                    style={{ width: `${width}%` }}
-                                                >
-                                                    <span className="text-xs font-bold text-white">{day.orders} pedidos</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
+                        {/* Orders Volume Chart */}
+                        <div className="bg-card border border-white/10 rounded-2xl p-6">
+                            <h3 className="text-xl font-bold mb-6">Volumen de Pedidos</h3>
+                            <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={reportData.dailyRevenue}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                                        <XAxis
+                                            dataKey="date"
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(value: string) => new Date(value).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
+                                        />
+                                        <YAxis
+                                            allowDecimals={false}
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: '#ffffff10' }}
+                                            contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
+                                            formatter={(value: number) => [value, 'Pedidos']}
+                                        />
+                                        <Bar dataKey="orders" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
                         </div>
                     </div>

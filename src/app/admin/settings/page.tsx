@@ -14,6 +14,7 @@ interface Settings {
     delivery_fee: number
     min_order_amount: number
     is_open: boolean
+    enable_combos: boolean
 }
 
 const defaultSettings: Settings = {
@@ -23,7 +24,8 @@ const defaultSettings: Settings = {
     address: "Calle Principal, 123",
     delivery_fee: 2.50,
     min_order_amount: 10.00,
-    is_open: true
+    is_open: true,
+    enable_combos: false
 }
 
 export default function AdminSettingsPage() {
@@ -95,6 +97,21 @@ export default function AdminSettingsPage() {
                     ...prev,
                     delivery_fee: deliverySettings.delivery_fee || prev.delivery_fee,
                     min_order_amount: deliverySettings.min_order_amount || prev.min_order_amount
+                }))
+            }
+
+            // Load feature flags
+            const { data: featuresData } = await supabase
+                .from('settings')
+                .select('value')
+                .eq('key', 'feature_flags')
+                .single()
+
+            if (featuresData?.value) {
+                const features = featuresData.value as any
+                setSettings(prev => ({
+                    ...prev,
+                    enable_combos: features.enable_combos ?? prev.enable_combos
                 }))
             }
 
@@ -181,6 +198,46 @@ export default function AdminSettingsPage() {
         }
     }
 
+    const handleSaveFeatures = async () => {
+        setLoading(true)
+        try {
+            const features = {
+                enable_combos: settings.enable_combos
+            }
+
+            // Check if feature_flags exists
+            const { data } = await supabase
+                .from('settings')
+                .select('id')
+                .eq('key', 'feature_flags')
+                .single()
+
+            let error;
+
+            if (data) {
+                const result = await supabase
+                    .from('settings')
+                    .update({ value: features })
+                    .eq('key', 'feature_flags')
+                error = result.error
+            } else {
+                const result = await supabase
+                    .from('settings')
+                    .insert({ key: 'feature_flags', value: features })
+                error = result.error
+            }
+
+            if (error) throw error
+
+            showMessage("✓ Funcionalidades guardadas")
+        } catch (error) {
+            console.error('Error saving features:', error)
+            showMessage("✗ Error al guardar funcionalidades")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const toggleBusinessDay = (day: string) => {
         setBusinessHours(prev => ({
             ...prev,
@@ -214,31 +271,38 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Tabs Header */}
-            <div className="flex border-b border-white/10 mb-8 gap-1">
+            <div className="flex border-b border-white/10 mb-8 gap-1 overflow-x-auto">
                 <button
                     onClick={() => setActiveTab("general")}
-                    className={`px-6 py-3 font-medium border-b-2 transition-all ${activeTab === 'general' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                    className={`px-6 py-3 font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'general' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
                     <Store className="w-4 h-4 inline mr-2" />
                     General
                 </button>
                 <button
                     onClick={() => setActiveTab("hours")}
-                    className={`px-6 py-3 font-medium border-b-2 transition-all ${activeTab === 'hours' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                    className={`px-6 py-3 font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'hours' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
                     <Clock className="w-4 h-4 inline mr-2" />
                     Horarios
                 </button>
                 <button
                     onClick={() => setActiveTab("delivery")}
-                    className={`px-6 py-3 font-medium border-b-2 transition-all ${activeTab === 'delivery' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                    className={`px-6 py-3 font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'delivery' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
                     <Truck className="w-4 h-4 inline mr-2" />
                     Delivery
                 </button>
                 <button
+                    onClick={() => setActiveTab("features")}
+                    className={`px-6 py-3 font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'features' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                >
+                    <CheckCircle className="w-4 h-4 inline mr-2" />
+                    Funcionalidades
+                </button>
+                <button
                     onClick={() => setActiveTab("instagram")}
-                    className={`px-6 py-3 font-medium border-b-2 transition-all ${activeTab === 'instagram' ? 'border-pink-500 text-pink-500' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                    className={`px-6 py-3 font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'instagram' ? 'border-pink-500 text-pink-500' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 >
                     <Instagram className="w-4 h-4 inline mr-2" />
                     Instagram
@@ -551,6 +615,47 @@ export default function AdminSettingsPage() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                )}
+
+                {activeTab === 'features' && (
+                    <div className="bg-card border border-white/10 rounded-2xl p-6 space-y-6">
+                        <div className="flex items-center gap-3 text-primary pb-3 border-b border-white/10">
+                            <Store className="w-6 h-6" />
+                            <h3 className="text-xl font-bold">Funcionalidades del Sitio</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                                <div>
+                                    <div className="font-bold">Combos en el Menú</div>
+                                    <div className="text-sm text-muted-foreground">Habilitar la sección de combos en la barra de navegación</div>
+                                </div>
+                                <button
+                                    onClick={() => setSettings({ ...settings, enable_combos: !settings.enable_combos })}
+                                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.enable_combos ? 'bg-green-500' : 'bg-gray-600'}`}
+                                >
+                                    <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.enable_combos ? 'translate-x-7' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={handleSaveFeatures}
+                            disabled={loading}
+                            className="gap-2 bg-primary text-white font-bold mt-6"
+                        >
+                            {loading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-4 h-4" /> Guardar Funcionalidades
+                                </>
+                            )}
+                        </Button>
                     </div>
                 )}
             </div>
