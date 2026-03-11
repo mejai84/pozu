@@ -105,6 +105,23 @@ function ProductView({ product }: { product: any }) {
                             </div>
                         )}
 
+                        {/* Alérgenos REALES de la DB */}
+                        {product.allergens && product.allergens.length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="font-bold flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded-full border-2 border-red-500/50 flex items-center justify-center text-[10px] font-black text-red-500">!</div>
+                                    Alérgenos
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.allergens.map((all: string, i: number) => (
+                                        <span key={i} className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-xs text-red-400 font-medium uppercase tracking-wider">
+                                            {all}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Info Nutricional Mock */}
                         <div className="grid grid-cols-4 gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
                             <div>

@@ -446,7 +446,7 @@ export default function ReportsPage() {
                                         <Tooltip
                                             contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
                                             labelStyle={{ color: '#888' }}
-                                            formatter={(value: number) => [`${value.toFixed(2)}€`, 'Ingresos']}
+                                            formatter={(value: any) => [`${Number(value || 0).toFixed(2)}€`, 'Ingresos']}
                                         />
                                         <Area
                                             type="monotone"
@@ -480,7 +480,7 @@ export default function ReportsPage() {
                                         <Tooltip
                                             cursor={{ fill: '#ffffff10' }}
                                             contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
-                                            formatter={(value: number) => [`${value.toFixed(2)}€`, 'Ingresos']}
+                                            formatter={(value: any) => [`${Number(value || 0).toFixed(2)}€`, 'Ingresos']}
                                         />
                                         <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                                     </BarChart>
@@ -513,7 +513,7 @@ export default function ReportsPage() {
                                         <Tooltip
                                             cursor={{ fill: '#ffffff10' }}
                                             contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
-                                            formatter={(value: number) => [value, 'Pedidos']}
+                                            formatter={(value: any) => [value || 0, 'Pedidos']}
                                         />
                                         <Bar dataKey="orders" fill="#ec4899" radius={[4, 4, 0, 0]} />
                                     </BarChart>

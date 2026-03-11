@@ -1,20 +1,8 @@
-import { Instagram, Facebook } from "lucide-react"
+import { Instagram, Facebook, Youtube, Music2 } from "lucide-react"
 
 export function Footer() {
     return (
-        <footer className="w-full relative z-10 pt-16 pb-8 text-white mt-12" style={{
-            backgroundImage: 'url(/images/texture-slate.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'bottom center',
-            boxShadow: '0 -10px 30px rgba(0,0,0,0.8)'
-        }}>
-            {/* Torn paper edge effect at the top */}
-            <div className="absolute -top-4 left-0 w-full h-8" style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1000 20\' preserveAspectRatio=\'none\'%3E%3Cpath d=\'M0,0 v20 q10,-10 20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 v-20 Z\' fill=\'%231A1A1A\'/%3E%3C/svg%3E")',
-                backgroundRepeat: 'repeat-x',
-                backgroundSize: '100% 100%'
-            }}></div>
-
+        <footer className="footer-dark w-full relative z-10 pt-16 pb-12 text-white mt-20 border-t border-white/5 bg-gradient-to-b from-[#111] to-black shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
             <div className="container mx-auto px-6 max-w-6xl relative z-10">
                 <div className="flex flex-col md:flex-row items-center justify-between text-[#E8E0D5] text-sm font-medium tracking-wide">
                     {/* Contact Info */}
@@ -25,11 +13,17 @@ export function Footer() {
 
                     {/* Socials */}
                     <div className="flex items-center gap-8 mb-4 md:mb-0">
-                        <a href="#" className="hover:text-primary transition-transform hover:scale-110">
-                            <Facebook className="w-5 h-5" fill="currentColor" />
+                        <a href="https://www.facebook.com/pozu2.0" target="_blank" rel="noreferrer" className="hover:text-primary transition-all hover:scale-110 group">
+                            <Facebook className="w-6 h-6 group-hover:drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" fill="currentColor" />
                         </a>
-                        <a href="#" className="hover:text-primary transition-transform hover:scale-110">
-                            <Instagram className="w-5 h-5" />
+                        <a href="https://www.instagram.com/el_pozu_2.0/?hl=es" target="_blank" rel="noreferrer" className="hover:text-primary transition-all hover:scale-110 group">
+                            <Instagram className="w-6 h-6 group-hover:drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                        </a>
+                        <a href="#" target="_blank" rel="noreferrer" className="hover:text-primary transition-all hover:scale-110 group">
+                            <Youtube className="w-6 h-6 group-hover:drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                        </a>
+                        <a href="https://www.tiktok.com/@el_pozu_2.0" target="_blank" rel="noreferrer" className="hover:text-primary transition-all hover:scale-110 group">
+                            <Music2 className="w-6 h-6 group-hover:drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
                         </a>
                     </div>
 

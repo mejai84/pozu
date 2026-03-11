@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { User as SupabaseUser } from "@supabase/supabase-js"
+import { motion } from "framer-motion"
 
 export function Navbar() {
     const { toggleCart, cartCount } = useCart()
@@ -93,27 +94,13 @@ export function Navbar() {
 
     const navLinks: { href: string; label: string; hasDropdown?: boolean }[] = [
         { href: "/menu", label: "Menú" },
-        { href: "/menu", label: "Pedidos Online" },
         { href: "/promos", label: "Promos" },
         { href: "/ubicacion", label: "Ubicación" },
     ]
 
     return (
         <>
-            <nav className="fixed top-0 w-full z-50 text-white" style={{
-                backgroundImage: 'url(/images/texture-slate.png)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'top center',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.8)'
-            }}>
-                {/* Torn paper edge effect at the bottom */}
-                <div className="absolute -bottom-4 left-0 w-full h-8" style={{
-                    backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1000 20\' preserveAspectRatio=\'none\'%3E%3Cpath d=\'M0,0 v20 q10,-10 20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 v-20 Z\' fill=\'%231A1A1A\'/%3E%3C/svg%3E")',
-                    backgroundRepeat: 'repeat-x',
-                    backgroundSize: '100% 100%',
-                    transform: 'rotate(180deg)'
-                }}></div>
-
+            <nav className="fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/5 bg-gradient-to-b from-black to-[#111] shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
                 <div className="container mx-auto px-6 pt-4 pb-8 flex items-center justify-between relative z-10">
                     <Link href="/" className="flex items-center gap-3 group">
                         <Image
@@ -139,12 +126,21 @@ export function Navbar() {
                                 <Link
                                     href={link.href}
                                     className={cn(
-                                        "px-4 py-2 hover:text-foreground transition-colors flex items-center gap-1 rounded-full hover:bg-white/5",
-                                        isActive(link.href) && "text-primary hover:text-primary bg-primary/5"
+                                        "px-4 py-2 text-white hover:text-white transition-all flex items-center gap-1 rounded-full hover:bg-white/10 relative group/nav",
+                                        isActive(link.href) && "text-primary hover:text-primary bg-primary/10 shadow-[0_0_20px_rgba(234,179,8,0.1)]"
                                     )}
                                 >
-                                    {link.label}
-                                    {link.hasDropdown && <ChevronDown className={cn("w-4 h-4 transition-transform", isProductMenuOpen && "rotate-180")} />}
+                                    <span className="relative z-10 transition-transform group-hover/nav:scale-105">{link.label}</span>
+                                    {link.hasDropdown && <ChevronDown className={cn("w-4 h-4 transition-transform z-10", isProductMenuOpen && "rotate-180")} />}
+                                    
+                                    {isActive(link.href) && (
+                                        <motion.div 
+                                            layoutId="activeNav"
+                                            className="absolute inset-0 bg-primary/5 rounded-full"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 opacity-0 group-hover/nav:opacity-100 bg-gradient-to-r from-transparent via-white/5 to-transparent transition-opacity duration-700 -translate-x-full group-hover/nav:translate-x-full pointer-events-none" />
                                 </Link>
 
                                 {link.hasDropdown && (
@@ -232,8 +228,9 @@ export function Navbar() {
                             )}
                         </Button>
                         <Link href="/menu" className="hidden md:block">
-                            <button className="font-black text-xl rounded-full neon-border text-primary px-8 py-2 hover:bg-primary hover:text-black transition-all uppercase tracking-wider neon-text-glow">
-                                PIDE YA!
+                            <button className="relative overflow-hidden font-black text-xl rounded-full neon-border text-primary px-8 py-2 hover:bg-primary hover:text-black transition-all uppercase tracking-wider neon-text-glow group">
+                                <span className="relative z-10">PIDE YA!</span>
+                                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
                             </button>
                         </Link>
                         <Button

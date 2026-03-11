@@ -23,21 +23,20 @@ export default function Home() {
         <Navbar />
       </div>
 
-      <main className="flex-1 relative z-10 flex flex-col justify-center container mx-auto px-6 lg:px-12 pt-10 pb-20">
+      <main className="flex-1 relative z-10 flex flex-col justify-center container mx-auto px-6 lg:px-12 pt-24 pb-20">
         
         {/* Hero Section */}
-        <div className="grid lg:grid-cols-[1.2fr_1fr] gap-8 items-center mt-10 lg:mt-0">
+        <div className="grid lg:grid-cols-[1.2fr_1fr] gap-8 items-center mt-12 lg:mt-4">
           
           {/* Left Side: Headlines */}
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col gap-6 max-w-3xl"
+            className="flex flex-col gap-6 max-w-3xl relative z-30"
           >
             <h1 
-              className="text-[2.8rem] md:text-[5rem] lg:text-[5.5rem] leading-[0.95] font-black uppercase tracking-tight text-[#E8E0D5] text-center lg:text-left"
-              style={{ textShadow: "4px 4px 8px rgba(0,0,0,0.7)" }}
+              className="text-[2.8rem] md:text-[5rem] lg:text-[5.5rem] leading-[0.95] font-black uppercase tracking-tight text-[#E8E0D5] text-center lg:text-left drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
             >
               Las mejores<br className="hidden sm:block" />
               hamburguesas<br className="hidden sm:block" />
@@ -48,11 +47,12 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="flex justify-center lg:justify-start mt-4"
+              className="flex justify-center lg:justify-start mt-6"
             >
               <Link href="/menu">
-                <button className="font-black text-2xl rounded-full neon-border text-primary px-10 py-4 hover:bg-primary hover:text-black transition-all uppercase tracking-wider neon-text-glow">
-                  Ver la Carta
+                <button className="relative overflow-hidden font-black text-2xl rounded-full neon-border text-primary px-12 py-5 hover:bg-primary hover:text-black hover:shadow-[0_0_40px_rgba(234,179,8,0.5)] transition-all active:scale-95 group uppercase tracking-widest neon-text-glow">
+                  <span className="relative z-10">Ver la Carta</span>
+                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
                 </button>
               </Link>
             </motion.div>
@@ -82,7 +82,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-          className="grid md:grid-cols-3 gap-6 mt-12 lg:-mt-12 z-20 relative max-w-5xl"
+          className="grid md:grid-cols-3 gap-6 mt-12 lg:mt-6 z-20 relative max-w-5xl"
         >
           {/* Card 1 */}
           <div className="bg-[#1A1A1A] border-2 border-white/60 rounded-3xl p-4 flex gap-4 items-center shadow-2xl hover:border-white transition-colors group">
