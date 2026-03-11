@@ -299,7 +299,7 @@ pozu/
    NEXT_PUBLIC_SUPABASE_URL
    NEXT_PUBLIC_SUPABASE_ANON_KEY
    ```
-3. **Deploy automático** en cada push a main
+3. **Deploy automático** en cada push a main (rama principal)
 
 ### Supabase:
 
@@ -401,9 +401,9 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 - [x] Configuración persistente
 - [x] Exportación de datos
 
-**Versión:** 2.0  
-**Última actualización:** 2026-01-20  
-**Estado:** ✅ Producción Ready
+**Versión:** 2.2  
+**Última actualización:** 2026-03-11  
+**Estado:** ✅ Producción Live (Rama `main`) 🚀
 
 ---
 
