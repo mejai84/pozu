@@ -131,7 +131,7 @@ export function Navbar() {
                     <div className="hidden md:flex items-center gap-4 text-sm font-medium text-muted-foreground">
                         {navLinks.map((link) => (
                             <div
-                                key={link.href}
+                                key={link.label}
                                 className="relative group/link"
                                 onMouseEnter={() => link.hasDropdown && setIsProductMenuOpen(true)}
                                 onMouseLeave={() => link.hasDropdown && setIsProductMenuOpen(false)}
@@ -269,7 +269,7 @@ export function Navbar() {
                         <div className="grid gap-3">
                             {navLinks.map((link) => (
                                 <Link
-                                    key={link.href}
+                                    key={link.label}
                                     href={link.href}
                                     onClick={() => setIsMenuOpen(false)}
                                     className={cn(
