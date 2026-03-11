@@ -14,6 +14,7 @@ export type Product = {
     image?: string;
     ingredients?: string[];
     badge?: string;
+    allergens?: string[];
 };
 
 export const categories: Category[] = [
@@ -33,7 +34,8 @@ export const products: Product[] = [
         price: 12.00,
         ingredients: ['Pan americano', 'Huevo', 'Tomate', 'Bacon', 'Queso cheddar', 'Carne 100% ternera asturiana', 'Salsa especial Pozu', 'Lechuga'],
         image: "/images/burgers/pozu.png",
-        badge: "Best Seller"
+        badge: "Best Seller",
+        allergens: ['gluten', 'huevos', 'lácteos', 'mostaza']
     },
     {
         id: "gourmet",
@@ -42,7 +44,8 @@ export const products: Product[] = [
         price: 12.00,
         ingredients: ['Cebolla caramelizada', 'Queso de cabra', 'Tomate', 'Bacon', 'Carne 100% ternera asturiana', 'Lechuga'],
         image: "/images/burgers/gourmet.png",
-        badge: "Chef's Choice"
+        badge: "Chef's Choice",
+        allergens: ['lácteos', 'sulfitos']
     },
     {
         id: "selecta",
@@ -50,7 +53,8 @@ export const products: Product[] = [
         name: "Selecta",
         price: 12.00,
         ingredients: ['Cebolla a la plancha', 'Tomate', 'Salsa barbacoa ahumada', 'Bacon', 'Queso cheddar', 'Carne 100% ternera asturiana', 'Lechuga'],
-        image: "/images/burgers/selecta.png"
+        image: "/images/burgers/selecta.png",
+        allergens: ['mostaza', 'soja', 'lácteos']
     },
     {
         id: "oikos",

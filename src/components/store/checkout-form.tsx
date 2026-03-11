@@ -7,12 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Loader2, CreditCard, Banknote } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
+import Link from "next/link"
+import { useEffect } from "react"
 
 export function CheckoutForm() {
     const { items, cartTotal, clearCart } = useCart()
     const [loading, setLoading] = useState(false)
     const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe')
+    const [user, setUser] = useState<any>(null)
     const router = useRouter()
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user || null)
+        })
+    }, [])
 
     // Form fields
     const [formData, setFormData] = useState({
@@ -142,16 +151,23 @@ export function CheckoutForm() {
 
             {/* Formulario */}
             <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Datos de Entrega</h2>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h2 className="text-2xl font-bold">Datos de Entrega</h2>
+                    {!user && (
+                        <Link href="/login" className="text-primary text-sm font-bold hover:underline">
+                            ¿Ya tienes cuenta? Inicia sesión
+                        </Link>
+                    )}
+                </div>
                 <form onSubmit={handleCheckout} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                        <input name="firstName" onChange={handleInputChange} placeholder="Nombre" className="bg-white/5 border border-white/10 rounded-lg p-3 w-full" required />
-                        <input name="lastName" onChange={handleInputChange} placeholder="Apellidos" className="bg-white/5 border border-white/10 rounded-lg p-3 w-full" required />
+                        <input name="firstName" onChange={handleInputChange} placeholder="Nombre" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
+                        <input name="lastName" onChange={handleInputChange} placeholder="Apellidos" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
                     </div>
-                    <input name="address" onChange={handleInputChange} placeholder="Dirección completa" className="bg-white/5 border border-white/10 rounded-lg p-3 w-full" required />
+                    <input name="address" onChange={handleInputChange} placeholder="Dirección completa (Calle, número, piso...)" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
                     <div className="grid grid-cols-2 gap-4">
-                        <input name="city" onChange={handleInputChange} placeholder="Ciudad" className="bg-white/5 border border-white/10 rounded-lg p-3 w-full" required />
-                        <input name="phone" onChange={handleInputChange} placeholder="Teléfono" className="bg-white/5 border border-white/10 rounded-lg p-3 w-full" required />
+                        <input name="city" onChange={handleInputChange} placeholder="Ciudad" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
+                        <input name="phone" onChange={handleInputChange} placeholder="Teléfono móvil" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
                     </div>
 
                     <div className="space-y-3">

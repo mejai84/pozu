@@ -334,10 +334,39 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 - ✅ **UI moderna y responsiva**
 - ✅ **Real-time en toda la aplicación**
 
-**Todo listo para producción! 🚀**
+### 9. **Rediseño Estético "Golden Neon" (Marzo 2026)** ⭐ NUEVO
+**Ubicación:** Todo el sitio público (Home, Menú, Pedidos)
+
+**Funcionalidades:**
+- ✅ **Paleta de Colores**: Transición a un esquema de color dorado/amarillo neón (`#FFB800`).
+- ✅ **Efecto Neón Avanzado**: Implementación de clases CSS `neon-border` y `neon-text-glow` con brillo interior y exterior.
+- ✅ **Texturas Orgánicas**: 
+  - Fondo de pizarra (slate) en Header y Footer con efecto de borde rasgado (SVG mask).
+  - Fondo de madera oscura rústica en el cuerpo de la web con profundidad radial.
+- ✅ **Diseño Responsivo Total**: Adaptación de layouts, tamaños de fuente e imágenes para PC, Tablets y Móviles.
+- ✅ **Páginas de Destino**: Creación de `/pedidos`, `/promos` y `/ubicacion` con identidad visual unificada.
+
+### 10. **Sistema de Alérgenos** 🧪 ⭐ NUEVO
+**Ubicación:** `src/lib/data.ts` y tarjetas de producto
+
+**Funcionalidades:**
+- ✅ **Gestión de Datos**: Inclusión de campo `allergens` en la estructura de productos.
+- ✅ **Visualización UI**: Iconos circulares interactivos en las tarjetas de producto que indican presencia de Gluten, Lácteos, Huevos, etc.
+- ✅ **Tooltips Informativos**: Identificación clara del alérgeno al pasar el cursor.
 
 ---
 
-*Documento creado: 2026-01-20*
-*Versión: 2.0*
-*Estado: Implementación Completa*
+## ⚡ Optimizaciones
+- Reducción de carga visual mediante texturas sutiles.
+- Mejora de conversiones activando enlaces directos de "Pide Ya" hacia `/pedidos`.
+- Optimización de imágenes con drop-shadows realistas.
+
+---
+
+## 📌 Notas de Versión
+*Última Actualización: 11 de Marzo de 2026*
+*Versión: 2.1*
+*Estado: Rediseño Premium Implementado*
+
+**Todo listo para producción en Vercel! 🚀**
+

@@ -34,8 +34,8 @@
   --popover: #1A1A1A;
   --popover-foreground: #FFFFFF;
   
-  --primary: #FF6B35;
-  --primary-foreground: #FFFFFF;
+  --primary: #FFB800;
+  --primary-foreground: #000000;
   
   --secondary: #FFD23F;
   --secondary-foreground: #0D0D0D;
@@ -43,24 +43,38 @@
   --muted: #262626;
   --muted-foreground: #A0A0A0;
   
-  --accent: #FF6B35;
-  --accent-foreground: #FFFFFF;
+  --accent: #FFB800;
+  --accent-foreground: #000000;
   
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
 
   --border: #262626;
   --input: #262626;
-  --ring: #FF6B35;
+  --ring: #FFB800;
   
   --radius: 0.75rem;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background: radial-gradient(circle at top, #1a1a1a 0%, #0d0d0d 100%);
+  background-attachment: fixed;
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("https://www.transparenttextures.com/patterns/dark-wood.png");
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* Glassmorphism utility */
@@ -71,7 +85,22 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(to right, #FF6B35, #FFD23F);
+  background: linear-gradient(to right, #FFB800, #FFD23F);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Custom Neon Utilities */
+.neon-border {
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 15px rgba(255, 184, 0, 0.4), inset 0 0 10px rgba(255, 184, 0, 0.2);
+}
+
+.neon-border:hover {
+  box-shadow: 0 0 25px rgba(255, 184, 0, 0.6), inset 0 0 15px rgba(255, 184, 0, 0.4);
+}
+
+.neon-text-glow {
+  text-shadow: 0 0 10px rgba(255, 184, 0, 0.6);
 }

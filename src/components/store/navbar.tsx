@@ -92,25 +92,38 @@ export function Navbar() {
     const isActive = (path: string) => pathname === path
 
     const navLinks: { href: string; label: string; hasDropdown?: boolean }[] = [
-        { href: "/", label: "Inicio" },
         { href: "/menu", label: "Menú" },
-        ...(showCombos ? [{ href: "/combos", label: "Combos" }] : []),
-        { href: "/nosotros", label: "Nosotros" },
+        { href: "/menu", label: "Pedidos Online" },
+        { href: "/promos", label: "Promos" },
+        { href: "/ubicacion", label: "Ubicación" },
     ]
 
     return (
         <>
-            <nav className="fixed top-0 w-full z-50 glass border-b border-white/5">
-                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+            <nav className="fixed top-0 w-full z-50 text-white" style={{
+                backgroundImage: 'url(/images/texture-slate.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'top center',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.8)'
+            }}>
+                {/* Torn paper edge effect at the bottom */}
+                <div className="absolute -bottom-4 left-0 w-full h-8" style={{
+                    backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1000 20\' preserveAspectRatio=\'none\'%3E%3Cpath d=\'M0,0 v20 q10,-10 20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 t20,10 t20,-5 t20,8 t20,-8 t20,10 t20,-5 t20,5 t20,-10 t20,5 t20,-5 t20,10 t20,-10 t20,8 t20,-8 t20,5 t20,-10 v-20 Z\' fill=\'%231A1A1A\'/%3E%3C/svg%3E")',
+                    backgroundRepeat: 'repeat-x',
+                    backgroundSize: '100% 100%',
+                    transform: 'rotate(180deg)'
+                }}></div>
+
+                <div className="container mx-auto px-6 pt-4 pb-8 flex items-center justify-between relative z-10">
                     <Link href="/" className="flex items-center gap-3 group">
                         <Image
                             src="/images/logo.jpg"
                             alt="Pozu 2.0 Logo"
-                            width={48}
-                            height={48}
-                            className="rounded-full border-2 border-white/10 group-hover:border-primary/50 transition-colors"
+                            width={64}
+                            height={64}
+                            className="rounded-full group-hover:scale-105 transition-transform"
                         />
-                        <span className="text-2xl font-bold tracking-tighter text-gradient">
+                        <span className="text-2xl font-black uppercase tracking-tighter text-[#E8E0D5]">
                             POZU 2.0
                         </span>
                     </Link>
@@ -219,9 +232,9 @@ export function Navbar() {
                             )}
                         </Button>
                         <Link href="/menu" className="hidden md:block">
-                            <Button className="font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform bg-primary hover:bg-primary/90">
-                                Hacer Pedido
-                            </Button>
+                            <button className="font-black text-xl rounded-full neon-border text-primary px-8 py-2 hover:bg-primary hover:text-black transition-all uppercase tracking-wider neon-text-glow">
+                                PIDE YA!
+                            </button>
                         </Link>
                         <Button
                             variant="ghost"

@@ -37,12 +37,26 @@ export function ProductCard({ product }: { product: Product }) {
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
                         {product.ingredients?.join(", ") || product.description}
                     </p>
+
+                    {product.allergens && (
+                        <div className="flex gap-1.5 mt-3">
+                            {product.allergens.map(allergen => (
+                                <span 
+                                    key={allergen} 
+                                    title={allergen}
+                                    className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] uppercase font-bold text-muted-foreground border border-white/5 hover:border-primary/50 transition-colors cursor-help"
+                                >
+                                    {allergen[0]}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </Link>
 
                 <Button
                     className="w-full mt-4 group-hover:bg-primary group-hover:text-white transition-all bg-card border border-white/10 hover:border-primary z-20 relative"
                     onClick={(e) => {
-                        e.preventDefault(); // Evitar navegación si se hace clic en el botón
+                        e.preventDefault(); 
                         addItem(product);
                     }}
                 >

@@ -13,11 +13,17 @@ export default function LoginPage() {
                     <div className="text-center space-y-2">
                         <h1 className="text-3xl font-bold tracking-tight">Bienvenido a Pozu</h1>
                         <p className="text-muted-foreground">
-                            Ingresa tu correo para hacer un pedido o ver el estado de tu compra.
+                            Identifícate para acumular puntos o ver el estado de tus pedidos.
                         </p>
                     </div>
 
                     <AuthForm />
+
+                    <div className="pt-4 border-t border-white/5 w-full text-center">
+                        <Link href="/menu" className="text-primary font-bold hover:underline">
+                            Continuar a la carta sin registrarse
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
