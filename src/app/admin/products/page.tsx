@@ -28,19 +28,19 @@ export default function AdminProductsPage() {
     const [editingId, setEditingId] = useState<string | null>(null) // ID del producto a editar
 
     // Form State
-    const [formData, setFormData] = useState<Partial<Product>>({
+    const [formData, setFormData] = useState<Partial<Product> & { video_url?: string }>({
         name: '',
         price: 0,
         category_id: 'cat_burgers',
         description: '',
         image_url: '',
+        video_url: '',
         ingredients: []
     })
 
     // Cargar productos
     const fetchProducts = async () => {
         setLoading(true)
-        // Traemos TODO y filtramos en cliente o traemos según el estado
         const { data, error } = await supabase
             .from('products')
             .select('*')
@@ -57,7 +57,7 @@ export default function AdminProductsPage() {
     }, [])
 
     // Preparar edición
-    const handleEdit = (product: Product) => {
+    const handleEdit = (product: any) => {
         setEditingId(product.id)
         setFormData({
             name: product.name,
@@ -65,6 +65,7 @@ export default function AdminProductsPage() {
             category_id: product.category_id,
             description: product.description,
             image_url: product.image_url,
+            video_url: product.options?.video_url || '',
             ingredients: product.ingredients
         })
         setIsEditing(true)
@@ -73,7 +74,7 @@ export default function AdminProductsPage() {
     // Resetear form
     const resetForm = () => {
         setEditingId(null)
-        setFormData({ name: '', price: 0, category_id: 'cat_burgers', description: '', image_url: '', ingredients: [] })
+        setFormData({ name: '', price: 0, category_id: 'cat_burgers', description: '', image_url: '', video_url: '', ingredients: [] })
         setIsEditing(false)
     }
 
@@ -87,17 +88,18 @@ export default function AdminProductsPage() {
             category_id: formData.category_id,
             description: formData.description,
             image_url: formData.image_url,
-            ingredients: Array.isArray(formData.ingredients) ? formData.ingredients : []
+            ingredients: Array.isArray(formData.ingredients) ? formData.ingredients : [],
+            options: {
+                video_url: formData.video_url || null
+            }
         }
 
         let error;
 
         if (editingId) {
-            // UPDATE
             const res = await supabase.from('products').update(productData).eq('id', editingId)
             error = res.error
         } else {
-            // INSERT
             const res = await supabase.from('products').insert([productData])
             error = res.error
         }
@@ -114,14 +116,12 @@ export default function AdminProductsPage() {
     const handleDelete = async (id: string) => {
         if (!confirm("¿Mover este producto a la papelera?")) return
 
-        // Actualizamos deleted_at a la fecha actual
         const { error } = await supabase
             .from('products')
             .update({ deleted_at: new Date().toISOString() })
             .eq('id', id)
 
         if (error) {
-            // Fallback si no existe la columna deleted_at (para evitar bloqueo si el usuario no ejecutó el SQL)
             if (error.message.includes('deleted_at')) {
                 if (confirm("La columna 'deleted_at' no existe. ¿Quieres borrarlo permanentemente?")) {
                     await supabase.from('products').delete().eq('id', id)
@@ -178,7 +178,7 @@ export default function AdminProductsPage() {
             {/* Editor Overlay (Modal) */}
             {isEditing && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-card w-full max-w-lg rounded-3xl border border-white/10 p-6 shadow-2xl animate-in zoom-in-95 duration-200 lg:max-w-2xl">
+                    <div className="bg-card w-full max-w-lg rounded-3xl border border-white/10 p-6 shadow-2xl animate-in zoom-in-95 duration-200 lg:max-w-3xl">
                         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
                             <h2 className="text-xl font-bold">
                                 {editingId ? 'Editar Producto' : 'Nuevo Producto'}
@@ -188,7 +188,7 @@ export default function AdminProductsPage() {
                             </Button>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-6">
+                        <div className="grid md:grid-cols-2 gap-6 overflow-y-auto max-h-[70vh] pr-2">
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Nombre</label>
@@ -220,22 +220,61 @@ export default function AdminProductsPage() {
                                         ))}
                                     </select>
                                 </div>
-                            </div>
 
-                            <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">URL de Imagen</label>
+                                    <label className="text-sm font-medium">URL de Imagen (PNG/JPG)</label>
                                     <input
                                         className="w-full h-10 px-3 rounded-lg bg-white/5 border border-white/10"
                                         value={formData.image_url || ''}
                                         onChange={e => setFormData({ ...formData, image_url: e.target.value })}
                                         placeholder="/images/burgers/pozu.png"
                                     />
-                                    {formData.image_url && (
-                                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/10 mt-2">
-                                            <Image src={formData.image_url} alt="Preview" fill className="object-cover" />
+                                    {formData.image_url && !formData.image_url.match(/\.(webm|mp4)$/i) && (
+                                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/10 mt-2 bg-black/20">
+                                            <Image src={formData.image_url} alt="Preview" fill className="object-contain" />
                                         </div>
                                     )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-primary">URL del Video (WEBM - Opcional)</label>
+                                    <input
+                                        className="w-full h-10 px-3 rounded-lg bg-white/5 border border-primary/20 focus:border-primary transition-colors"
+                                        value={formData.video_url || ''}
+                                        onChange={e => setFormData({ ...formData, video_url: e.target.value })}
+                                        placeholder="/images/burgers/pozu.webm"
+                                    />
+                                    {formData.video_url && (
+                                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-primary/20 mt-2 bg-black/20">
+                                            <video src={formData.video_url} autoPlay loop muted playsInline className="w-full h-full object-contain" />
+                                        </div>
+                                    )}
+                                    <p className="text-[10px] text-muted-foreground">Si subes un video, se mostrará como contenido principal y la imagen quedará como miniatura.</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Ingredientes (separados por coma)</label>
+                                    <textarea
+                                        className="w-full h-20 p-3 rounded-lg bg-white/5 border border-white/10 resize-none text-sm"
+                                        value={Array.isArray(formData.ingredients) ? formData.ingredients.join(', ') : ''}
+                                        onChange={e => setFormData({
+                                            ...formData,
+                                            ingredients: e.target.value.split(',').map(i => i.trim()).filter(i => i !== '')
+                                        })}
+                                        placeholder="Ej: Ternera, Queso, Bacon"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Descripción Corta</label>
+                                    <textarea
+                                        className="w-full h-20 p-3 rounded-lg bg-white/5 border border-white/10 resize-none text-sm"
+                                        value={formData.description || ''}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                        placeholder="Descripción para el cliente..."
+                                    />
                                 </div>
                             </div>
                         </div>

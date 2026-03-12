@@ -14,7 +14,10 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="group relative bg-card border border-white/5 rounded-3xl p-4 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 flex flex-col h-full">
             <Link href={`/producto/${product.id}`} className="block relative aspect-square mb-6 overflow-hidden rounded-2xl bg-white/5 cursor-pointer">
                 <Image
-                    src={product.image || "/images/placeholder.png"}
+                    src={product.image?.toLowerCase().endsWith('.webm') 
+                        ? product.image.replace(/\.webm$/i, '.png').toLowerCase() 
+                        : (product.image || "/images/placeholder.png")
+                    }
                     alt={product.name}
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-500"

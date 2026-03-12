@@ -5,10 +5,12 @@ import Link from "next/link";
 import { Navbar } from "@/components/store/navbar";
 import { motion } from "framer-motion";
 import { Mic } from "lucide-react";
+import { Preloader } from "@/components/ui/preloader";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col relative overflow-hidden font-sans">
+      <Preloader />
       {/* Texture overlay for slate effect */}
       <div 
         className="absolute inset-0 z-0 opacity-40 pointer-events-none mix-blend-overlay" 

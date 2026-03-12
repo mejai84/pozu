@@ -71,7 +71,7 @@ export const products: Product[] = [
         name: "Cielito Lindo",
         price: 12.00,
         ingredients: ['Cebolla Roja', 'Jalapeños', 'Aguacate', 'Tomate', 'Bacon', 'Queso', 'Carne 100% Ternera Asturiana', 'Lechuga'],
-        image: "/images/placeholder.png"
+        image: "/images/burgers/cielito.png"
     },
     {
         id: "everest",
