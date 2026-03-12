@@ -1,3 +1,5 @@
+"use client"
+
 import { Navbar } from "@/components/store/navbar"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Home, ShoppingCart } from "lucide-react"

@@ -13,28 +13,28 @@ export default function Home() {
     <div className="min-h-screen bg-[#111111] flex flex-col relative overflow-hidden font-sans">
       <Preloader />
       {/* Texture overlay */}
-      <div 
-        className="absolute inset-0 z-0 opacity-40 pointer-events-none mix-blend-overlay" 
-        style={{ 
+      <div
+        className="absolute inset-0 z-0 opacity-40 pointer-events-none mix-blend-overlay"
+        style={{
           backgroundImage: 'radial-gradient(ellipse at top, #333333 0%, #0a0a0a 100%)',
           boxShadow: 'inset 0 0 100px rgba(0,0,0,0.8)'
         }}
       />
-      
+
       {/* Top Navigation */}
       <div className="z-50 relative">
         <Navbar />
       </div>
 
       <main className="flex-1 relative z-10 flex flex-col items-center pt-0 pb-24 sm:pb-32 w-full overflow-x-hidden">
-        
+
         {/* Hero Section - Animation First, Centered Content Layout */}
         <div className="flex flex-col items-center -mt-32 sm:-mt-40 lg:-mt-48 relative w-full pt-0 bg-transparent min-h-[120vh]">
-          
+
           {/* Background Pattern Overlay - Subtle & Expansive */}
-          <div 
+          <div
             className="absolute inset-x-0 -top-80 h-[150%] z-0 opacity-10 pointer-events-none mix-blend-screen"
-            style={{ 
+            style={{
               backgroundImage: 'url("/images/hero-bg-pattern.png")',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
@@ -43,14 +43,14 @@ export default function Home() {
 
           {/* 1. MEGA BURGER ANIMATION (TOP) */}
           <div className="relative w-screen left-1/2 -translate-x-1/2 flex justify-center items-center z-10 overflow-visible">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 50 }}
               animate={{ opacity: 1, scale: 1.1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="w-full max-w-[1500px] aspect-[4/3] sm:aspect-square flex items-center justify-center relative px-4"
             >
               <ScrollVideo />
-              
+
               {/* Massive Glow behind the burger */}
               <div className="absolute inset-0 bg-primary/10 rounded-full blur-[180px] -z-10 scale-150 opacity-40 animate-pulse" />
             </motion.div>
@@ -58,7 +58,7 @@ export default function Home() {
 
           {/* 2. REORGANIZED CENTERED TEXT (BELOW BURGER) */}
           <div className="flex flex-col items-center -mt-8 sm:-mt-20 lg:-mt-32 z-30 relative px-4 max-w-5xl text-center">
-            
+
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -69,7 +69,7 @@ export default function Home() {
                 POZU 2.0<br />
                 <span className="text-gradient italic">ROCK & BURGER</span>
               </h1>
-              
+
               <p className="text-[#E8E0D5]/60 text-sm sm:text-base font-bold uppercase tracking-[0.4em] max-w-2xl mx-auto">
                 No es solo una comida, es un vicio artesanal
               </p>
@@ -117,7 +117,7 @@ export default function Home() {
         <div className="h-24 sm:h-32 lg:h-48" />
 
         {/* 3 Interactive Cards - Enhanced & Functional */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -130,7 +130,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex flex-col items-center sm:items-start text-center sm:text-left z-10">
                 <h3 className="text-[#E8E0D5] font-black text-4xl sm:text-5xl uppercase mb-2 group-hover:text-primary transition-colors tracking-tighter">
-                  Smash<br/>Legendarias
+                  Smash<br />Legendarias
                 </h3>
                 <p className="text-muted-foreground font-medium mb-6 max-w-[250px]">
                   Carne 100% vacuno aplastada a la perfección. Costra crujiente, interior jugoso.
@@ -140,11 +140,11 @@ export default function Home() {
                 </div>
               </div>
               <div className="w-36 h-36 lg:w-48 lg:h-48 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
-                <Image 
-                  src="/images/burgers/pozu.png" 
-                  alt="Burgers" 
-                  fill 
-                  className="object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-transform duration-700" 
+                <Image
+                  src="/images/burgers/pozu.png"
+                  alt="Burgers"
+                  fill
+                  className="object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-transform duration-700"
                 />
               </div>
             </div>
@@ -156,18 +156,18 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex flex-col items-start gap-4 z-10">
                 <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase leading-[1] group-hover:text-primary transition-colors tracking-tighter">
-                  Entrantes<br/>Canallas
+                  Entrantes<br />Canallas
                 </h3>
                 <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
                   PICOTEO DEL BUENO
                 </div>
               </div>
               <div className="w-28 h-28 sm:w-36 sm:h-36 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
-                <Image 
-                  src="/images/burgers/pozu.png" 
-                  alt="Sides" 
-                  fill 
-                  className="object-contain grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-all duration-700" 
+                <Image
+                  src="/images/burgers/pozu.png"
+                  alt="Sides"
+                  fill
+                  className="object-contain grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-all duration-700"
                 />
               </div>
             </div>
@@ -179,18 +179,18 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex flex-col items-start gap-4 z-10">
                 <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase leading-[1] group-hover:text-primary transition-colors tracking-tighter">
-                  Combos<br/>Para Arrasar
+                  Combos<br />Para Arrasar
                 </h3>
                 <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
                   SALIR RODANDO
                 </div>
               </div>
               <div className="w-28 h-28 sm:w-36 sm:h-36 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
-                <Image 
-                  src="/images/burgers/pozu.png" 
-                  alt="Combos" 
-                  fill 
-                  className="object-contain sepia brightness-90 group-hover:sepia-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-all duration-700" 
+                <Image
+                  src="/images/burgers/pozu.png"
+                  alt="Combos"
+                  fill
+                  className="object-contain sepia brightness-90 group-hover:sepia-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-all duration-700"
                 />
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function Home() {
         {/* --- SECCIÓN CHOLLOS (PROMOS) --- */}
         <section id="promos" className="py-12 sm:py-24 relative overflow-hidden">
           <div className="container mx-auto px-6 max-w-6xl">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -216,7 +216,7 @@ export default function Home() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Promo 1 */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
@@ -238,7 +238,7 @@ export default function Home() {
               </motion.div>
 
               {/* Promo 2 */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -263,7 +263,7 @@ export default function Home() {
               </motion.div>
 
               {/* Promo 3 */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
@@ -290,7 +290,7 @@ export default function Home() {
         {/* --- SECCIÓN UBICACIÓN (POZU CERCA) --- */}
         <section id="ubicacion" className="py-24 relative overflow-hidden bg-white/[0.02]">
           <div className="container mx-auto px-6 max-w-7xl text-center">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -307,7 +307,7 @@ export default function Home() {
             <div className="grid lg:grid-cols-3 gap-8 text-left">
               {/* Info Card */}
               <div className="lg:col-span-1 space-y-6">
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -320,7 +320,7 @@ export default function Home() {
                   <p className="text-muted-foreground text-sm uppercase font-bold tracking-tight">C. Río Cares, 2<br />33980 Pola de Laviana<br />Asturias, España</p>
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -334,7 +334,7 @@ export default function Home() {
                   <p className="text-muted-foreground text-sm uppercase font-bold tracking-tight">Martes a Domingo:<br />19:30 - 23:30<br /><br />Lunes: Cerrado por descanso</p>
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -350,7 +350,7 @@ export default function Home() {
               </div>
 
               {/* Google Map */}
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -374,10 +374,10 @@ export default function Home() {
 
       {/* Floating Buttons */}
       <div className="fixed bottom-6 sm:bottom-24 right-4 sm:right-6 flex flex-col gap-3 sm:gap-4 z-50 items-end">
-        <a 
-          href="https://wa.me/34600000000" 
-          target="_blank" 
-          rel="noreferrer" 
+        <a
+          href="https://wa.me/34600000000"
+          target="_blank"
+          rel="noreferrer"
           className="w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] rounded-full shadow-[0_0_20px_rgba(37,211,102,0.4)] flex items-center justify-center hover:scale-110 transition-transform cursor-pointer border border-white/20"
         >
           <svg viewBox="0 0 24 24" className="w-6 h-6 sm:w-7 sm:h-7 fill-white">
