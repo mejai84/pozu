@@ -11,7 +11,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import { AddToCartButton } from "@/components/store/add-to-cart-button"
 import { Button } from "@/components/ui/button"
-import { ProductPlaceholder } from "@/components/store/product-placeholder"
+import { ProductImage } from "@/components/store/product-image"
 
 
 export function ProductView({ product }: { product: any }) {
@@ -74,7 +74,6 @@ export function ProductView({ product }: { product: any }) {
 
                         return (
                             <div className="relative w-full h-full">
-                                {/* Medio Principal (Video, Imagen o Placeholder) */}
                                 {isVideo ? (
                                     <video
                                         src={mainSrc!}
@@ -84,20 +83,18 @@ export function ProductView({ product }: { product: any }) {
                                         playsInline
                                         className="w-full h-full object-contain drop-shadow-2xl hover:scale-[1.02] transition-transform duration-500"
                                     />
-                                ) : hasImage ? (
-                                    <Image
-                                        src={mainSrc!}
+                                ) : (
+                                    <ProductImage
+                                        src={mainSrc}
                                         alt={product.name}
                                         fill
                                         className="object-contain drop-shadow-2xl hover:scale-[1.02] transition-transform duration-500"
                                         priority
+                                        placeholderSize="lg"
                                     />
-                                ) : (
-                                    /* Sin imagen: placeholder de marca */
-                                    <ProductPlaceholder size="lg" />
                                 )}
                                 
-                                {/* Miniatura en esquina: solo si hay imagen estática */}
+                                {/* Miniatura en esquina: solo si hay imagen estática disponible y es distinta al medio principal o es video */}
                                 {hasThumb && (
                                     <motion.div 
                                         onClick={() => setIsModalOpen(true)}
@@ -105,11 +102,12 @@ export function ProductView({ product }: { product: any }) {
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        <Image
-                                            src={thumbSrc!}
+                                        <ProductImage
+                                            src={thumbSrc}
                                             alt={`${product.name} miniatura`}
                                             fill
                                             className="object-contain p-2 group-hover/corner:scale-110 transition-transform"
+                                            placeholderSize="sm"
                                         />
                                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/corner:opacity-100 flex items-center justify-center transition-opacity">
                                             <Maximize2 className="w-6 h-6 text-white" />

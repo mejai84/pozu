@@ -53,12 +53,12 @@ export function Preloader() {
                             }}
                             className="relative"
                         >
-                            <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-primary/30 p-1 shadow-[0_0_50px_rgba(255,184,0,0.3)] bg-black">
+                            <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-full border-4 border-primary/20 p-2 shadow-[0_0_60px_rgba(255,184,0,0.2)] bg-black overflow-hidden group">
                                 <Image
-                                    src="/images/logo.jpg"
-                                    alt="Logo Pozu"
+                                    src="/images/logo_2_0.png"
+                                    alt="Logo Pozu 2.0"
                                     fill
-                                    className="object-cover rounded-full"
+                                    className="object-cover scale-110"
                                 />
                             </div>
                             

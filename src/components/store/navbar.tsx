@@ -104,11 +104,11 @@ export function Navbar() {
                 <div className="container mx-auto px-6 pt-4 pb-8 flex items-center justify-between relative z-10">
                     <Link href="/" className="flex items-center gap-3 group">
                         <Image
-                            src="/images/logo.jpg"
+                            src="/images/logo_2_0.png"
                             alt="Pozu 2.0 Logo"
                             width={64}
                             height={64}
-                            className="rounded-full group-hover:scale-105 transition-transform"
+                            className="group-hover:scale-110 transition-transform"
                         />
                         <span className="text-2xl font-black uppercase tracking-tighter text-[#E8E0D5]">
                             POZU 2.0

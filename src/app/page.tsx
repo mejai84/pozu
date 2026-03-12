@@ -28,9 +28,9 @@ export default function Home() {
       <main className="flex-1 relative z-10 flex flex-col justify-center container mx-auto px-4 sm:px-6 lg:px-12 pt-20 sm:pt-24 pb-16 sm:pb-20">
         
         {/* Hero Section */}
-        <div className="grid lg:grid-cols-[1.2fr_1fr] gap-4 sm:gap-8 items-center mt-6 lg:mt-4">
+        <div className="grid lg:grid-cols-[1.2fr_1fr] gap-4 sm:gap-8 items-center mt-4 sm:mt-6 lg:mt-4">
           
-          {/* Left Side: Headlines */}
+          {/* Left Side: Headlines (Order 2 on mobile, 1 on desktop) */}
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -38,10 +38,10 @@ export default function Home() {
             className="flex flex-col gap-4 sm:gap-6 max-w-3xl relative z-30 order-2 lg:order-1"
           >
             <h1 
-              className="text-[2.2rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.5rem] leading-[0.95] font-black uppercase tracking-tight text-[#E8E0D5] text-center lg:text-left drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
+              className="text-[2.5rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.5rem] leading-[0.9] sm:leading-[0.95] font-black uppercase tracking-tight text-[#E8E0D5] text-center lg:text-left drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
             >
-              Las mejores<br className="hidden sm:block" />
-              hamburguesas<br className="hidden sm:block" />
+              Las mejores<br />
+              hamburguesas<br />
               urbanas,<br />
               pide ahora!
             </h1>
@@ -60,19 +60,19 @@ export default function Home() {
             </motion.div>
           </motion.div>
 
-          {/* Right Side: Burger Image */}
+          {/* Right Side: Burger Image (Order 1 on mobile, 2 on desktop) */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-            className="relative w-full h-full flex justify-center items-center order-1 lg:order-2 lg:-mr-10 xl:-mr-20"
+            className="relative w-full flex justify-center items-center order-1 lg:order-2 lg:-mr-10 xl:-mr-20 py-4"
           >
-            <div className="relative w-full max-w-[280px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[800px] aspect-square lg:aspect-[4/3] mx-auto">
+            <div className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[800px] aspect-square lg:aspect-[4/3] mx-auto">
               <Image
                 src="/images/burgers/pozu.png"
                 alt="Hamburguesa Pozu"
                 fill
-                className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]"
+                className="object-contain drop-shadow-[20px_20px_60px_rgba(0,0,0,0.9)]"
                 priority
               />
             </div>
