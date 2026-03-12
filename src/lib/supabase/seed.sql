@@ -11,8 +11,8 @@ INSERT INTO public.categories (name, slug, order_position) VALUES
 -- Asumimos que podemos usar subqueries para insertar productos
 
 -- HAMBURGUESAS (Usando nombres exactos del catálogo)
-INSERT INTO public.products (category_id, name, price, ingredients, is_featured, image_url) 
-SELECT id, 'Pozu', 12.00, ARRAY['Pan americano', 'Huevo', 'Tomate', 'Bacon', 'Queso cheddar', 'Carne 100% ternera asturiana', 'Salsa especial Pozu', 'Lechuga'], true, '/images/burgers/pozu.png'
+INSERT INTO public.products (category_id, name, price, ingredients, allergens, is_featured, image_url) 
+SELECT id, 'Pozu', 12.00, ARRAY['Pan americano', 'Huevo', 'Tomate', 'Bacon', 'Queso cheddar', 'Carne 100% ternera asturiana', 'Salsa especial Pozu', 'Lechuga'], ARRAY['gluten', 'huevos', 'lácteos', 'mostaza'], true, '/images/burgers/pozu.png'
 FROM public.categories WHERE slug = 'hamburguesas';
 
 INSERT INTO public.products (category_id, name, price, ingredients, is_featured, image_url)

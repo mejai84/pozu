@@ -36,6 +36,7 @@ CREATE TABLE public.products (
   is_available BOOLEAN DEFAULT true,
   is_featured BOOLEAN DEFAULT false,
   ingredients TEXT[], -- Array de strings
+  allergens TEXT[], -- Array de strings con alérgenos
   options JSONB DEFAULT '{}'::jsonb, -- Para personalizaciones extra
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );

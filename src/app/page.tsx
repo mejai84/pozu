@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/store/navbar";
 import { motion } from "framer-motion";
-import { Mic } from "lucide-react";
+import { Mic, Zap, Percent, Gift, MapPin, Clock, Phone } from "lucide-react";
 import { Preloader } from "@/components/ui/preloader";
 
 export default function Home() {
@@ -50,9 +50,9 @@ export default function Home() {
             <h1 
               className="text-[2rem] sm:text-[3rem] md:text-[4rem] lg:text-[5rem] leading-[1] font-black uppercase tracking-tighter text-[#E8E0D5] drop-shadow-[0_10px_10px_rgba(0,0,0,0.6)]"
             >
-              Las mejores<br />
-              <span className="text-primary italic">hamburguesas</span><br />
-              urbanas
+              No es solo una<br />
+              <span className="text-primary italic">experiencia</span><br />
+              es un vicio
             </h1>
           </motion.div>
 
@@ -68,14 +68,14 @@ export default function Home() {
                 className="hidden xl:flex flex-col gap-12 absolute left-0 text-left"
               >
                 <div className="space-y-1">
-                  <span className="text-primary font-black text-xs uppercase tracking-widest bg-primary/10 px-3 py-0.5 rounded-full">Calidad</span>
+                  <span className="text-primary font-black text-xs uppercase tracking-widest bg-primary/10 px-3 py-0.5 rounded-full">Orgullo</span>
                   <p className="text-[#E8E0D5] text-xl font-black leading-tight">100% TERNERA<br/>ASTURIANA</p>
-                  <p className="text-white/40 text-xs font-medium">Picada a diario para ti.</p>
+                  <p className="text-white/40 text-xs font-medium">Picada a diario, fresca y real.</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-primary font-black text-xs uppercase tracking-widest bg-primary/10 px-3 py-0.5 rounded-full">Sabor</span>
+                  <span className="text-primary font-black text-xs uppercase tracking-widest bg-primary/10 px-3 py-0.5 rounded-full">Adicción</span>
                   <p className="text-[#E8E0D5] text-xl font-black leading-tight">SALSA SECRETA<br/>POZU</p>
-                  <p className="text-white/40 text-xs font-medium">Receta original artesana.</p>
+                  <p className="text-white/40 text-xs font-medium">El ingrediente que lo cambia todo.</p>
                 </div>
               </motion.div>
 
@@ -107,13 +107,13 @@ export default function Home() {
               >
                 <div className="space-y-1">
                   <span className="text-primary font-black text-xs uppercase tracking-widest bg-primary/10 px-3 py-0.5 rounded-full">Artesano</span>
-                  <p className="text-[#E8E0D5] text-xl font-black leading-tight">PAN BRIOCHE<br/>PREMIUM</p>
-                  <p className="text-white/40 text-xs font-medium">Horneado artesanal diario.</p>
+                  <p className="text-[#E8E0D5] text-xl font-black leading-tight">PAN BRIOCHE<br/>ORFEBRE</p>
+                  <p className="text-white/40 text-xs font-medium">Dorado, tierno y con mucha alma.</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-primary font-black text-xs uppercase tracking-widest bg-primary/10 px-3 py-0.5 rounded-full">Rápido</span>
-                  <p className="text-[#E8E0D5] text-xl font-black leading-tight">DELIVERY<br/>EXPRESS</p>
-                  <p className="text-white/40 text-xs font-medium">En tu puerta en 30 minutos.</p>
+                  <span className="text-primary font-black text-xs uppercase tracking-widest bg-primary/10 px-3 py-0.5 rounded-full">Directo</span>
+                  <p className="text-[#E8E0D5] text-xl font-black leading-tight">DELIVERY<br/>SIN PIEDAD</p>
+                  <p className="text-white/40 text-xs font-medium">En tu sofá en tiempo récord.</p>
                 </div>
               </motion.div>
             </div>
@@ -127,10 +127,28 @@ export default function Home() {
             >
               <Link href="/menu">
                 <button className="relative overflow-hidden font-black text-lg sm:text-xl rounded-full border-2 border-primary/50 text-primary px-12 sm:px-20 py-4 sm:py-5 hover:bg-primary hover:text-black hover:shadow-[0_0_50px_rgba(234,179,8,0.5)] transition-all active:scale-95 group uppercase tracking-[0.2em] neon-text-glow bg-black/40 backdrop-blur-sm">
-                  <span className="relative z-10">Pide Ahora</span>
+                  <span className="relative z-10">Pide el Banquete</span>
                   <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
                 </button>
               </Link>
+            </motion.div>
+            
+            {/* Social Proof Elements */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 1.5 }}
+              className="mt-8 flex flex-wrap justify-center gap-8 text-[#E8E0D5]/60 text-xs font-bold uppercase tracking-widest z-30"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-primary text-lg">★</span> 4.9/5 valoración media
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-primary text-lg">+10k</span> Pozu servidas
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-primary text-lg">♥</span> Pasión artesanal
+              </div>
             </motion.div>
 
           </div>
@@ -149,10 +167,10 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex flex-col items-start gap-4 z-10">
                 <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase leading-[1] group-hover:text-primary transition-colors tracking-tighter">
-                  Burgers<br/>Legendarias
+                  Nuestras<br/>Bestias
                 </h3>
                 <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
-                  VER CARTA
+                  VER TODO
                 </div>
               </div>
               <div className="w-28 h-28 sm:w-36 sm:h-36 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
@@ -172,10 +190,10 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex flex-col items-start gap-4 z-10">
                 <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase leading-[1] group-hover:text-primary transition-colors tracking-tighter">
-                  Sides &<br/>Snacks
+                  Acompañantes<br/>Deluxe
                 </h3>
                 <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
-                  VER CARTA
+                  ¡LO QUIERO!
                 </div>
               </div>
               <div className="w-28 h-28 sm:w-36 sm:h-36 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
@@ -195,10 +213,10 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex flex-col items-start gap-4 z-10">
                 <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase leading-[1] group-hover:text-primary transition-colors tracking-tighter">
-                  Combos<br/>Explosivos
+                  Combos Sin<br/>Piedad
                 </h3>
                 <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
-                  VER CARTA
+                  ME RINDE
                 </div>
               </div>
               <div className="w-28 h-28 sm:w-36 sm:h-36 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
@@ -212,6 +230,179 @@ export default function Home() {
             </div>
           </Link>
         </motion.div>
+
+        {/* --- SECCIÓN CHOLLOS (PROMOS) --- */}
+        <section id="promos" className="py-24 relative overflow-hidden">
+          <div className="container mx-auto px-6 max-w-6xl">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center space-y-6 mb-16"
+            >
+              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-[#E8E0D5] neon-text-glow">
+                Chollos <span className="text-primary italic">Brutales</span>
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                Aprovecha nuestras combinaciones explosivas. Más sabor, menos precio.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Promo 1 */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="bg-[#1A1A1A] border-2 border-white/10 rounded-[3rem] p-8 flex flex-col items-center text-center shadow-2xl hover:border-primary transition-all group"
+              >
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Zap className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-black text-2xl uppercase text-[#E8E0D5] mb-2">Combo Pareja</h3>
+                <p className="text-muted-foreground mb-6 flex-1 text-sm">
+                  2 Burgers Legendarias + 1 Ración de Patatas + 2 Bebidas
+                </p>
+                <div className="text-3xl font-black text-primary mb-6 neon-text-glow">24,90€</div>
+                <Link href="/menu" className="w-full">
+                  <button className="text-primary w-full neon-border text-xs font-bold uppercase tracking-wider px-6 py-4 rounded-full hover:bg-primary hover:text-black transition-all neon-text-glow">
+                    Pedir Combo
+                  </button>
+                </Link>
+              </motion.div>
+
+              {/* Promo 2 */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="bg-[#1A1A1A] border-2 border-primary neon-border rounded-[3rem] p-10 flex flex-col items-center text-center shadow-[0_0_30px_rgba(234,179,8,0.15)] relative"
+              >
+                <div className="absolute -top-4 bg-primary text-black font-black uppercase text-[10px] px-6 py-2 rounded-full tracking-wider shadow-[0_0_15px_rgba(234,179,8,0.5)]">
+                  Más Vendido
+                </div>
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-6">
+                  <Percent className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-black text-2xl uppercase text-[#E8E0D5] mb-2">Día de Locos</h3>
+                <p className="text-muted-foreground mb-6 flex-1 text-sm">
+                  Todos los miércoles, tu segunda hamburguesa a mitad de precio.
+                </p>
+                <div className="text-3xl font-black text-primary mb-6 neon-text-glow">-50% OFF</div>
+                <Link href="/menu" className="w-full">
+                  <button className="bg-primary text-black w-full neon-border text-xs font-black uppercase tracking-wider px-6 py-4 rounded-full hover:bg-transparent hover:text-primary transition-all neon-text-glow">
+                    Aprovechar
+                  </button>
+                </Link>
+              </motion.div>
+
+              {/* Promo 3 */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="bg-[#1A1A1A] border-2 border-white/10 rounded-[3rem] p-8 flex flex-col items-center text-center shadow-2xl hover:border-primary transition-all group"
+              >
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Gift className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-black text-2xl uppercase text-[#E8E0D5] mb-2">Combo Fiesta</h3>
+                <p className="text-muted-foreground mb-6 flex-1 text-sm">
+                  4 Burgers Clásicas + 2 Sides Gigantes + 4 Bebidas + Postre
+                </p>
+                <div className="text-3xl font-black text-primary mb-6 neon-text-glow">49,50€</div>
+                <Link href="/menu" className="w-full">
+                  <button className="text-primary w-full neon-border text-xs font-bold uppercase tracking-wider px-6 py-4 rounded-full hover:bg-primary hover:text-black transition-all neon-text-glow">
+                    Pedir Combo
+                  </button>
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- SECCIÓN UBICACIÓN (POZU CERCA) --- */}
+        <section id="ubicacion" className="py-24 relative overflow-hidden bg-white/[0.02]">
+          <div className="container mx-auto px-6 max-w-7xl">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center space-y-6 mb-16"
+            >
+              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-[#E8E0D5] neon-text-glow">
+                Pozu <span className="text-primary italic">Cerca</span>
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                Ven a conocernos. El mejor ambiente de Pola de Laviana te está esperando.
+              </p>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Info Card */}
+              <div className="lg:col-span-1 space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-[#1A1A1A] border-2 border-white/5 rounded-[2.5rem] p-8 hover:border-primary/40 transition-all shadow-xl"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <MapPin className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="font-black text-xl uppercase text-[#E8E0D5] mb-2 tracking-tighter">Localización</h3>
+                  <p className="text-muted-foreground text-sm uppercase font-bold tracking-tight">C. Río Cares, 2<br />33980 Pola de Laviana<br />Asturias, España</p>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-[#1A1A1A] border-2 border-white/5 rounded-[2.5rem] p-8 hover:border-primary/40 transition-all shadow-xl"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <Clock className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="font-black text-xl uppercase text-[#E8E0D5] mb-2 tracking-tighter">Horarios</h3>
+                  <p className="text-muted-foreground text-sm uppercase font-bold tracking-tight">Martes a Domingo:<br />19:30 - 23:30<br /><br />Lunes: Cerrado por descanso</p>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-[#1A1A1A] border-2 border-white/5 rounded-[2.5rem] p-8 hover:border-primary/40 transition-all shadow-xl"
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <Phone className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="font-black text-xl uppercase text-[#E8E0D5] mb-2 tracking-tighter">Contacto</h3>
+                  <p className="text-muted-foreground text-sm uppercase font-bold tracking-tight">Teléfono: +34 987 654 321<br />Email: hola@pozu.com<br />O escríbenos a WhatsApp</p>
+                </motion.div>
+              </div>
+
+              {/* Google Map */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="lg:col-span-2 h-[400px] lg:h-full w-full rounded-[3rem] overflow-hidden border-2 border-white/5 hover:border-primary transition-all relative group shadow-2xl order-first lg:order-last"
+              >
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2909.103098523674!2d-5.5645!3d43.2458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd367b660a0a0a0a%3A0x0!2sC.%20R%C3%ADo%20Cares%2C%202%2C%2033980%20Pola%20de%20Laviana%2C%20Asturias!5e0!3m2!1ses!2ses!4v1642150000000!5m2!1ses!2ses"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg)', mixBlendMode: 'screen' }}
+                  allowFullScreen
+                  loading="lazy"
+                  className="grayscale-[0.8] transition-all duration-700 hover:grayscale-0 hover:mix-blend-normal opacity-60 hover:opacity-100"
+                ></iframe>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
       </main>
 
@@ -228,7 +419,7 @@ export default function Home() {
           </svg>
         </a>
         <button className="hidden sm:flex items-center gap-3 bg-[linear-gradient(180deg,#3b3b3b,#1f1f1f)] border border-white/20 px-5 py-2.5 rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.5)] hover:scale-105 transition-transform">
-          <span className="text-xs font-bold text-[#E8E0D5]">Voice Assistant</span>
+          <span className="text-xs font-bold text-[#E8E0D5]">¡Pide por Voz!</span>
           <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
             <Mic className="w-4 h-4 text-black" />
           </div>

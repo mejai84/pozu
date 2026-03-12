@@ -93,9 +93,9 @@ export function Navbar() {
     const isActive = (path: string) => pathname === path
 
     const navLinks: { href: string; label: string; hasDropdown?: boolean }[] = [
-        { href: "/menu", label: "Menú" },
-        { href: "/promos", label: "Promos" },
-        { href: "/ubicacion", label: "Ubicación" },
+        { href: "/menu", label: "La Carta" },
+        { href: "/#promos", label: "Chollos" },
+        { href: "/#ubicacion", label: "Pozu Cerca" },
     ]
 
     return (
@@ -254,7 +254,7 @@ export function Navbar() {
                     <div className="h-20 flex items-center justify-between px-6 border-b border-white/5">
                         <div className="flex items-center gap-3">
                             <Utensils className="w-6 h-6 text-primary" />
-                            <span className="text-xl font-bold tracking-tight">CARTA POZU</span>
+                            <span className="text-xl font-bold tracking-tight">EL MUNDO POZU</span>
                         </div>
                         <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => setIsMenuOpen(false)}>
                             <X className="w-7 h-7" />

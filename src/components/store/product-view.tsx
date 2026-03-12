@@ -20,15 +20,37 @@ export function ProductView({ product }: { product: any }) {
     // Mapeo de iconos para alérgenos comunes
     const getAllergenIcon = (name: string) => {
         const n = name.toLowerCase()
-        if (n.includes('gluten') || n.includes('trigo')) return <Wheat className="w-3 h-3" />
-        if (n.includes('lácteo') || n.includes('leche')) return <Milk className="w-3 h-3" />
+        if (n.includes('gluten') || n.includes('trigo') || n.includes('pan')) return <Wheat className="w-3 h-3" />
+        if (n.includes('lácteo') || n.includes('leche') || n.includes('queso')) return <Milk className="w-3 h-3" />
         if (n.includes('huevo')) return <Egg className="w-3 h-3" />
         if (n.includes('pescado')) return <Fish className="w-3 h-3" />
         if (n.includes('fruto') || n.includes('nuez') || n.includes('cacahuete')) return <Nut className="w-3 h-3" />
         if (n.includes('soja')) return <Soup className="w-3 h-3" />
         if (n.includes('mostaza')) return <Droplets className="w-3 h-3" />
+        if (n.includes('sésamo')) return <Cookie className="w-3 h-3" />
+        if (n.includes('crustáceo')) return <CircleAlert className="w-3 h-3" />
         return <CircleAlert className="w-3 h-3" />
     }
+
+    // Lógica para inferir alérgenos si no existen en la DB
+    const getInferredAllergens = (ingredients: string[] = []) => {
+        const inferred = new Set<string>()
+        ingredients.forEach(ing => {
+            const n = ing.toLowerCase()
+            if (n.includes('pan') || n.includes('brioche') || n.includes('germen') || n.includes('trigo')) inferred.add('Gluten')
+            if (n.includes('queso') || n.includes('cheddar') || n.includes('edam') || n.includes('yogur') || n.includes('leche')) inferred.add('Lácteos')
+            if (n.includes('huevo') || n.includes('mayo')) inferred.add('Huevos')
+            if (n.includes('mostaza')) inferred.add('Mostaza')
+            if (n.includes('soja')) inferred.add('Soja')
+            if (n.includes('sésamo')) inferred.add('Sésamo')
+            if (n.includes('frutos secos') || n.includes('cacahuete')) inferred.add('Frutos Secos')
+        })
+        return Array.from(inferred)
+    }
+
+    const allergensList = product.allergens && product.allergens.length > 0 
+        ? product.allergens 
+        : getInferredAllergens(product.ingredients)
 
     // Mapeo de iconos para ingredientes comunes
     const getIngredientIcon = (name: string) => {
@@ -51,11 +73,19 @@ export function ProductView({ product }: { product: any }) {
     }
 
     return (
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center relative">
+            {/* Luces Ambientales de Fondo */}
+            <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+            <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px] pointer-events-none -z-10 animate-pulse" />
+            
+            {/* Luz de acento Derecha (Sutil Glow) */}
+            <div className="absolute -bottom-24 -right-24 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[130px] pointer-events-none -z-10 opacity-60" />
+            <div className="absolute top-1/4 -right-20 w-80 h-80 bg-primary/5 rounded-full blur-[100px] pointer-events-none -z-10" />
+
             {/* Imagen Principal / Video */}
-            <div className="relative aspect-square w-full max-w-[600px] mx-auto bg-card/30 rounded-3xl p-8 border border-white/5 flex items-center justify-center group overflow-hidden">
+            <div className="relative aspect-square w-full max-w-[600px] mx-auto bg-card/30 rounded-3xl p-8 border border-white/5 flex items-center justify-center group overflow-hidden shadow-2xl">
                 {/* Círculo decorativo de fondo */}
-                <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl scale-75 group-hover:scale-90 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50 rounded-full blur-3xl scale-110 group-hover:scale-125 transition-transform duration-700" />
 
                 <div className="relative w-full h-full animate-in zoom-in duration-500">
                     {/* Plantilla Universal de Medios con Soporte para Video DB */}
@@ -151,15 +181,15 @@ export function ProductView({ product }: { product: any }) {
                     </div>
                 )}
 
-                {/* Alérgenos REALES de la DB */}
-                {product.allergens && product.allergens.length > 0 && (
-                    <div className="space-y-4">
+                {/* Alérgenos: Usamos la lista computada o de la DB */}
+                {allergensList.length > 0 && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
                         <h3 className="font-bold flex items-center gap-2 text-red-400">
                             <CircleAlert className="w-4 h-4" />
                             Información sobre Alérgenos
                         </h3>
                         <div className="flex flex-wrap gap-2">
-                            {product.allergens.map((all: string, i: number) => (
+                            {allergensList.map((all: string, i: number) => (
                                 <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full text-xs text-red-400 font-medium uppercase tracking-wider hover:bg-red-500/20 transition-colors">
                                     {getAllergenIcon(all)}
                                     {all}

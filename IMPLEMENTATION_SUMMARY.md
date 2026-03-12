@@ -342,7 +342,11 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 - ✅ **Header & Footer Dark**: Eliminación de texturas de piedra (slate) por degradados negros sólidos (`from-black to-[#111]`) para un look más limpio y premium.
 - ✅ **Navigation UI**: Enlaces de navegación en blanco puro con efectos de hover dinámicos y glow.
 - ✅ **Efecto Neón Avanzado**: Implementación de clases CSS `neon-border` y `neon-text-glow` con brillo interior y exterior.
-- ✅ **Botones CTAs**: Botones "PIDE YA!" y "Ver la Carta" con efecto de barrido de luz (sweep) y animaciones de escalado.
+- ✅ **Botones CTAs**: Botones "Pide el Banquete" y "Ver la Carta" con efecto de barrido de luz (sweep), animaciones de escalado y textos más persuasivos.
+- ✅ **Optimización de Copy (Landing)**: Aplicación del framework AIDA (Aislar, Interés, Deseo, Acción) para convertir visitantes en clientes con lenguaje 'food-porn' y de orgullo local.
+- ✅ **Social Proof**: Inclusión de métricas de confianza bajo el Hero (+10k burgers, valoración 4.9/5) para validar la marca ante nuevos usuarios.
+- ✅ **Navegación Amigable**: Renombramiento de secciones (La Carta, Chollos, Pozu Cerca) para un tono más cercano.
+- ✅ **SPA Experience (Consolidación)**: Unificación de las páginas de "Chollos" y "Ubicación" directamente en la Landing Page principal para evitar recargas innecesarias y mejorar el flujo de usuario.
 
 ### 10. **Sistema de Alérgenos y Redes** ⭐ NUEVO
 **Ubicación:** Página de detalle de producto y Footer

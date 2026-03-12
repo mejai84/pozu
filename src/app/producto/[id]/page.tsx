@@ -57,9 +57,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             return (
                 <div className="min-h-screen bg-background">
                     <Navbar />
-                    <div className="pt-20 sm:pt-24 pb-16 sm:pb-20 container mx-auto px-4 sm:px-6">
-                        <Link href="/menu" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 sm:mb-8">
-                            <ArrowLeft className="w-4 h-4" /> Volver al menú
+                    <div className="pt-32 pb-16 sm:pb-20 container mx-auto px-4 sm:px-6 relative z-10">
+                        <Link href="/menu" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-all mb-8 group bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:border-primary/50">
+                            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> 
+                            <span className="font-bold uppercase tracking-wider text-xs">Volver al menú</span>
                         </Link>
                         <ProductView product={{ ...enriched, is_available: true, category_id: mockProduct.category_id }} />
                     </div>
@@ -74,9 +75,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     return (
         <div className="min-h-screen bg-background">
             <Navbar />
-            <div className="pt-20 sm:pt-24 pb-16 sm:pb-20 container mx-auto px-4 sm:px-6">
-                <Link href="/menu" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 sm:mb-8">
-                    <ArrowLeft className="w-4 h-4" /> Volver al menú
+            <div className="pt-32 pb-16 sm:pb-20 container mx-auto px-4 sm:px-6 relative z-10">
+                <Link href="/menu" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-all mb-8 group bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:border-primary/50">
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> 
+                    <span className="font-bold uppercase tracking-wider text-xs">Volver al menú</span>
                 </Link>
                 <ProductView product={product} />
             </div>
