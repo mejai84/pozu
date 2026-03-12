@@ -151,38 +151,13 @@ WHERE email = 'tu_email@ejemplo.com';
 ## 📁 Estructura del Proyecto
 
 ```
-pozu/
 ├── src/
-│   ├── app/                    # App Router (Next.js 14+)
-│   │   ├── admin/             # Panel de administración
-│   │   │   ├── page.tsx       # Dashboard
-│   │   │   ├── orders/        # Gestión de pedidos
-│   │   │   ├── kitchen/       # KDS (cocina)
-│   │   │   ├── products/      # Gestión de productos
-│   │   │   ├── customers/     # Gestión de clientes
-│   │   │   ├── employees/     # Gestión de empleados
-│   │   │   ├── reports/       # Reportes ⭐ NUEVO
-│   │   │   └── settings/      # Configuración ⭐ MEJORADO
-│   │   ├── checkout/          # Proceso de compra
-│   │   ├── login/             # Autenticación
-│   │   ├── menu/              # Catálogo público
-│   │   └── page.tsx           # Home
-│   ├── components/
-│   │   ├── admin/             # Componentes del admin
-│   │   ├── store/             # Componentes de la tienda
-│   │   └── ui/                # Componentes reutilizables
-│   ├── lib/
-│   │   ├── supabase/          # Cliente y utilidades
-│   │   │   ├── client.ts
-│   │   │   ├── settings.ts    ⭐ NUEVO
-│   │   │   └── notifications.ts ⭐ NUEVO
-│   │   └── data.ts            # Datos estáticos
-│   └── styles/
+│   ├── ...
+├── scripts/                    ⭐ NUEVO (Scripts de utilidad)
 ├── public/
-│   ├── images/
-│   └── sounds/                ⭐ NUEVO
-├── supabase_migrations/       ⭐ NUEVO
+├── ...
 └── package.json
+
 ```
 
 ---
@@ -401,9 +376,10 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 - [x] Configuración persistente
 - [x] Exportación de datos
 
-**Versión:** 2.2  
-**Última actualización:** 2026-03-11  
-**Estado:** ✅ Producción Live (Rama `main`) 🚀
+**Versión:** 2.3  
+**Última actualización:** 2026-03-12  
+**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable
+
 
 ---
 

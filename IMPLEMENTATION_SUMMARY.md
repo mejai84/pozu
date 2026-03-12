@@ -368,8 +368,18 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 ---
 
 ## 📌 Notas de Versión
-*Última Actualización: 11 de Marzo de 2026*
-*Versión: 2.2*
+*Última Actualización: 12 de Marzo de 2026*
+*Versión: 2.3*
 *Estado: Producción Live (Rama `main`) 🚀*
 
+## 🛠️ Actualizaciones Recientes (12 de Marzo de 2026)
+
+### 1. **Build Stability & DevOps** 🚀
+- ✅ **Fix de Compilación**: Resolución de error de TypeScript en Vercel causado por scripts temporales en el root.
+- ✅ **Reorganización de Scripts**: Traslado de `tmp_clean_placeholders.ts` y `tmp_debug_categories.ts` a la nueva carpeta `/scripts`.
+- ✅ **Configuración TS**: Actualización de `tsconfig.json` para excluir explícitamente la carpeta `/scripts` del proceso de build de Next.js.
+
+---
+
 **Todo listo y desplegado en Vercel! 🚀**
+
