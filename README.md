@@ -376,9 +376,9 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 - [x] Configuración persistente
 - [x] Exportación de datos
 
-**Versión:** 2.3  
+**Versión:** 2.4  
 **Última actualización:** 2026-03-12  
-**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable
+**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Design Elite SPA
 
 
 ---

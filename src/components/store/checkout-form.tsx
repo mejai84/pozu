@@ -120,28 +120,33 @@ export function CheckoutForm() {
     return (
         <div className="grid md:grid-cols-2 gap-12">
             {/* Resumen */}
-            <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Resumen del Pedido</h2>
-                <div className="space-y-4 bg-card/50 p-6 rounded-2xl border border-white/5">
-                    {items.map(item => (
-                        <div key={item.uniqueId} className="flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <span className="font-bold text-primary">{item.quantity}x</span>
-                                <span>{item.name}</span>
+            <div className="space-y-8">
+                <h2 className="text-3xl font-black uppercase tracking-tighter italic">Resumen del <span className="text-gradient">Pedido</span></h2>
+                <div className="space-y-6 bg-white/5 p-8 rounded-[32px] border border-white/10 backdrop-blur-md shadow-xl">
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+                        {items.map(item => (
+                            <div key={item.uniqueId} className="flex justify-between items-center group">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-black text-primary group-hover:scale-110 transition-transform">
+                                        {item.quantity}x
+                                    </div>
+                                    <span className="font-bold text-lg">{item.name}</span>
+                                </div>
+                                <span className="font-bold text-muted-foreground">{(item.price * item.quantity).toFixed(2)}€</span>
                             </div>
-                            <span>{(item.price * item.quantity).toFixed(2)}€</span>
-                        </div>
-                    ))}
-                    <div className="border-t border-white/10 pt-4 mt-4 space-y-2">
-                        <div className="flex justify-between text-muted-foreground">
-                            <span>Subtotal</span>
+                        ))}
+                    </div>
+                    
+                    <div className="border-t border-white/10 pt-6 mt-6 space-y-4">
+                        <div className="flex justify-between text-muted-foreground font-medium">
+                            <span>Base del pedido</span>
                             <span>{cartTotal.toFixed(2)}€</span>
                         </div>
-                        <div className="flex justify-between text-muted-foreground">
-                            <span>Envío</span>
+                        <div className="flex justify-between text-muted-foreground font-medium">
+                            <span>Gastos de envío</span>
                             <span>2.50€</span>
                         </div>
-                        <div className="flex justify-between text-xl font-bold pt-2 border-t border-white/10 text-primary">
+                        <div className="flex justify-between text-3xl font-black pt-6 border-t border-white/10 text-primary uppercase italic tracking-tighter">
                             <span>Total</span>
                             <span>{(cartTotal + 2.50).toFixed(2)}€</span>
                         </div>
@@ -150,50 +155,76 @@ export function CheckoutForm() {
             </div>
 
             {/* Formulario */}
-            <div className="space-y-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <h2 className="text-2xl font-bold">Datos de Entrega</h2>
+            <div className="space-y-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h2 className="text-3xl font-black uppercase tracking-tighter italic">Datos de <span className="text-gradient">Envío</span></h2>
                     {!user && (
-                        <Link href="/login" className="text-primary text-sm font-bold hover:underline">
-                            ¿Ya tienes cuenta? Inicia sesión
+                        <Link href="/login" className="px-4 py-2 bg-primary/10 text-primary rounded-full text-xs font-black uppercase border border-primary/20 hover:bg-primary hover:text-black transition-all">
+                            Ya tengo cuenta
                         </Link>
                     )}
                 </div>
-                <form onSubmit={handleCheckout} className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <input name="firstName" onChange={handleInputChange} placeholder="Nombre" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
-                        <input name="lastName" onChange={handleInputChange} placeholder="Apellidos" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
+
+                <form onSubmit={handleCheckout} className="space-y-8 p-8 rounded-[32px] bg-white/5 border border-white/10 backdrop-blur-md">
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Nombre</label>
+                            <input name="firstName" onChange={handleInputChange} placeholder="Rockstar" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Apellidos</label>
+                            <input name="lastName" onChange={handleInputChange} placeholder="Pozu" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
+                        </div>
                     </div>
-                    <input name="address" onChange={handleInputChange} placeholder="Dirección completa (Calle, número, piso...)" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
-                    <div className="grid grid-cols-2 gap-4">
-                        <input name="city" onChange={handleInputChange} placeholder="Ciudad" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
-                        <input name="phone" onChange={handleInputChange} placeholder="Teléfono móvil" className="bg-white/5 border border-white/10 rounded-xl p-4 w-full focus:border-primary outline-none transition-all" required />
+                    
+                    <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Dirección de Entrega</label>
+                        <input name="address" onChange={handleInputChange} placeholder="Calle Río Cares, 2..." className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
                     </div>
 
-                    <div className="space-y-3">
-                        <label className="font-medium">Método de Pago</label>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Ciudad</label>
+                            <input name="city" onChange={handleInputChange} placeholder="Pola de Laviana" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Teléfono</label>
+                            <input name="phone" onChange={handleInputChange} placeholder="600 000 000" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Método de Pago</label>
                         <div className="grid grid-cols-2 gap-4">
                             <button
                                 type="button"
                                 onClick={() => setPaymentMethod('stripe')}
-                                className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-colors ${paymentMethod === 'stripe' ? 'bg-primary/10 border-primary text-primary' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                                className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'stripe' 
+                                    ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(255,184,0,0.1)]' 
+                                    : 'bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:border-white/10'}`}
                             >
-                                <CreditCard className="w-6 h-6" />
-                                <span className="text-sm font-medium">Tarjeta / Bizum</span>
+                                <CreditCard className="w-8 h-8" />
+                                <span className="font-bold uppercase tracking-tighter">Tarjeta / Bizum</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setPaymentMethod('cash')}
-                                className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-colors ${paymentMethod === 'cash' ? 'bg-primary/10 border-primary text-primary' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                                className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'cash' 
+                                    ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(255,184,0,0.1)]' 
+                                    : 'bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:border-white/10'}`}
                             >
-                                <Banknote className="w-6 h-6" />
-                                <span className="text-sm font-medium">Efectivo</span>
+                                <Banknote className="w-8 h-8" />
+                                <span className="font-bold uppercase tracking-tighter">Efectivo</span>
                             </button>
                         </div>
                     </div>
 
-                    <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={loading}>
-                        {loading ? <Loader2 className="animate-spin" /> : `Pagar ${(cartTotal + 2.50).toFixed(2)}€`}
+                    <Button 
+                        type="submit" 
+                        className="w-full h-20 text-2xl font-black uppercase tracking-tighter italic shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:shadow-[0_0_50px_rgba(255,184,0,0.5)] transition-all rounded-2xl" 
+                        disabled={loading}
+                    >
+                        {loading ? <Loader2 className="animate-spin w-8 h-8" /> : `Procesar Pago ${(cartTotal + 2.50).toFixed(2)}€`}
                     </Button>
                 </form>
             </div>

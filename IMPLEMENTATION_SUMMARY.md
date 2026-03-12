@@ -378,10 +378,16 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 
 ## 🛠️ Actualizaciones Recientes (12 de Marzo de 2026)
 
-### 1. **Build Stability & DevOps** 🚀
-- ✅ **Fix de Compilación**: Resolución de error de TypeScript en Vercel causado por scripts temporales en el root.
-- ✅ **Reorganización de Scripts**: Traslado de `tmp_clean_placeholders.ts` y `tmp_debug_categories.ts` a la nueva carpeta `/scripts`.
-- ✅ **Configuración TS**: Actualización de `tsconfig.json` para excluir explícitamente la carpeta `/scripts` del proceso de build de Next.js.
+### 11. **Rediseño Premium Elite SPA (Marzo 2026)** ⭐ NUEVO
+**Ubicación:** Todo el sitio público (Menú, Nosotros, Combos, Pedidos, Checkout, Login)
+
+**Funcionalidades:**
+- ✅ **Consistencia Visual**: Aplicación de la estética "landing" en todas las páginas internas para una experiencia fluida y profesional.
+- ✅ **Ambient Lighting**: Implementación de luces ambientales dinámicas (`glow effects`) en el fondo de todas las páginas, adaptadas a cada contexto.
+- ✅ **Framer Motion Integration**: Transiciones de página y entradas de componentes suaves (`fade-in`, `zoom-in`, `slide-up`) para un feeling de aplicación de alta gama.
+- ✅ **Premium Typography**: Uso extendido de `text-gradient` y jerarquías tipográficas "black/italic" para reforzar el carácter rockero y artesanal.
+- ✅ **Refactor de Checkout**: Formulario rediseñado con tarjetas de cristal, mejor organización de campos y selección visual de métodos de pago.
+- ✅ **Páginas de Soporte**: Actualización estética de las páginas de "Éxito" (Confirmación), "Login" y "Combos" (Placeholder) para mantener el estándar visual.
 
 ---
 
