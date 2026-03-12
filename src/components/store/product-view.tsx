@@ -9,7 +9,10 @@ import {
     CircleAlert, Cookie, Soup
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { AddToCartButton } from "./add-to-cart-button"
+import { AddToCartButton } from "@/components/store/add-to-cart-button"
+import { Button } from "@/components/ui/button"
+import { ProductPlaceholder } from "@/components/store/product-placeholder"
+
 
 export function ProductView({ product }: { product: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -57,64 +60,65 @@ export function ProductView({ product }: { product: any }) {
                 <div className="relative w-full h-full animate-in zoom-in duration-500">
                     {/* Plantilla Universal de Medios con Soporte para Video DB */}
                     {(() => {
-                        // Prioridad: 1. Campo explícito en options, 2. Detección por extensión en image_url
                         const videoSrc = product.options?.video_url || (product.image_url?.toLowerCase().endsWith('.webm') ? product.image_url : null);
                         const isVideo = !!videoSrc;
-                        
-                        // Si hay video en options, la imagen estática es image_url. 
-                        // Si el video era el image_url (fallback), derivamos el PNG.
-                        const mainSrc = isVideo ? videoSrc : (product.image_url || product.image || "/images/placeholder.png");
-                        
+                        const mainSrc = isVideo ? videoSrc : (product.image_url || product.image || null);
+                        const hasImage = !!mainSrc
+
                         const thumbSrc = product.options?.video_url 
-                            ? (product.image_url || "/images/placeholder.png")
+                            ? (product.image_url || null)
                             : (isVideo && typeof mainSrc === 'string'
                                 ? mainSrc.replace(/\.webm$/i, '.png').toLowerCase() 
                                 : mainSrc);
+                        const hasThumb = !!thumbSrc
 
                         return (
                             <div className="relative w-full h-full">
-                                {/* Medio Principal (Video o Imagen) */}
+                                {/* Medio Principal (Video, Imagen o Placeholder) */}
                                 {isVideo ? (
                                     <video
-                                        src={mainSrc}
+                                        src={mainSrc!}
                                         autoPlay
                                         loop
                                         muted
                                         playsInline
                                         className="w-full h-full object-contain drop-shadow-2xl hover:scale-[1.02] transition-transform duration-500"
                                     />
-                                ) : (
+                                ) : hasImage ? (
                                     <Image
-                                        src={mainSrc}
+                                        src={mainSrc!}
                                         alt={product.name}
                                         fill
                                         className="object-contain drop-shadow-2xl hover:scale-[1.02] transition-transform duration-500"
                                         priority
                                     />
+                                ) : (
+                                    /* Sin imagen: placeholder de marca */
+                                    <ProductPlaceholder size="lg" />
                                 )}
                                 
-                                {/* Miniatura Interactiva en la esquina */}
-                                <motion.div 
-                                    onClick={() => setIsModalOpen(true)}
-                                    className="absolute bottom-2 right-2 w-24 h-24 md:w-32 md:h-32 rounded-2xl border-2 border-primary/30 bg-black/40 backdrop-blur-md overflow-hidden shadow-xl cursor-pointer group/corner hover:border-primary transition-all animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <Image
-                                        src={thumbSrc}
-                                        alt={`${product.name} thumbnail`}
-                                        fill
-                                        className="object-contain p-2 group-hover/corner:scale-110 transition-transform"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/corner:opacity-100 flex items-center justify-center transition-opacity">
-                                        <Maximize2 className="w-6 h-6 text-white" />
-                                    </div>
-                                    
-                                    {/* Etiqueta Visual de "Ver más" */}
-                                    <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded-lg border border-white/10 opacity-0 group-hover/corner:opacity-100 transition-opacity">
-                                        <div className="text-[8px] font-bold text-white uppercase tracking-tighter">Zoom</div>
-                                    </div>
-                                </motion.div>
+                                {/* Miniatura en esquina: solo si hay imagen estática */}
+                                {hasThumb && (
+                                    <motion.div 
+                                        onClick={() => setIsModalOpen(true)}
+                                        className="absolute bottom-2 right-2 w-24 h-24 md:w-32 md:h-32 rounded-2xl border-2 border-primary/30 bg-black/40 backdrop-blur-md overflow-hidden shadow-xl cursor-pointer group/corner hover:border-primary transition-all animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        <Image
+                                            src={thumbSrc!}
+                                            alt={`${product.name} miniatura`}
+                                            fill
+                                            className="object-contain p-2 group-hover/corner:scale-110 transition-transform"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/corner:opacity-100 flex items-center justify-center transition-opacity">
+                                            <Maximize2 className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded-lg border border-white/10 opacity-0 group-hover/corner:opacity-100 transition-opacity">
+                                            <div className="text-[8px] font-bold text-white uppercase tracking-tighter">Zoom</div>
+                                        </div>
+                                    </motion.div>
+                                )}
                             </div>
                         );
                     })()}
