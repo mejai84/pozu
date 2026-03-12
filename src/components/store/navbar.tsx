@@ -101,7 +101,7 @@ export function Navbar() {
     return (
         <>
             <nav className="fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/5 bg-gradient-to-b from-black to-[#111] shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
-                <div className="container mx-auto px-6 pt-4 pb-8 flex items-center justify-between relative z-10">
+                <div className="container mx-auto px-6 pt-4 pb-2 flex items-center justify-between relative z-10">
                     <Link href="/" className="flex items-center gap-3 group">
                         <Image
                             src="/images/logo_2_0.png"
@@ -254,7 +254,7 @@ export function Navbar() {
                     <div className="h-20 flex items-center justify-between px-6 border-b border-white/5">
                         <div className="flex items-center gap-3">
                             <Utensils className="w-6 h-6 text-primary" />
-                            <span className="text-xl font-bold tracking-tight">EL MUNDO POZU</span>
+                            <span className="text-xl font-black tracking-tight text-primary">POZU 2.0</span>
                         </div>
                         <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/5" onClick={() => setIsMenuOpen(false)}>
                             <X className="w-7 h-7" />

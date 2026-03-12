@@ -18,10 +18,18 @@ type Product = {
     is_available: boolean
     ingredients: string[] | null
     deleted_at: string | null
-    options?: any
+    options?: {
+        video_url?: string | null
+        badge?: string | null
+        allergens?: string[] | null
+    }
 }
 
-type FormData = Partial<Product> & { video_url?: string }
+type FormData = Partial<Product> & { 
+    video_url?: string;
+    badge?: string;
+    allergens?: string[];
+}
 
 // Modo de entrada de medios: 'url' o 'upload'
 type MediaMode = 'url' | 'upload'
@@ -36,6 +44,8 @@ export default function AdminProductsPage() {
 
     const [imageMode, setImageMode] = useState<MediaMode>('url')
     const [videoMode, setVideoMode] = useState<MediaMode>('url')
+    const [searchQuery, setSearchQuery] = useState('')
+    const [categoryFilter, setCategoryFilter] = useState('all')
 
     const imageInputRef = useRef<HTMLInputElement>(null)
     const videoInputRef = useRef<HTMLInputElement>(null)
@@ -47,7 +57,9 @@ export default function AdminProductsPage() {
         description: '',
         image_url: '',
         video_url: '',
-        ingredients: []
+        badge: '',
+        ingredients: [],
+        allergens: []
     })
 
     const fetchProducts = async () => {
@@ -63,7 +75,7 @@ export default function AdminProductsPage() {
 
     useEffect(() => { fetchProducts() }, [])
 
-    const handleEdit = (product: any) => {
+    const handleEdit = (product: Product) => {
         setEditingId(product.id)
         setFormData({
             name: product.name,
@@ -71,17 +83,30 @@ export default function AdminProductsPage() {
             category_id: product.category_id,
             description: product.description,
             image_url: product.image_url,
+            is_available: product.is_available,
             video_url: product.options?.video_url || '',
-            ingredients: product.ingredients
+            badge: product.options?.badge || '',
+            ingredients: product.ingredients || [],
+            allergens: product.options?.allergens || []
         })
         setImageMode('url')
         setVideoMode('url')
         setIsEditing(true)
     }
 
+    const toggleAvailability = async (product: Product) => {
+        const { error } = await supabase
+            .from('products')
+            .update({ is_available: !product.is_available })
+            .eq('id', product.id)
+        
+        if (error) alert("Error al cambiar disponibilidad")
+        else fetchProducts()
+    }
+
     const resetForm = () => {
         setEditingId(null)
-        setFormData({ name: '', price: 0, category_id: 'cat_burgers', description: '', image_url: '', video_url: '', ingredients: [] })
+        setFormData({ name: '', price: 0, category_id: 'cat_burgers', description: '', image_url: '', video_url: '', badge: '', ingredients: [], allergens: [] })
         setImageMode('url')
         setVideoMode('url')
         setIsEditing(false)
@@ -90,22 +115,32 @@ export default function AdminProductsPage() {
     // Upload a file to /public/images/burgers/ via API route
     const handleFileUpload = async (file: File, type: 'image' | 'video') => {
         setUploading(true)
+        console.log(`Iniciando subida de ${type}:`, file.name)
+        
         try {
-            const form = new FormData()
-            form.append('file', file)
-            form.append('type', type)
+            const uploadFormData = new window.FormData()
+            uploadFormData.append('file', file)
+            uploadFormData.append('type', type)
 
-            const res = await fetch('/api/upload', { method: 'POST', body: form })
-            if (!res.ok) throw new Error('Upload failed')
-            const { url } = await res.json()
+            const res = await fetch('/api/upload', { method: 'POST', body: uploadFormData })
+            const result = await res.json()
+
+            if (!res.ok) {
+                console.error('Error en API de subida:', result.error)
+                throw new Error(result.error || 'Upload failed')
+            }
+
+            const url = result.url
+            console.log('Subida exitosa. URL:', url)
 
             if (type === 'image') {
                 setFormData(prev => ({ ...prev, image_url: url }))
             } else {
                 setFormData(prev => ({ ...prev, video_url: url }))
             }
-        } catch (err) {
-            alert('Error al subir el archivo. Usa la URL manual.')
+        } catch (err: any) {
+            console.error('Error completo en la subida:', err)
+            alert(`Error al subir el ${type}: ${err.message}. Verifica las políticas de Storage.`)
         } finally {
             setUploading(false)
         }
@@ -120,8 +155,13 @@ export default function AdminProductsPage() {
             category_id: formData.category_id,
             description: formData.description,
             image_url: formData.image_url,
+            is_available: formData.is_available ?? true,
             ingredients: Array.isArray(formData.ingredients) ? formData.ingredients : [],
-            options: { video_url: formData.video_url || null }
+            options: { 
+                video_url: formData.video_url || null,
+                badge: formData.badge || null,
+                allergens: Array.isArray(formData.allergens) ? formData.allergens : []
+            }
         }
 
         let error;
@@ -154,32 +194,68 @@ export default function AdminProductsPage() {
         else fetchProducts()
     }
 
-    const displayedProducts = products.filter(p => showDeleted ? p.deleted_at : !p.deleted_at)
+    const displayedProducts = products
+        .filter(p => showDeleted ? p.deleted_at : !p.deleted_at)
+        .filter(p => {
+            const name = p.name || ''
+            const desc = p.description || ''
+            const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                 desc.toLowerCase().includes(searchQuery.toLowerCase())
+            const matchesCategory = categoryFilter === 'all' || p.category_id === categoryFilter
+            return matchesSearch && matchesCategory
+        })
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                        {showDeleted ? 'Papelera de Reciclaje' : 'Productos'}
+            {/* Header / Stats Bar */}
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-black tracking-tight uppercase flex items-center gap-3">
+                        <span className="w-2 h-8 bg-primary rounded-full hidden sm:block"></span>
+                        {showDeleted ? 'Recuperación' : 'Catálogo Real'}
                     </h1>
-                    <p className="text-muted-foreground text-sm">
-                        {showDeleted ? 'Recupera productos eliminados.' : 'Gestiona tu catálogo en tiempo real.'}
+                    <p className="text-muted-foreground text-sm font-medium">
+                        {showDeleted ? 'Resucita lo que enviaste al olvido.' : 'Gestiona tus armas culinarias en tiempo real.'}
                     </p>
                 </div>
-                <div className="flex gap-2 w-full sm:w-auto">
+                
+                <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+                    {/* Buscador */}
+                    <div className="relative flex-1 sm:min-w-[300px]">
+                        <input 
+                            type="text"
+                            placeholder="Buscar por nombre o descripción..."
+                            className="w-full h-11 pl-10 pr-4 rounded-xl bg-white/5 border border-white/10 text-sm focus:border-primary/50 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                        />
+                        <Plus className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground rotate-45" />
+                    </div>
+
+                    {/* Filtro Categoría */}
+                    <select
+                        className="h-11 px-4 rounded-xl bg-white/5 border border-white/10 text-sm [&>option]:text-black focus:border-primary/50 outline-none"
+                        value={categoryFilter}
+                        onChange={e => setCategoryFilter(e.target.value)}
+                    >
+                        <option value="all">Todas las categorías</option>
+                        {categories.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                    </select>
+
                     <Button
                         variant={showDeleted ? "outline" : "ghost"}
                         onClick={() => setShowDeleted(!showDeleted)}
-                        className={`flex-1 sm:flex-none ${showDeleted ? "bg-red-500/10 text-red-500 border-red-500/20" : "text-muted-foreground"}`}
+                        className={`h-11 px-4 rounded-xl ${showDeleted ? "bg-red-500/10 text-red-500 border-red-500/20" : "text-muted-foreground"}`}
                     >
                         {showDeleted ? <Archive className="w-4 h-4 mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
-                        {showDeleted ? 'Ver Activos' : 'Papelera'}
+                        {showDeleted ? 'Activos' : 'Papelera'}
                     </Button>
+
                     {!showDeleted && (
-                        <Button className="flex-1 sm:flex-none gap-2" onClick={() => { resetForm(); setIsEditing(true); }}>
-                            <Plus className="w-4 h-4" /> Nuevo Producto
+                        <Button className="h-11 px-6 rounded-xl font-black uppercase text-xs tracking-wider gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all" onClick={() => { resetForm(); setIsEditing(true); }}>
+                            <Plus className="w-4 h-4" /> Nuevo Pro
                         </Button>
                     )}
                 </div>
@@ -202,25 +278,34 @@ export default function AdminProductsPage() {
                         {/* Modal Body */}
                         <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
                             
-                            {/* Fila 1: Nombre + Precio */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold">Nombre del Producto*</label>
+                            {/* Fila 1: Nombre + Precio + Etiqueta */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div className="sm:col-span-1 space-y-1.5">
+                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider">Nombre del Producto*</label>
                                     <input
-                                        className="w-full h-10 px-3 rounded-lg bg-white/5 border border-white/10 text-sm focus:border-primary/50 outline-none transition-colors"
+                                        className="w-full h-11 px-4 rounded-xl bg-white/[0.03] border border-white/10 text-sm focus:border-primary/50 outline-none transition-all"
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="Ej: Hamburguesa Pozu"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold">Precio (€)*</label>
+                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider">Precio (€)*</label>
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className="w-full h-10 px-3 rounded-lg bg-white/5 border border-white/10 text-sm focus:border-primary/50 outline-none transition-colors"
+                                        className="w-full h-11 px-4 rounded-xl bg-white/[0.03] border border-white/10 text-sm focus:border-primary/50 outline-none transition-all font-mono"
                                         value={formData.price}
                                         onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider">Etiqueta (Badge)</label>
+                                    <input
+                                        className="w-full h-11 px-4 rounded-xl bg-white/[0.03] border border-white/10 text-sm focus:border-primary/50 outline-none transition-all"
+                                        value={formData.badge || ''}
+                                        onChange={e => setFormData({ ...formData, badge: e.target.value })}
+                                        placeholder="Ej: Best Seller"
                                     />
                                 </div>
                             </div>
@@ -368,18 +453,34 @@ export default function AdminProductsPage() {
                                 <p className="text-[10px] text-muted-foreground">Si hay video, se muestra como principal y la imagen aparece como miniatura en la esquina.</p>
                             </div>
 
-                            {/* Ingredientes */}
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold">Ingredientes <span className="text-muted-foreground font-normal">(separados por coma)</span></label>
-                                <textarea
-                                    className="w-full h-16 p-3 rounded-lg bg-white/5 border border-white/10 resize-none text-sm focus:border-primary/50 outline-none transition-colors"
-                                    value={Array.isArray(formData.ingredients) ? formData.ingredients.join(', ') : ''}
-                                    onChange={e => setFormData({
-                                        ...formData,
-                                        ingredients: e.target.value.split(',').map(i => i.trim()).filter(i => i !== '')
-                                    })}
-                                    placeholder="Ej: Ternera, Queso Cheddar, Bacon, Salsa BBQ"
-                                />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                {/* Ingredientes */}
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider text-center block">Ingredientes</label>
+                                    <textarea
+                                        className="w-full h-24 p-4 rounded-xl bg-white/[0.03] border border-white/10 resize-none text-sm focus:border-primary/50 outline-none transition-all"
+                                        value={Array.isArray(formData.ingredients) ? formData.ingredients.join(', ') : ''}
+                                        onChange={e => setFormData({
+                                            ...formData,
+                                            ingredients: e.target.value.split(',').map(i => i.trim()).filter(i => i !== '')
+                                        })}
+                                        placeholder="Ternera, Queso, Bacon..."
+                                    />
+                                </div>
+
+                                {/* Alérgenos */}
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider text-center block text-red-400">Alérgenos</label>
+                                    <textarea
+                                        className="w-full h-24 p-4 rounded-xl bg-white/[0.03] border border-white/10 resize-none text-sm focus:border-red-400/30 outline-none transition-all"
+                                        value={Array.isArray(formData.allergens) ? formData.allergens.join(', ') : ''}
+                                        onChange={e => setFormData({
+                                            ...formData,
+                                            allergens: e.target.value.split(',').map(i => i.trim()).filter(i => i !== '')
+                                        })}
+                                        placeholder="Gluten, Lácteos, Huevos..."
+                                    />
+                                </div>
                             </div>
 
                             {/* Descripción */}
@@ -423,11 +524,11 @@ export default function AdminProductsPage() {
                         <table className="w-full text-left hidden md:table">
                             <thead className="bg-white/5 text-xs uppercase font-bold text-muted-foreground">
                                 <tr>
-                                    <th className="p-4">Producto</th>
-                                    <th className="p-4">Categoría</th>
-                                    <th className="p-4">Precio</th>
-                                    <th className="p-4 text-center">Estado</th>
-                                    <th className="p-4 text-right">Acciones</th>
+                                    <th className="p-4">Producto / Escancia</th>
+                                    <th className="p-4">Categoría / Rango</th>
+                                    <th className="p-4">Inversión</th>
+                                    <th className="p-4 text-center">Estado Vital</th>
+                                    <th className="p-4 text-right">Manejo</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -446,14 +547,29 @@ export default function AdminProductsPage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <span className={`font-medium ${product.deleted_at ? 'text-muted-foreground line-through' : ''}`}>
-                                                        {product.name}
-                                                    </span>
-                                                    {product.options?.video_url && (
-                                                        <div className="flex items-center gap-1 text-[10px] text-primary mt-0.5">
-                                                            <VideoIcon className="w-3 h-3" /> Con video
-                                                        </div>
-                                                    )}
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`font-bold text-base ${product.deleted_at ? 'text-muted-foreground line-through' : 'text-white'}`}>
+                                                            {product.name}
+                                                        </span>
+                                                        {product.options?.badge && (
+                                                            <span className="px-1.5 py-0.5 rounded-md bg-primary/20 text-primary border border-primary/30 text-[9px] font-black uppercase tracking-tighter">
+                                                                {product.options.badge}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {product.options?.video_url && (
+                                                            <div className="flex items-center gap-1 text-[10px] text-primary/80 font-medium">
+                                                                <VideoIcon className="w-3 h-3" /> Video
+                                                            </div>
+                                                        )}
+                                                        {product.options?.allergens && product.options.allergens.length > 0 && (
+                                                            <div className="flex items-center gap-1 text-[10px] text-red-400/80 font-medium">
+                                                                <span className="w-1 h-1 rounded-full bg-red-400"></span>
+                                                                {product.options.allergens.length} Alérgenos
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -462,15 +578,18 @@ export default function AdminProductsPage() {
                                         </td>
                                         <td className="p-4 font-mono">{product.price.toFixed(2)}€</td>
                                         <td className="p-4 text-center">
-                                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold border ${
-                                                product.deleted_at
-                                                    ? 'bg-red-500/10 text-red-500 border-red-500/20'
-                                                    : product.is_available
-                                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                                        : 'bg-red-500/10 text-red-500 border-red-500/20'
-                                            }`}>
+                                            <button 
+                                                onClick={() => !product.deleted_at && toggleAvailability(product)}
+                                                className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
+                                                    product.deleted_at
+                                                        ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                                                        : product.is_available
+                                                            ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 hover:scale-105'
+                                                            : 'bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500/20 hover:scale-105'
+                                                }`}
+                                            >
                                                 {product.deleted_at ? 'Eliminado' : product.is_available ? 'Activo' : 'Agotado'}
-                                            </span>
+                                            </button>
                                         </td>
                                         <td className="p-4 text-right">
                                             <div className="flex justify-end gap-2">
@@ -521,11 +640,18 @@ export default function AdminProductsPage() {
                                                 </span>
                                             )}
                                         </div>
-                                        <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                            product.deleted_at ? 'bg-red-500/10 text-red-500' : product.is_available ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-                                        }`}>
+                                        <button 
+                                            onClick={() => !product.deleted_at && toggleAvailability(product)}
+                                            className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
+                                                product.deleted_at 
+                                                    ? 'bg-red-500/10 text-red-500 border-red-500/20' 
+                                                    : product.is_available 
+                                                        ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                                                        : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                                            }`}
+                                        >
                                             {product.deleted_at ? 'Eliminado' : product.is_available ? 'Activo' : 'Agotado'}
-                                        </span>
+                                        </button>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
                                         {showDeleted ? (
