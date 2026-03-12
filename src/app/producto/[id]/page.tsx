@@ -32,7 +32,6 @@ function enrichWithVideo(product: any): any {
     if (!product?.image_url) return product
     if (product.image_url.toLowerCase().endsWith('.webm')) return product
 
-    // Reemplazar extensión para buscar el .webm
     const webmRelPath = product.image_url.replace(/\.(png|jpg|jpeg|webp)$/i, '.webm')
     const absolutePath = join(process.cwd(), 'public', webmRelPath)
 
@@ -51,7 +50,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     const rawProduct = await getProduct(resolvedParams.id)
 
     if (!rawProduct) {
-        // Fallback con datos locales para slugs que no coincidan por nombre exacto
         const { products: mockProducts } = await import("@/lib/data")
         const mockProduct = mockProducts.find(p => p.id === resolvedParams.id)
         if (mockProduct) {
@@ -59,8 +57,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             return (
                 <div className="min-h-screen bg-background">
                     <Navbar />
-                    <div className="pt-24 pb-20 container mx-auto px-6">
-                        <Link href="/menu" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
+                    <div className="pt-20 sm:pt-24 pb-16 sm:pb-20 container mx-auto px-4 sm:px-6">
+                        <Link href="/menu" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 sm:mb-8">
                             <ArrowLeft className="w-4 h-4" /> Volver al menú
                         </Link>
                         <ProductView product={{ ...enriched, is_available: true, category_id: mockProduct.category_id }} />
@@ -76,8 +74,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     return (
         <div className="min-h-screen bg-background">
             <Navbar />
-            <div className="pt-24 pb-20 container mx-auto px-6">
-                <Link href="/menu" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
+            <div className="pt-20 sm:pt-24 pb-16 sm:pb-20 container mx-auto px-4 sm:px-6">
+                <Link href="/menu" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 sm:mb-8">
                     <ArrowLeft className="w-4 h-4" /> Volver al menú
                 </Link>
                 <ProductView product={product} />

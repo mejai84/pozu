@@ -48,7 +48,7 @@ export function ProductView({ product }: { product: any }) {
     }
 
     return (
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center">
             {/* Imagen Principal / Video */}
             <div className="relative aspect-square w-full max-w-[600px] mx-auto bg-card/30 rounded-3xl p-8 border border-white/5 flex items-center justify-center group overflow-hidden">
                 {/* Círculo decorativo de fondo */}
@@ -124,8 +124,8 @@ export function ProductView({ product }: { product: any }) {
             {/* Detalles del Producto */}
             <div className="space-y-8">
                 <div className="space-y-4">
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight">{product.name}</h1>
-                    <div className="text-3xl font-bold text-primary">{product.price.toFixed(2)}€</div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">{product.name}</h1>
+                    <div className="text-2xl sm:text-3xl font-bold text-primary">{product.price.toFixed(2)}€</div>
                     <p className="text-xl text-muted-foreground leading-relaxed">
                         {product.description || "Deliciosa combinación de ingredientes frescos y carne de primera calidad."}
                     </p>
@@ -168,22 +168,22 @@ export function ProductView({ product }: { product: any }) {
                 )}
 
                 {/* Info Nutricional Mock */}
-                <div className="grid grid-cols-4 gap-4 p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
+                <div className="grid grid-cols-4 gap-2 sm:gap-4 p-3 sm:p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
                     <div>
-                        <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Calorías</div>
-                        <div className="font-bold">{nutritionalInfo.calories}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Calorías</div>
+                        <div className="font-bold text-sm sm:text-base">{nutritionalInfo.calories}</div>
                     </div>
                     <div>
-                        <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Proteína</div>
-                        <div className="font-bold">{nutritionalInfo.protein}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Proteína</div>
+                        <div className="font-bold text-sm sm:text-base">{nutritionalInfo.protein}</div>
                     </div>
                     <div>
-                        <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Grasas</div>
-                        <div className="font-bold">{nutritionalInfo.fat}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Grasas</div>
+                        <div className="font-bold text-sm sm:text-base">{nutritionalInfo.fat}</div>
                     </div>
                     <div>
-                        <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Carb.</div>
-                        <div className="font-bold">{nutritionalInfo.carbs}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Carb.</div>
+                        <div className="font-bold text-sm sm:text-base">{nutritionalInfo.carbs}</div>
                     </div>
                 </div>
 
