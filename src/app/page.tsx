@@ -29,7 +29,7 @@ export default function Home() {
       <main className="flex-1 relative z-10 flex flex-col items-center pt-0 pb-24 sm:pb-32 w-full overflow-x-hidden">
 
         {/* Hero Section - Animation First, Centered Content Layout */}
-        <div className="flex flex-col items-center -mt-20 sm:-mt-40 lg:-mt-48 relative w-full pt-0 bg-transparent min-h-[110vh] sm:min-h-[120vh]">
+        <div className="flex flex-col items-center mt-16 sm:-mt-40 lg:-mt-48 relative w-full pt-0 bg-transparent min-h-[90vh] sm:min-h-[120vh]">
 
           {/* Background Pattern Overlay - Subtle & Expansive */}
           <div
@@ -42,12 +42,12 @@ export default function Home() {
           />
 
           {/* 1. MEGA BURGER ANIMATION (TOP) */}
-          <div className="relative w-screen left-1/2 -translate-x-1/2 flex justify-center items-center z-10 overflow-visible">
+          <div className="relative w-full flex justify-center items-center z-10 overflow-visible px-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 50 }}
-              animate={{ opacity: 1, scale: 1.1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-[1500px] aspect-square sm:aspect-square flex items-center justify-center relative px-4 min-h-[400px] sm:min-h-0"
+              className="w-full max-w-4xl aspect-square flex items-center justify-center relative min-h-[350px] sm:min-h-0"
             >
               <ScrollVideo />
 
