@@ -378,7 +378,7 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 
 ## 🛠️ Actualizaciones Recientes (12 de Marzo de 2026)
 
-### 11. **Rediseño Premium Elite SPA (Marzo 2026)** ⭐ NUEVO
+### 11. **Rediseño Premium Elite SPA (Marzo 2026)** ⭐ NUEVO/REFINADO
 **Ubicación:** Todo el sitio público (Menú, Nosotros, Combos, Pedidos, Checkout, Login)
 
 **Funcionalidades:**
@@ -388,6 +388,15 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 - ✅ **Premium Typography**: Uso extendido de `text-gradient` y jerarquías tipográficas "black/italic" para reforzar el carácter rockero y artesanal.
 - ✅ **Refactor de Checkout**: Formulario rediseñado con tarjetas de cristal, mejor organización de campos y selección visual de métodos de pago.
 - ✅ **Páginas de Soporte**: Actualización estética de las páginas de "Éxito" (Confirmación), "Login" y "Combos" (Placeholder) para mantener el estándar visual.
+
+### 12. **Sistema Automatizado de Fotogramas (Scroll Video)** ⭐ NUEVO
+**Ubicación:** Landing Page (Hero Section) y DevOps
+
+**Funcionalidades:**
+- ✅ **Scroll Video Component**: Nueva implementación basada en Canvas que anima la explosión de la hamburguesa según el desplazamiento del usuario.
+- ✅ **Generador de Manifiesto**: Script automático en `.mjs` que escala y ordena todos los frames de `public/Frames`.
+- ✅ **Integración CI/CD**: Añadidos scripts `predev` y `prebuild` en `package.json` para garantizar que el manifiesto esté siempre actualizado antes de cada despliegue.
+- ✅ **Optimización de Carga**: Uso de Prefetching de imágenes para una animación fluida sin tirones (judder).
 
 ---
 

@@ -6,6 +6,7 @@ import { Navbar } from "@/components/store/navbar";
 import { motion } from "framer-motion";
 import { Mic, Zap, Percent, Gift, MapPin, Clock, Phone } from "lucide-react";
 import { Preloader } from "@/components/ui/preloader";
+import { ScrollVideo } from "@/components/ui/scroll-video";
 
 export default function Home() {
   return (
@@ -79,23 +80,17 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              {/* Main Image */}
+              {/* Main Animated Burger (Scroll controlled) */}
               <motion.div 
                 initial={{ opacity: 0, scale: 0.85, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] aspect-square"
+                className="relative w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] aspect-square flex items-center justify-center overflow-visible"
               >
-                <Image
-                  src="/images/burgers/pozu-new-exploded.png"
-                  alt="Hamburguesa Pozu Premium"
-                  fill
-                  className="object-contain drop-shadow-[0_40px_80px_rgba(0,0,0,0.85)]"
-                  priority
-                />
+                <ScrollVideo />
                 
                 {/* Radial glow behind burger */}
-                <div className="absolute inset-x-0 bottom-0 top-1/4 bg-primary/5 rounded-full blur-[100px] -z-10 scale-90 opacity-40 animate-pulse" />
+                <div className="absolute inset-0 bg-primary/5 rounded-full blur-[100px] -z-10 scale-90 opacity-40 animate-pulse" />
               </motion.div>
 
               {/* Right Context: Experience */}

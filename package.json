@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "node scripts/build-frames-manifest.mjs",
+    "prebuild": "node scripts/build-frames-manifest.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
