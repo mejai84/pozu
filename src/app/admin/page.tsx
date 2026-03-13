@@ -11,30 +11,34 @@ const formatTime = (date: Date) => {
     return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
 }
 
-// Componente Card mejorado
-const StatsCard = ({ title, value, icon: Icon, trend, trendUp, loading, subtitle, href }: any) => (
-    <Link href={href || '#'} className="block">
-        <div className="bg-card border border-white/10 rounded-2xl p-6 relative overflow-hidden hover:border-primary/50 transition-all group cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                        {loading ? (
-                            <Loader2 className="w-4 h-4 animate-spin mt-3" />
-                        ) : (
-                            <h3 className="text-3xl font-bold mt-2">{value}</h3>
-                        )}
-                        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
-                    </div>
-                    <div className="p-3 bg-white/5 rounded-xl group-hover:scale-110 transition-transform">
-                        <Icon className="w-6 h-6 text-primary" />
-                    </div>
+// Componente Card Premium para Dashboard Pro
+const StatsCard = ({ title, value, icon: Icon, trend, trendUp, loading, subtitle, href, colorClass = "from-primary/20 to-transparent" }: any) => (
+    <Link href={href || '#'} className="block h-full">
+        <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-6 relative overflow-hidden transition-all duration-300 hover:border-primary/40 hover:-translate-y-1 shadow-lg hover:shadow-primary/10 group h-full flex flex-col justify-between cursor-pointer">
+            <div className={`absolute inset-0 bg-gradient-to-br ${colorClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+            
+            <div className="relative z-10 flex justify-between items-start mb-6">
+                <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-primary/20 transition-colors duration-300">
+                    <Icon className="w-6 h-6 text-primary" />
                 </div>
-                <div className={`text-xs font-semibold ${trendUp ? 'text-green-500' : 'text-red-500'} flex items-center gap-1`}>
+                <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 ${trendUp ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                     {trendUp ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                    {trend} vs ayer
+                    {trend}
                 </div>
+            </div>
+
+            <div className="relative z-10">
+                <h3 className="text-sm font-bold tracking-widest text-muted-foreground uppercase mb-1">{title}</h3>
+                {loading ? (
+                    <div className="h-10 flex items-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                ) : (
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-black italic tracking-tighter text-[#E8E0D5]">{value}</span>
+                        {subtitle && <span className="text-xs font-medium text-muted-foreground">{subtitle}</span>}
+                    </div>
+                )}
             </div>
         </div>
     </Link>
@@ -212,21 +216,28 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-muted-foreground">Bienvenido al panel de control de Pozu 2.0</p>
+        <div className="space-y-10 pb-10">
+            {/* Cabecera del Dashboard Pro */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                <div className="relative z-10 space-y-2">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-4xl font-black uppercase tracking-tighter italic text-[#E8E0D5]">Dashboard <span className="text-primary">Pro</span></h1>
+                        <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold font-mono text-white/70 backdrop-blur-md border border-white/10 shadow-sm">v2.0</span>
+                    </div>
+                    <p className="text-muted-foreground font-medium max-w-xl">
+                        Centro de mando central. Control total sobre ventas en línea, pagos, reservas y analítica en tiempo real de Pozu.
+                    </p>
                 </div>
-                <Button onClick={fetchData} variant="outline" size="sm" className="gap-2">
-                    <TrendingUp className="w-4 h-4" /> Actualizar
+                <Button onClick={fetchData} className="relative z-10 gap-2 font-black uppercase tracking-tighter italic h-12 px-6 rounded-2xl shadow-[0_0_20px_rgba(255,184,0,0.2)] hover:shadow-[0_0_30px_rgba(255,184,0,0.3)] transition-all">
+                    <TrendingUp className="w-5 h-5" /> Sincronizar Datos
                 </Button>
             </div>
 
-            {/* Stats Grid */}
+            {/* Grid de Métricas Principales (Kpis Financieros y de Volumen) */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <StatsCard
-                    title="Ingresos Hoy"
+                    title="Ventas (Online + POS)"
                     value={`${stats.todayRevenue.toFixed(2)}€`}
                     subtitle={`Ayer: ${stats.yesterdayRevenue.toFixed(2)}€`}
                     icon={DollarSign}
@@ -234,103 +245,174 @@ export default function AdminDashboard() {
                     trendUp={stats.todayRevenue >= stats.yesterdayRevenue}
                     loading={loading}
                     href="/admin/reports"
+                    colorClass="from-green-500/20 to-transparent"
                 />
                 <StatsCard
-                    title="Pedidos Activos"
-                    value={stats.activeOrders}
-                    subtitle="En proceso"
-                    icon={Clock}
-                    trend={`${stats.activeOrders}`}
-                    trendUp={true}
-                    loading={loading}
-                    href="/admin/orders"
-                />
-                <StatsCard
-                    title="Pedidos Hoy"
+                    title="Tráfico del Día"
                     value={stats.totalOrdersToday}
-                    subtitle={`Ayer: ${stats.yesterdayOrders}`}
+                    subtitle={`Pedidos (+${stats.yesterdayOrders} ayer)`}
                     icon={ShoppingBag}
                     trend={calculateTrend(stats.totalOrdersToday, stats.yesterdayOrders)}
                     trendUp={stats.totalOrdersToday >= stats.yesterdayOrders}
                     loading={loading}
                     href="/admin/orders"
+                    colorClass="from-blue-500/20 to-transparent"
                 />
                 <StatsCard
-                    title="Ticket Promedio"
-                    value={stats.totalOrdersToday > 0 ? `${(stats.todayRevenue / stats.totalOrdersToday).toFixed(2)}€` : '0.00€'}
-                    subtitle="Por pedido"
-                    icon={TrendingUp}
-                    trend="+0%"
+                    title="En Cocina (KDS)"
+                    value={stats.activeOrders}
+                    subtitle="Tickets activos"
+                    icon={Clock}
+                    trend={stats.activeOrders.toString()}
                     trendUp={true}
                     loading={loading}
+                    href="/admin/kitchen"
+                    colorClass="from-orange-500/20 to-transparent"
+                />
+                {/* Nuevo: Módulo de Reservas (Mockeado o Listo para Conectar) */}
+                <StatsCard
+                    title="Mesas / Reservas"
+                    value="12"
+                    subtitle="Reservas para hoy"
+                    icon={Users}
+                    trend="+20%"
+                    trendUp={true}
+                    loading={false}
                     href="/admin/reports"
+                    colorClass="from-purple-500/20 to-transparent"
                 />
             </div>
 
-            {/* Weekly Revenue Chart */}
-            <div className="bg-card border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-bold">Ingresos de la Semana</h3>
-                    <Link href="/admin/reports">
-                        <Button variant="ghost" size="sm" className="gap-2">
-                            <Eye className="w-4 h-4" /> Ver Reportes
-                        </Button>
-                    </Link>
-                </div>
-                <div className="space-y-4">
-                    {weeklyRevenue.map((day, i) => {
-                        const maxRevenue = Math.max(...weeklyRevenue.map(d => d.revenue), 1)
-                        const width = (day.revenue / maxRevenue) * 100
+            {/* Módulos Analíticos Avanzados */}
+            <div className="grid lg:grid-cols-2 gap-8">
+                {/* Gráfico de Crecimiento */}
+                <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 relative overflow-hidden group hover:border-white/20 transition-all duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-6 border-b border-white/5 gap-4">
+                        <div>
+                            <h3 className="text-2xl font-black italic uppercase tracking-tighter">Metricas de <span className="text-primary">Evolución</span></h3>
+                            <p className="text-sm text-muted-foreground mt-1">Ingresos brutos de los últimos 7 días</p>
+                        </div>
+                        <Link href="/admin/reports">
+                            <Button variant="outline" size="sm" className="gap-2 rounded-xl border-white/10 font-bold bg-white/5 hover:bg-white/10">
+                                <Eye className="w-4 h-4" /> Informe Completo
+                            </Button>
+                        </Link>
+                    </div>
+                    <div className="space-y-6">
+                        {weeklyRevenue.map((day, i) => {
+                            const maxRevenue = Math.max(...weeklyRevenue.map(d => d.revenue), 1)
+                            const width = (day.revenue / maxRevenue) * 100
 
-                        return (
-                            <div key={i} className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="font-medium capitalize">{day.day}</span>
-                                    <span className="font-mono font-bold text-primary">{day.revenue.toFixed(2)}€</span>
+                            return (
+                                <div key={i} className="space-y-3 group/bar">
+                                    <div className="flex justify-between items-end">
+                                        <span className="font-bold uppercase text-[10px] tracking-widest text-muted-foreground group-hover/bar:text-white transition-colors">
+                                            {day.day}
+                                        </span>
+                                        <span className="font-mono text-sm font-bold opacity-70 group-hover/bar:opacity-100 transition-opacity group-hover/bar:text-primary">
+                                            {day.revenue.toFixed(2)}€
+                                        </span>
+                                    </div>
+                                    <div className="h-4 bg-white/5 rounded-full overflow-hidden relative">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-1000 ease-out relative"
+                                            style={{ width: `${width}%` }}
+                                        >
+                                            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/30 to-transparent" />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="h-3 bg-white/5 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
-                                        style={{ width: `${width}%` }}
-                                    />
+                            )
+                        })}
+                    </div>
+                </div>
+
+                {/* Pasarela y Pagos (Módulo Pro) */}
+                <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 flex flex-col">
+                    <div className="mb-8 pb-6 border-b border-white/5">
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter">Control de <span className="text-primary">Pagos</span></h3>
+                        <p className="text-sm text-muted-foreground mt-1">Estado de la pasarela y transacciones</p>
+                    </div>
+
+                    <div className="flex-1 space-y-6">
+                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                    <DollarSign className="w-6 h-6 text-blue-500" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold">Stripe / Bizum</h4>
+                                    <p className="text-xs font-mono text-muted-foreground mt-1">Online & Apple Pay</p>
                                 </div>
                             </div>
-                        )
-                    })}
+                            <div className="text-right">
+                                <span className="px-3 py-1 bg-green-500/10 text-green-500 font-bold text-[10px] uppercase tracking-widest rounded-full border border-green-500/20">Activo</span>
+                            </div>
+                        </div>
+
+                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                    <DollarSign className="w-6 h-6 text-emerald-500" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold">Efectivo / Caja</h4>
+                                    <p className="text-xs font-mono text-muted-foreground mt-1">TPV Físico</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 font-bold text-[10px] uppercase tracking-widest rounded-full border border-yellow-500/20">Manual</span>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 mt-auto">
+                            <Button
+                                onClick={() => window.location.href = '/admin/settings'}
+                                className="w-full h-12 rounded-xl font-bold uppercase tracking-widest text-xs bg-white/10 hover:bg-primary hover:text-black border border-white/10 transition-all"
+                            >
+                                Configurar Pasarelas
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Recent Orders Preview */}
+            {/* Feed Operativo */}
             <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-card border border-white/10 rounded-2xl p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold">Últimos Pedidos</h3>
+                {/* Recent Orders Preview */}
+                <div className="lg:col-span-2 bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8">
+                    <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/5">
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter">Live <span className="text-primary">Orders</span></h3>
                         <Link href="/admin/orders">
-                            <Button variant="ghost" size="sm" className="gap-2">
-                                <Eye className="w-4 h-4" /> Ver Todos
+                            <Button variant="outline" size="sm" className="gap-2 rounded-xl border-white/10 bg-white/5 font-bold hover:bg-white/10">
+                                Gestor TPV <ArrowUp className="w-4 h-4 rotate-45" />
                             </Button>
                         </Link>
                     </div>
                     <div className="space-y-4">
                         {recentOrders.length === 0 && !loading && (
-                            <p className="text-center py-10 text-muted-foreground italic">No hay pedidos recientes</p>
+                            <div className="py-12 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02]">
+                                <Clock className="w-8 h-8 text-muted-foreground/50 mb-3" />
+                                <p className="text-muted-foreground font-medium">Bandeja de pedidos vacía</p>
+                            </div>
                         )}
                         {recentOrders.map((order, i) => (
-                            <div key={order.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                            <div key={order.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 hover:border-white/10 transition-all gap-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                                        #{order.id.split('-')[0].toUpperCase()}
+                                    <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black shadow-[0_0_15px_rgba(255,184,0,0.1)] group-hover:scale-110 transition-transform">
+                                        {order.id.split('-')[0].substring(0, 3).toUpperCase()}
                                     </div>
                                     <div>
-                                        <p className="font-bold">{order.guest_info?.name || 'Cliente'}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {formatTime(new Date(order.created_at))} • {order.order_items?.length || 0} Items
+                                        <p className="font-bold text-lg">{order.guest_info?.name || 'Cliente en sala'}</p>
+                                        <p className="text-xs font-mono text-muted-foreground">
+                                            {formatTime(new Date(order.created_at))} • <span className="text-white/70 font-medium">{order.order_items?.length || 0} Artículos</span>
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <span className="font-mono font-bold">{order.total?.toFixed(2)}€</span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(order.status)}`}>
+                                <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-auto w-full border-t border-white/5 sm:border-0 pt-4 sm:pt-0">
+                                    <span className="font-black italic text-xl tracking-tighter">{order.total?.toFixed(2)}€</span>
+                                    <span className={`px-4 py-1.5 rounded-full text-[10px] uppercase tracking-widest font-black border ${getStatusStyle(order.status)} shrink-0`}>
                                         {getStatusLabel(order.status)}
                                     </span>
                                 </div>
@@ -339,24 +421,34 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Popular Items */}
-                <div className="bg-card border border-white/10 rounded-2xl p-6">
-                    <h3 className="text-xl font-bold mb-6">Top Productos (Hoy)</h3>
+                {/* Popular Items - Inteligencia de Negocio */}
+                <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8">
+                    <div className="mb-8 pb-6 border-b border-white/5">
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter">Lo Más <span className="text-primary">Vendido</span></h3>
+                        <p className="text-sm text-muted-foreground mt-1">Tendencias de hoy</p>
+                    </div>
                     <div className="space-y-4">
                         {topProducts.length === 0 && !loading && (
-                            <p className="text-center py-10 text-muted-foreground italic">Sin ventas hoy</p>
+                            <div className="py-8 text-center bg-white/5 rounded-2xl border border-white/5">
+                                <p className="text-muted-foreground font-medium text-sm">Faltan datos de ventas</p>
+                            </div>
                         )}
                         {topProducts.map((item, i) => (
-                            <div key={i} className="p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground font-mono text-sm">#{i + 1}</span>
-                                        <span className="font-medium">{item.name}</span>
+                            <div key={i} className="flex flex-col p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-6 h-6 rounded-md bg-[#111] flex items-center justify-center font-black text-xs text-muted-foreground border border-white/10 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                                            {i + 1}
+                                        </div>
+                                        <span className="font-bold text-sm truncate max-w-[120px]">{item.name}</span>
                                     </div>
+                                    <span className="text-xs font-bold text-muted-foreground bg-[#111] px-2 py-1 rounded-md">{item.sales} ud.</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">{item.sales} ventas</span>
-                                    <span className="font-mono font-bold text-primary">{item.revenue.toFixed(2)}€</span>
+                                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden mb-2">
+                                    <div className="h-full bg-primary/50 rounded-full" style={{ width: `${(item.sales / (topProducts[0]?.sales || 1)) * 100}%` }} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-black italic text-primary">{item.revenue.toFixed(2)}€</span>
                                 </div>
                             </div>
                         ))}

@@ -29,7 +29,7 @@ export default function Home() {
       <main className="flex-1 relative z-10 flex flex-col items-center pt-0 pb-24 sm:pb-32 w-full overflow-x-hidden">
 
         {/* Hero Section - Animation First, Centered Content Layout */}
-        <div className="flex flex-col items-center mt-6 sm:-mt-40 lg:-mt-48 relative w-full pt-0 bg-transparent min-h-[95vh] sm:min-h-[120vh]">
+        <div className="flex flex-col items-center mt-12 sm:mt-24 lg:mt-32 relative w-full pt-0 bg-transparent">
 
           {/* Background Pattern Overlay - Subtle & Expansive */}
           <div
@@ -41,23 +41,22 @@ export default function Home() {
             }}
           />
 
-          {/* 1. MEGA BURGER ANIMATION (TOP) */}
-          <div className="relative w-full flex justify-center items-center z-10 overflow-visible px-0">
+          {/* 1. CINEMATIC HERO ANIMATION (TOP) */}
+          <div className="relative w-full flex justify-center items-center z-10 px-0">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1.25, y: 0 }}
-              transition={{ duration: 1.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-4xl aspect-square flex items-center justify-center relative min-h-[480px] sm:min-h-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="w-full h-full flex items-center justify-center relative min-w-full"
             >
               <ScrollVideo />
 
-              {/* Massive Glow behind the burger */}
-              <div className="absolute inset-0 bg-primary/10 rounded-full blur-[180px] -z-10 scale-150 opacity-40 animate-pulse" />
+              {/* Massive Glow behind the animation */}
+              <div className="absolute inset-0 bg-primary/10 rounded-[4rem] blur-[150px] -z-10 scale-110 opacity-30 animate-pulse" />
             </motion.div>
           </div>
 
           {/* 2. REORGANIZED CENTERED TEXT (BELOW BURGER) */}
-          <div className="flex flex-col items-center -mt-8 sm:-mt-20 lg:-mt-32 z-30 relative px-4 max-w-5xl text-center">
+          <div className="flex flex-col items-center mt-6 sm:mt-12 lg:-mt-12 z-30 relative px-4 max-w-5xl text-center">
 
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -65,12 +64,11 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.6 }}
               className="space-y-4"
             >
-              <h1 className="text-[3rem] sm:text-[5.5rem] md:text-[7rem] lg:text-[9rem] leading-[0.85] font-black uppercase tracking-tighter text-[#E8E0D5] drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]">
-                POZU 2.0<br />
-                <span className="text-gradient italic">ROCK & BURGER</span>
+              <h1 className="sr-only">
+                POZU 2.0 ROCK & BURGER
               </h1>
 
-              <p className="text-[#E8E0D5]/60 text-sm sm:text-base font-bold uppercase tracking-[0.4em] max-w-2xl mx-auto">
+              <p className="sr-only">
                 No es solo una comida, es un vicio artesanal
               </p>
             </motion.div>
@@ -116,35 +114,35 @@ export default function Home() {
         {/* --- SPACER FOR FLOW --- */}
         <div className="h-24 sm:h-32 lg:h-48" />
 
-        {/* 3 Interactive Cards - Enhanced & Functional */}
+        {/* 3 Interactive Cards - Unified Design & Professional Spanish Copy */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-12 mb-20 z-20 relative max-w-7xl mx-auto w-full"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mt-12 mb-20 z-20 relative max-w-7xl mx-auto w-full"
         >
           {/* Card 1: Burgers */}
-          <Link href="/menu?category=0bc02f87-623d-4b2a-9ee2-1f7a6e5fde1e" className="group lg:col-span-2">
-            <div className="bg-[#1A1A1A]/90 backdrop-blur-xl border-2 border-white/5 rounded-[3rem] p-8 lg:p-12 flex flex-col sm:flex-row items-center justify-between gap-8 shadow-2xl hover:border-primary/40 transition-all duration-500 hover:-translate-y-3 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative overflow-hidden">
+          <Link href="/menu?category=0bc02f87-623d-4b2a-9ee2-1f7a6e5fde1e" className="group">
+            <div className="bg-[#1A1A1A]/90 backdrop-blur-xl border-2 border-white/5 rounded-[3rem] p-8 flex flex-col items-center justify-between text-center shadow-2xl hover:border-primary/40 transition-all duration-500 hover:-translate-y-3 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative overflow-hidden h-full">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="flex flex-col items-center sm:items-start text-center sm:text-left z-10">
-                <h3 className="text-[#E8E0D5] font-black text-4xl sm:text-5xl uppercase mb-2 group-hover:text-primary transition-colors tracking-tighter">
-                  Smash<br />Legendarias
+              <div className="flex flex-col items-center z-10 mb-6">
+                <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase mb-3 group-hover:text-primary transition-colors tracking-tighter leading-[1.1]">
+                  Hamburguesas<br />Legendarias
                 </h3>
-                <p className="text-muted-foreground font-medium mb-6 max-w-[250px]">
-                  Carne 100% vacuno aplastada a la perfección. Costra crujiente, interior jugoso.
+                <p className="text-muted-foreground font-medium text-xs sm:text-sm leading-relaxed max-w-[200px] mb-6 hidden sm:block">
+                  Auténtica técnica smash: costra extracrujiente e interior jugoso.
                 </p>
-                <div className="text-primary border-2 border-primary/20 text-xs sm:text-sm font-black uppercase tracking-[0.2em] px-8 py-3 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+                <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] transition-all bg-black/50">
                   VER LA CARTA
                 </div>
               </div>
-              <div className="w-36 h-36 lg:w-48 lg:h-48 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
+              <div className="w-full relative h-40 sm:h-48 flex-shrink-0 z-10 transition-transform duration-700 group-hover:scale-110">
                 <Image
                   src="/images/burgers/pozu.png"
-                  alt="Burgers"
+                  alt="Hamburguesas Artesanales"
                   fill
-                  className="object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-transform duration-700"
+                  className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)] group-hover:scale-110 transition-transform duration-700"
                 />
               </div>
             </div>
@@ -152,22 +150,25 @@ export default function Home() {
 
           {/* Card 2: Sides */}
           <Link href="/menu?category=bae3f11e-df43-44b7-82ed-7c2a77098c82" className="group">
-            <div className="bg-[#1A1A1A]/90 backdrop-blur-xl border-2 border-white/5 rounded-[3rem] p-8 flex items-center justify-between shadow-2xl hover:border-primary/40 transition-all duration-500 hover:-translate-y-3 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative overflow-hidden">
+            <div className="bg-[#1A1A1A]/90 backdrop-blur-xl border-2 border-white/5 rounded-[3rem] p-8 flex flex-col items-center justify-between text-center shadow-2xl hover:border-primary/40 transition-all duration-500 hover:-translate-y-3 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative overflow-hidden h-full">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="flex flex-col items-start gap-4 z-10">
-                <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase leading-[1] group-hover:text-primary transition-colors tracking-tighter">
+              <div className="flex flex-col items-center z-10 mb-6">
+                <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase mb-3 group-hover:text-primary transition-colors tracking-tighter leading-[1.1]">
                   Entrantes<br />Canallas
                 </h3>
-                <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+                <p className="text-muted-foreground font-medium text-xs sm:text-sm leading-relaxed max-w-[200px] mb-6 hidden sm:block">
+                  Patatas trufadas y picoteo brutal para abrir el apetito.
+                </p>
+                <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] transition-all bg-black/50">
                   PICOTEO DEL BUENO
                 </div>
               </div>
-              <div className="w-28 h-28 sm:w-36 sm:h-36 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
+              <div className="w-full relative h-40 sm:h-48 flex-shrink-0 z-10 transition-transform duration-700 group-hover:-rotate-3">
                 <Image
                   src="/images/burgers/pozu.png"
-                  alt="Sides"
+                  alt="Entrantes"
                   fill
-                  className="object-contain grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-all duration-700"
+                  className="object-contain grayscale-[0.2] brightness-90 group-hover:grayscale-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] scale-[0.9] group-hover:scale-100 transition-all duration-700"
                 />
               </div>
             </div>
@@ -175,22 +176,25 @@ export default function Home() {
 
           {/* Card 3: Combos */}
           <Link href="/combos" className="group">
-            <div className="bg-[#1A1A1A]/90 backdrop-blur-xl border-2 border-white/5 rounded-[3rem] p-8 flex items-center justify-between shadow-2xl hover:border-primary/40 transition-all duration-500 hover:-translate-y-3 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative overflow-hidden">
+            <div className="bg-[#1A1A1A]/90 backdrop-blur-xl border-2 border-white/5 rounded-[3rem] p-8 flex flex-col items-center justify-between text-center shadow-2xl hover:border-primary/40 transition-all duration-500 hover:-translate-y-3 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative overflow-hidden h-full">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="flex flex-col items-start gap-4 z-10">
-                <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase leading-[1] group-hover:text-primary transition-colors tracking-tighter">
+              <div className="flex flex-col items-center z-10 mb-6">
+                <h3 className="text-[#E8E0D5] font-black text-2xl sm:text-3xl uppercase mb-3 group-hover:text-primary transition-colors tracking-tighter leading-[1.1]">
                   Combos<br />Para Arrasar
                 </h3>
-                <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:border-primary transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]">
-                  SALIR RODANDO
+                <p className="text-muted-foreground font-medium text-xs sm:text-sm leading-relaxed max-w-[200px] mb-6 hidden sm:block">
+                  Combina tus favoritos y sal rodando al mejor precio.
+                </p>
+                <div className="text-primary border-2 border-primary/20 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full group-hover:bg-primary group-hover:text-black group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)] transition-all bg-black/50">
+                  VER COMBOS
                 </div>
               </div>
-              <div className="w-28 h-28 sm:w-36 sm:h-36 relative rounded-2xl flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-6">
+              <div className="w-full relative h-40 sm:h-48 flex-shrink-0 z-10 transition-transform duration-700 group-hover:rotate-3">
                 <Image
                   src="/images/burgers/pozu.png"
                   alt="Combos"
                   fill
-                  className="object-contain sepia brightness-90 group-hover:sepia-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-all duration-700"
+                  className="object-contain sepia-[0.3] brightness-90 group-hover:sepia-0 group-hover:brightness-100 drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] group-hover:scale-110 transition-all duration-700"
                 />
               </div>
             </div>

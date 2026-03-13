@@ -32,6 +32,13 @@ export default function EmployeesPage() {
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isCreating, setIsCreating] = useState(false)
+    const [newEmployee, setNewEmployee] = useState({
+        fullName: "",
+        email: "",
+        password: "",
+        role: "staff"
+    })
 
     useEffect(() => {
         fetchEmployees()
@@ -74,6 +81,41 @@ export default function EmployeesPage() {
         }
     }
 
+    const handleCreateEmployee = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsCreating(true)
+
+        try {
+            const response = await fetch('/api/admin/employees', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newEmployee)
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Ocurrió un error al crear empleado')
+            }
+
+            alert('Empleado creado con éxito')
+            setIsAddModalOpen(false)
+            setNewEmployee({
+                fullName: "",
+                email: "",
+                password: "",
+                role: "staff"
+            })
+            fetchEmployees()
+        } catch (error: any) {
+            alert(error.message)
+        } finally {
+            setIsCreating(false)
+        }
+    }
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -83,7 +125,7 @@ export default function EmployeesPage() {
                 </div>
                 <Button
                     className="gap-2 font-bold"
-                    onClick={() => alert("Para agregar un nuevo empleado, regístralo como usuario y luego asígnale un rol aquí.")}
+                    onClick={() => setIsAddModalOpen(true)}
                 >
                     <UserPlus className="w-5 h-5" />
                     Nuevo Empleado
@@ -218,6 +260,87 @@ export default function EmployeesPage() {
                     </div>
                 </div>
             </div>
+            {/* Modal de Nuevo Empleado */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#1A1A1A] border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-md relative">
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-6 relative">
+                            Nuevo Empleado
+                            <div className="absolute -bottom-2 left-0 w-12 h-1 bg-primary rounded-full" />
+                        </h2>
+
+                        <form onSubmit={handleCreateEmployee} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-2">Nombre Completo</label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/50"
+                                    placeholder="Ej: Laura García"
+                                    value={newEmployee.fullName}
+                                    onChange={e => setNewEmployee({ ...newEmployee, fullName: e.target.value })}
+                                />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-2">Correo Electrónico</label>
+                                <input
+                                    type="email"
+                                    required
+                                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/50"
+                                    placeholder="empleado@pozu.es"
+                                    value={newEmployee.email}
+                                    onChange={e => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-2">Contraseña Inicial</label>
+                                <input
+                                    type="password"
+                                    required
+                                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/50"
+                                    placeholder="Min. 6 caracteres"
+                                    value={newEmployee.password}
+                                    onChange={e => setNewEmployee({ ...newEmployee, password: e.target.value })}
+                                    minLength={6}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-2">Rol de Acceso</label>
+                                <select
+                                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                                    value={newEmployee.role}
+                                    onChange={e => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                                >
+                                    <option value="staff" className="bg-[#1A1A1A]">Staff (Cocina y Pedidos)</option>
+                                    <option value="admin" className="bg-[#1A1A1A]">Administrador (Acceso Total)</option>
+                                </select>
+                            </div>
+
+                            <div className="flex gap-4 pt-6">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full rounded-xl border-white/10"
+                                    onClick={() => setIsAddModalOpen(false)}
+                                    disabled={isCreating}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="w-full rounded-xl font-bold font-black uppercase italic tracking-tighter shadow-lg"
+                                    disabled={isCreating}
+                                >
+                                    {isCreating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Crear Acceso'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

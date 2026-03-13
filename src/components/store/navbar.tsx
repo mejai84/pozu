@@ -101,18 +101,16 @@ export function Navbar() {
     return (
         <>
             <nav className="fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/5 bg-gradient-to-b from-black to-[#111] shadow-[0_10px_40px_rgba(0,0,0,0.8)]">
-                <div className="container mx-auto px-6 pt-4 pb-2 flex items-center justify-between relative z-10">
+                <div className="container mx-auto px-6 py-2 flex items-center justify-between relative z-10">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <Image
-                            src="/images/logo_2_0.png"
-                            alt="Pozu 2.0 Logo"
-                            width={64}
-                            height={64}
-                            className="group-hover:scale-110 transition-transform"
-                        />
-                        <span className="text-2xl font-black uppercase tracking-tighter text-[#E8E0D5]">
-                            POZU 2.0
-                        </span>
+                        <div className="relative w-[130px] h-[40px] flex items-center justify-center">
+                            <Image
+                                src="/images/logo_cropped.png"
+                                alt="Pozu 2.0 Logo"
+                                fill
+                                className="object-contain group-hover:scale-105 transition-transform brightness-0 invert opacity-90 hover:opacity-100"
+                            />
+                        </div>
                     </Link>
 
                     <div className="hidden md:flex items-center gap-4 text-sm font-medium text-muted-foreground">

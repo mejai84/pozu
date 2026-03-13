@@ -9,12 +9,23 @@ export function Preloader() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Simulamos un tiempo mínimo de carga para que se vea la animación (2.5 segundos)
-        const timer = setTimeout(() => {
-            setLoading(false)
-        }, 3000)
+        if (typeof window !== 'undefined') {
+            const hasPreloaded = sessionStorage.getItem('pozu_preloaded')
+            const hasHash = window.location.hash.length > 0
 
-        return () => clearTimeout(timer)
+            if (hasPreloaded || hasHash) {
+                setLoading(false)
+                return
+            }
+
+            // Simulamos un tiempo mínimo de carga para que se vea la animación (3 segundos)
+            const timer = setTimeout(() => {
+                setLoading(false)
+                sessionStorage.setItem('pozu_preloaded', 'true')
+            }, 3000)
+
+            return () => clearTimeout(timer)
+        }
     }, [])
 
     return (
@@ -40,56 +51,27 @@ export function Preloader() {
                         />
                     </div>
 
-                    <div className="relative z-10 flex flex-col items-center gap-8">
-                        {/* El Logo de POZU con animación de entrada */}
+                    <div className="relative z-10 flex flex-col items-center gap-12">
+                        {/* El Logo Horizontal de POZU con animación de latido suave */}
                         <motion.div
-                            initial={{ scale: 0, rotate: -10 }}
-                            animate={{ scale: 1, rotate: 0 }}
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
                             transition={{ 
                                 type: "spring", 
-                                stiffness: 260, 
+                                stiffness: 200, 
                                 damping: 20,
                                 delay: 0.2 
                             }}
-                            className="relative"
+                            className="relative w-[180px] h-[60px] md:w-[260px] md:h-[80px]"
                         >
-                            <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-full border-4 border-primary/20 p-2 shadow-[0_0_60px_rgba(255,184,0,0.2)] bg-black overflow-hidden group">
-                                <Image
-                                    src="/images/logo_2_0.png"
-                                    alt="Logo Pozu 2.0"
-                                    fill
-                                    className="object-cover scale-110"
-                                />
-                            </div>
-                            
-                            {/* Anillo de carga rotativo */}
-                            <svg className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)]">
-                                <motion.circle
-                                    cx="50%"
-                                    cy="50%"
-                                    r="48%"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    fill="transparent"
-                                    className="text-primary/40"
-                                    strokeDasharray="10 10"
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                                />
-                            </svg>
+                            <Image
+                                src="/images/logo_cropped.png"
+                                alt="Logo Pozu 2.0"
+                                fill
+                                className="object-contain brightness-0 invert drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-pulse"
+                            />
                         </motion.div>
-
-                        {/* Textos de Presentación */}
-                        <div className="text-center space-y-2">
-                            <motion.h2
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1.2 }}
-                                className="text-3xl md:text-5xl font-black uppercase tracking-widest text-[#E8E0D5] drop-shadow-[0_0_10px_rgba(255,184,0,0.5)]"
-                            >
-                                POZU <span className="text-primary">2.0</span>
-                            </motion.h2>
-                            
+                        <div className="text-center space-y-2 mt-4">
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}

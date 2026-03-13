@@ -1,120 +1,55 @@
-
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useCart } from "./cart-context"
-import { Button } from "@/components/ui/button"
-import { Loader2, CreditCard, Banknote } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import Link from "next/link"
-import { useEffect } from "react"
+import { Elements } from '@stripe/react-stripe-js'
+import { stripePromise } from '@/lib/stripe'
+import { CheckoutInnerForm } from "./checkout-inner-form"
 
 export function CheckoutForm() {
-    const { items, cartTotal, clearCart } = useCart()
-    const [loading, setLoading] = useState(false)
-    const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe')
+    const { items, cartTotal } = useCart()
     const [user, setUser] = useState<any>(null)
-    const router = useRouter()
+    const [clientSecret, setClientSecret] = useState<string | null>(null)
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUser(session?.user || null)
         })
-    }, [])
 
-    // Form fields
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        address: '',
-        city: '',
-        phone: ''
-    })
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
-    }
-
-    const handleCheckout = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-
-        try {
-            // 1. Get current user (can be null for guests)
-            const { data: { session } } = await supabase.auth.getSession()
-            const user = session?.user
-
-            // 2. Prepare Order Data
-            const deliveryFee = 2.50
-            const total = cartTotal + deliveryFee
-
-            const orderData = {
-                user_id: user?.id || null,
-                guest_info: user ? null : {
-                    name: `${formData.firstName} ${formData.lastName}`,
-                    phone: formData.phone
-                },
-                status: 'pending',
-                order_type: 'delivery',
-                delivery_address: {
-                    street: formData.address,
-                    city: formData.city,
-                    phone: formData.phone
-                },
-                subtotal: cartTotal,
-                delivery_fee: deliveryFee,
-                total: total,
-                payment_method: paymentMethod,
-                payment_status: paymentMethod === 'cash' ? 'pending' : 'paid', // Simulating paid for stripe
-            }
-
-            // 3. Insert Order
-            const { data: order, error: orderError } = await supabase
-                .from('orders')
-                .insert([orderData])
-                .select()
-                .single()
-
-            if (orderError) throw new Error(orderError.message)
-
-            // 4. Insert Order Items
-            const orderItems = items.map(item => {
-                // Check if ID is UUID (real product) or string (mock)
-                const isRealProduct = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id)
-
-                return {
-                    order_id: order.id,
-                    product_id: isRealProduct ? item.id : null,
-                    quantity: item.quantity,
-                    unit_price: item.price,
-                    customizations: {
-                        name: item.name, // Save name in case product is deleted or null
-                        mock_id: !isRealProduct ? item.id : null
-                    }
+        // Crear PaymentIntent al montar si hay items
+        if (items.length > 0) {
+            fetch('/api/checkout/create-intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: cartTotal + 2.50 }), // base + envio
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.clientSecret) {
+                    setClientSecret(data.clientSecret)
                 }
             })
-
-            const { error: itemsError } = await supabase
-                .from('order_items')
-                .insert(orderItems)
-
-            if (itemsError) throw new Error(itemsError.message)
-
-            // Success
-            clearCart()
-            router.push('/checkout/success')
-
-        } catch (error: any) {
-            console.error(error)
-            alert("Error al procesar el pedido: " + error.message)
-        } finally {
-            setLoading(false)
+            .catch(err => console.error("Error cargando Stripe:", err))
         }
-    }
+    }, [items, cartTotal])
 
     if (items.length === 0) {
-        return <div>Tu carrito está vacío.</div>
+        return <div className="text-center py-20 text-muted-foreground">Tu carrito está vacío.</div>
+    }
+
+    const appearance = {
+        theme: 'night',
+        variables: {
+            fontFamily: 'system-ui, sans-serif',
+            colorPrimary: '#eab308',
+            colorBackground: '#1A1A1A',
+            colorText: '#ffffff',
+            colorDanger: '#ef4444',
+            spacingUnit: '4px',
+            borderRadius: '16px',
+        },
     }
 
     return (
@@ -154,10 +89,10 @@ export function CheckoutForm() {
                 </div>
             </div>
 
-            {/* Formulario */}
+            {/* Formulario con Stripe Elements */}
             <div className="space-y-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter italic">Datos de <span className="text-gradient">Envío</span></h2>
+                    <h2 className="text-3xl font-black uppercase tracking-tighter italic">Completar <span className="text-gradient">Pago</span></h2>
                     {!user && (
                         <Link href="/login" className="px-4 py-2 bg-primary/10 text-primary rounded-full text-xs font-black uppercase border border-primary/20 hover:bg-primary hover:text-black transition-all">
                             Ya tengo cuenta
@@ -165,68 +100,21 @@ export function CheckoutForm() {
                     )}
                 </div>
 
-                <form onSubmit={handleCheckout} className="space-y-8 p-8 rounded-[32px] bg-white/5 border border-white/10 backdrop-blur-md">
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Nombre</label>
-                            <input name="firstName" onChange={handleInputChange} placeholder="Rockstar" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Apellidos</label>
-                            <input name="lastName" onChange={handleInputChange} placeholder="Pozu" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Dirección de Entrega</label>
-                        <input name="address" onChange={handleInputChange} placeholder="Calle Río Cares, 2..." className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Ciudad</label>
-                            <input name="city" onChange={handleInputChange} placeholder="Pola de Laviana" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Teléfono</label>
-                            <input name="phone" onChange={handleInputChange} placeholder="600 000 000" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Método de Pago</label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setPaymentMethod('stripe')}
-                                className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'stripe' 
-                                    ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(255,184,0,0.1)]' 
-                                    : 'bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:border-white/10'}`}
-                            >
-                                <CreditCard className="w-8 h-8" />
-                                <span className="font-bold uppercase tracking-tighter">Tarjeta / Bizum</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setPaymentMethod('cash')}
-                                className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'cash' 
-                                    ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(255,184,0,0.1)]' 
-                                    : 'bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:border-white/10'}`}
-                            >
-                                <Banknote className="w-8 h-8" />
-                                <span className="font-bold uppercase tracking-tighter">Efectivo</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <Button 
-                        type="submit" 
-                        className="w-full h-20 text-2xl font-black uppercase tracking-tighter italic shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:shadow-[0_0_50px_rgba(255,184,0,0.5)] transition-all rounded-2xl" 
-                        disabled={loading}
+                {clientSecret ? (
+                     <Elements 
+                        stripe={stripePromise} 
+                        options={{ 
+                            clientSecret, 
+                            appearance: appearance as any 
+                        }}
                     >
-                        {loading ? <Loader2 className="animate-spin w-8 h-8" /> : `Procesar Pago ${(cartTotal + 2.50).toFixed(2)}€`}
-                    </Button>
-                </form>
+                        <CheckoutInnerForm user={user} />
+                    </Elements>
+                ) : (
+                    <div className="p-8 rounded-[32px] bg-white/5 border border-white/10 backdrop-blur-md text-center py-20 text-muted-foreground animate-pulse">
+                        Cargando entorno seguro de pago...
+                    </div>
+                )}
             </div>
         </div>
     )

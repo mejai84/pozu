@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3 } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -29,6 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [authorized, setAuthorized] = useState(false)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -73,7 +74,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
         <div className="flex min-h-screen bg-background">
             {/* Sidebar */}
-            <aside className="w-64 border-r border-white/10 bg-card/50 hidden md:flex flex-col">
+            <aside className={cn(
+                "fixed md:static inset-y-0 left-0 z-50 w-64 border-r border-white/10 bg-black md:bg-card/50 flex flex-col transition-transform duration-300",
+                isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+            )}>
                 <div className="h-20 flex items-center justify-between px-6 border-b border-white/10">
                     <div className="flex items-center gap-3">
                         <Image
@@ -87,16 +91,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             POZU ADMIN
                         </span>
                     </div>
-                    <NotificationBell />
+                    <div className="flex items-center gap-2">
+                        <NotificationBell />
+                        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
+                            <X className="w-5 h-5" />
+                        </Button>
+                    </div>
                 </div>
 
-                <nav className="flex-1 p-4 space-y-2">
+                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                     {sidebarItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href
 
                         return (
-                            <Link key={item.href} href={item.href}>
+                            <Link key={item.href} href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
                                 <Button
                                     variant="ghost"
                                     className={cn(
@@ -127,15 +136,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
             </aside>
 
+            {/* Overlay */}
+            {isMobileMenuOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Main Content */}
-            <main className="flex-1 flex flex-col">
+            <main className="flex-1 flex flex-col min-w-0">
                 {/* Mobile Header */}
-                <header className="h-16 border-b border-white/10 flex items-center px-6 md:hidden justify-between bg-card/50">
+                <header className="h-16 border-b border-white/10 flex items-center px-6 md:hidden justify-between bg-card/50 sticky top-0 z-30 backdrop-blur-md">
                     <span className="font-bold">Pozu Admin</span>
-                    <Button size="icon" variant="ghost"><Menu /></Button>
+                    <Button size="icon" variant="ghost" onClick={() => setIsMobileMenuOpen(true)}>
+                        <Menu className="w-5 h-5" />
+                    </Button>
                 </header>
 
-                <div className="flex-1 p-8 overflow-y-auto">
+                <div className="flex-1 p-4 md:p-8 overflow-y-auto">
                     {children}
                 </div>
             </main>

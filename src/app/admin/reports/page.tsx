@@ -80,7 +80,7 @@ export default function ReportsPage() {
             // Fetch orders
             const { data: orders, error: ordersError } = await supabase
                 .from('orders')
-                .select('*, order_items(quantity, price, products(name))')
+                .select('*, order_items(quantity, unit_price, products(name))')
                 .gte('created_at', fromDate.toISOString())
                 .lte('created_at', toDate.toISOString())
 
@@ -101,7 +101,7 @@ export default function ReportsPage() {
                             productSales[productName] = { sales: 0, revenue: 0 }
                         }
                         productSales[productName].sales += item.quantity
-                        productSales[productName].revenue += item.quantity * item.price
+                        productSales[productName].revenue += item.quantity * (item.unit_price || 0)
                     })
                 })
 
@@ -193,74 +193,83 @@ export default function ReportsPage() {
     }
 
     return (
-        <div className="space-y-8 relative">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
-                        <BarChart3 className="w-8 h-8 text-primary" />
-                        Reportes y Análisis
-                    </h1>
-                    <p className="text-muted-foreground">Analiza el rendimiento de tu negocio</p>
+        <div className="space-y-10 pb-10 relative">
+            {/* Cabecera Premium */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                <div className="relative z-10 space-y-2">
+                    <div className="flex items-center gap-3">
+                        <BarChart3 className="w-10 h-10 text-primary" />
+                        <h1 className="text-4xl font-black uppercase tracking-tighter italic text-[#E8E0D5]">Inteligencia de <span className="text-primary">Negocio</span></h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium max-w-xl">
+                        Métricas avanzadas, rendimiento financiero y comportamiento de clientes para la toma de decisiones.
+                    </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-3 relative z-10">
                     <Button
                         onClick={() => setIsEmailModalOpen(true)}
                         variant="outline"
                         disabled={!reportData}
-                        className="gap-2"
+                        className="gap-2 rounded-xl border-white/10 font-bold bg-white/5 hover:bg-white/10"
                     >
-                        <Mail className="w-4 h-4" /> Email
+                        <Mail className="w-4 h-4" /> Exportar (Email)
                     </Button>
                     <Button
                         onClick={exportToCSV}
                         variant="outline"
                         disabled={!reportData}
-                        className="gap-2"
+                        className="gap-2 rounded-xl border-white/10 font-bold bg-white/5 hover:bg-white/10"
                     >
-                        <Download className="w-4 h-4" /> CSV
+                        <Download className="w-4 h-4" /> Descargar CSV
                     </Button>
                     <Button
                         onClick={exportToPDF}
                         disabled={!reportData}
-                        className="gap-2"
+                        className="gap-2 rounded-xl font-black uppercase tracking-tighter italic"
                     >
-                        <FileText className="w-4 h-4" /> PDF
+                        <FileText className="w-4 h-4" /> Imprimir PDF
                     </Button>
                 </div>
             </div>
 
             {/* Date Range Selector */}
-            <div className="bg-card border border-white/10 rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Calendar className="w-5 h-5 text-primary" />
-                    <h3 className="font-bold">Período del Reporte</h3>
+            <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8">
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/5">
+                    <div className="p-3 bg-white/5 rounded-xl text-primary">
+                        <Calendar className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-black italic uppercase tracking-tighter">Período de <span className="text-primary">Análisis</span></h3>
+                        <p className="text-sm text-muted-foreground mt-1">Configura el rango temporal de tus métricas</p>
+                    </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     <Button
                         variant={dateRange === 'today' ? 'default' : 'outline'}
                         onClick={() => setDateRange('today')}
-                        size="sm"
+                        className={`rounded-xl font-bold ${dateRange === 'today' ? 'bg-primary text-black' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                     >
                         Hoy
                     </Button>
                     <Button
                         variant={dateRange === 'week' ? 'default' : 'outline'}
                         onClick={() => setDateRange('week')}
-                        size="sm"
+                        className={`rounded-xl font-bold ${dateRange === 'week' ? 'bg-primary text-black' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                     >
                         Última Semana
                     </Button>
                     <Button
                         variant={dateRange === 'month' ? 'default' : 'outline'}
                         onClick={() => setDateRange('month')}
-                        size="sm"
+                        className={`rounded-xl font-bold ${dateRange === 'month' ? 'bg-primary text-black' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                     >
                         Último Mes
                     </Button>
                     <Button
                         variant={dateRange === 'custom' ? 'default' : 'outline'}
                         onClick={() => setDateRange('custom')}
-                        size="sm"
+                        className={`rounded-xl font-bold ${dateRange === 'custom' ? 'bg-primary text-black' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
                     >
                         Personalizado
                     </Button>
@@ -363,95 +372,114 @@ export default function ReportsPage() {
                 </div>
             ) : reportData ? (
                 <>
-                    {/* Summary Cards */}
+                    {/* Summary Cards Pro */}
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-2xl p-6">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-3 bg-green-500/20 rounded-xl">
+                        <div className="group relative bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-6 overflow-hidden transition-all duration-300 hover:border-green-500/50 hover:-translate-y-1">
+                            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="relative z-10 flex justify-between items-start mb-6">
+                                <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-green-500/20 transition-colors">
                                     <DollarSign className="w-6 h-6 text-green-500" />
                                 </div>
-                                <span className="text-sm font-medium text-muted-foreground">Ingresos Totales</span>
                             </div>
-                            <div className="text-3xl font-bold text-green-500">
-                                {reportData.totalRevenue.toFixed(2)}€
+                            <div className="relative z-10">
+                                <h3 className="text-sm font-bold tracking-widest text-muted-foreground uppercase mb-1">Ingreso Bruto</h3>
+                                <div className="text-4xl font-black italic tracking-tighter text-green-500">
+                                    {reportData.totalRevenue.toFixed(2)}€
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-2xl p-6">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-3 bg-blue-500/20 rounded-xl">
+                        <div className="group relative bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-6 overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:-translate-y-1">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="relative z-10 flex justify-between items-start mb-6">
+                                <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-blue-500/20 transition-colors">
                                     <ShoppingBag className="w-6 h-6 text-blue-500" />
                                 </div>
-                                <span className="text-sm font-medium text-muted-foreground">Total Pedidos</span>
                             </div>
-                            <div className="text-3xl font-bold text-blue-500">
-                                {reportData.totalOrders}
+                            <div className="relative z-10">
+                                <h3 className="text-sm font-bold tracking-widest text-muted-foreground uppercase mb-1">Total Pedidos</h3>
+                                <div className="text-4xl font-black italic tracking-tighter text-blue-500">
+                                    {reportData.totalOrders}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-6">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-3 bg-purple-500/20 rounded-xl">
+                        <div className="group relative bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-6 overflow-hidden transition-all duration-300 hover:border-purple-500/50 hover:-translate-y-1">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="relative z-10 flex justify-between items-start mb-6">
+                                <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-purple-500/20 transition-colors">
                                     <Users className="w-6 h-6 text-purple-500" />
                                 </div>
-                                <span className="text-sm font-medium text-muted-foreground">Clientes</span>
                             </div>
-                            <div className="text-3xl font-bold text-purple-500">
-                                {reportData.totalCustomers}
+                            <div className="relative z-10">
+                                <h3 className="text-sm font-bold tracking-widest text-muted-foreground uppercase mb-1">Alcance (Clientes)</h3>
+                                <div className="text-4xl font-black italic tracking-tighter text-purple-500">
+                                    {reportData.totalCustomers}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-orange-500/10 to-yellow-500/10 border border-orange-500/20 rounded-2xl p-6">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-3 bg-orange-500/20 rounded-xl">
+                        <div className="group relative bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-6 overflow-hidden transition-all duration-300 hover:border-orange-500/50 hover:-translate-y-1">
+                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="relative z-10 flex justify-between items-start mb-6">
+                                <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-orange-500/20 transition-colors">
                                     <TrendingUp className="w-6 h-6 text-orange-500" />
                                 </div>
-                                <span className="text-sm font-medium text-muted-foreground">Ticket Promedio</span>
                             </div>
-                            <div className="text-3xl font-bold text-orange-500">
-                                {reportData.averageOrderValue.toFixed(2)}€
+                            <div className="relative z-10">
+                                <h3 className="text-sm font-bold tracking-widest text-muted-foreground uppercase mb-1">Ticket Promedio</h3>
+                                <div className="text-4xl font-black italic tracking-tighter text-orange-500">
+                                    {reportData.averageOrderValue.toFixed(2)}€
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="grid lg:grid-cols-2 gap-8">
                         {/* Daily Revenue Chart */}
-                        <div className="bg-card border border-white/10 rounded-2xl p-6 lg:col-span-2">
-                            <h3 className="text-xl font-bold mb-6">Tendencia de Ingresos</h3>
-                            <div className="h-[300px] w-full">
+                        <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 lg:col-span-2 relative overflow-hidden group hover:border-white/20 transition-all duration-300">
+                            <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="mb-8 pb-6 border-b border-white/5 relative z-10">
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter">Curva de <span className="text-primary">Facturación</span></h3>
+                                <p className="text-sm text-muted-foreground mt-1">Comparativa temporal de ingresos (Bruto)</p>
+                            </div>
+                            <div className="h-[300px] w-full relative z-10">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={reportData.dailyRevenue}>
+                                    <AreaChart data={reportData.dailyRevenue} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#eab308" stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor="#eab308" stopOpacity={0} />
+                                                <stop offset="95%" stopColor="#eab308" stopOpacity={0.05} />
                                             </linearGradient>
                                         </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                                         <XAxis
                                             dataKey="date"
-                                            stroke="#888888"
+                                            stroke="#666"
                                             fontSize={12}
                                             tickLine={false}
                                             axisLine={false}
+                                            tickMargin={10}
                                             tickFormatter={(value: string) => new Date(value).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
                                         />
                                         <YAxis
-                                            stroke="#888888"
+                                            stroke="#666"
                                             fontSize={12}
                                             tickLine={false}
                                             axisLine={false}
                                             tickFormatter={(value: number) => `${value}€`}
                                         />
                                         <Tooltip
-                                            contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
-                                            labelStyle={{ color: '#888' }}
+                                            contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+                                            labelStyle={{ color: '#888', fontWeight: 'bold' }}
+                                            itemStyle={{ color: '#eab308', fontWeight: 'bold' }}
                                             formatter={(value: any) => [`${Number(value || 0).toFixed(2)}€`, 'Ingresos']}
                                         />
                                         <Area
                                             type="monotone"
                                             dataKey="revenue"
                                             stroke="#eab308"
+                                            strokeWidth={3}
                                             fillOpacity={1}
                                             fill="url(#colorRevenue)"
                                         />
@@ -461,61 +489,70 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Top Products Chart */}
-                        <div className="bg-card border border-white/10 rounded-2xl p-6">
-                            <h3 className="text-xl font-bold mb-6">Top Productos por Ingresos</h3>
+                        <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8">
+                            <div className="mb-8 pb-6 border-b border-white/5">
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter">Productos <span className="text-primary">Estrella</span></h3>
+                                <p className="text-sm text-muted-foreground mt-1">Ranking de popularidad por ingresos</p>
+                            </div>
                             <div className="h-[300px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart layout="vertical" data={reportData.topProducts.slice(0, 5)}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" horizontal={true} vertical={false} />
+                                    <BarChart layout="vertical" data={reportData.topProducts.slice(0, 5)} margin={{ top: 0, right: 30, left: 0, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" horizontal={true} vertical={false} />
                                         <XAxis type="number" hide />
                                         <YAxis
                                             dataKey="name"
                                             type="category"
-                                            width={100}
-                                            stroke="#888888"
+                                            width={110}
+                                            stroke="#888"
                                             fontSize={12}
                                             tickLine={false}
                                             axisLine={false}
                                         />
                                         <Tooltip
-                                            cursor={{ fill: '#ffffff10' }}
-                                            contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
+                                            cursor={{ fill: '#ffffff08' }}
+                                            contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem' }}
+                                            itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
                                             formatter={(value: any) => [`${Number(value || 0).toFixed(2)}€`, 'Ingresos']}
                                         />
-                                        <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                                        <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 8, 8, 0]} maxBarSize={40} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
 
                         {/* Orders Volume Chart */}
-                        <div className="bg-card border border-white/10 rounded-2xl p-6">
-                            <h3 className="text-xl font-bold mb-6">Volumen de Pedidos</h3>
+                        <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8">
+                            <div className="mb-8 pb-6 border-b border-white/5">
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter">Volumen de <span className="text-primary">Tráfico</span></h3>
+                                <p className="text-sm text-muted-foreground mt-1">Cantidad de pedidos emitidos</p>
+                            </div>
                             <div className="h-[300px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={reportData.dailyRevenue}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                                    <BarChart data={reportData.dailyRevenue} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                                         <XAxis
                                             dataKey="date"
-                                            stroke="#888888"
+                                            stroke="#888"
                                             fontSize={12}
                                             tickLine={false}
                                             axisLine={false}
+                                            tickMargin={10}
                                             tickFormatter={(value: string) => new Date(value).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' })}
                                         />
                                         <YAxis
                                             allowDecimals={false}
-                                            stroke="#888888"
+                                            stroke="#888"
                                             fontSize={12}
                                             tickLine={false}
                                             axisLine={false}
                                         />
                                         <Tooltip
-                                            cursor={{ fill: '#ffffff10' }}
-                                            contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333' }}
+                                            cursor={{ fill: '#ffffff08' }}
+                                            contentStyle={{ backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem' }}
+                                            itemStyle={{ color: '#ec4899', fontWeight: 'bold' }}
                                             formatter={(value: any) => [value || 0, 'Pedidos']}
                                         />
-                                        <Bar dataKey="orders" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="orders" fill="#ec4899" radius={[8, 8, 0, 0]} maxBarSize={40} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
