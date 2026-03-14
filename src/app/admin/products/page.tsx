@@ -1,12 +1,12 @@
-
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Plus, Pencil, Trash2, X, Loader2, Save, RotateCcw, Archive, Upload, Link2, ImageIcon, VideoIcon } from "lucide-react"
+import { Plus, Pencil, Trash2, X, Loader2, Save, RotateCcw, Archive, Upload, Link2, ImageIcon, VideoIcon, Search, Filter, Layers, Zap, Info, AlertOctagon, Eye, LayoutGrid, List } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { categories } from "@/lib/data"
+import { motion, AnimatePresence } from "framer-motion"
 
 type Product = {
     id: string
@@ -31,8 +31,8 @@ type FormData = Partial<Product> & {
     allergens?: string[];
 }
 
-// Modo de entrada de medios: 'url' o 'upload'
 type MediaMode = 'url' | 'upload'
+type ViewMode = 'grid' | 'table'
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([])
@@ -41,6 +41,7 @@ export default function AdminProductsPage() {
     const [showDeleted, setShowDeleted] = useState(false)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [uploading, setUploading] = useState(false)
+    const [viewMode, setViewMode] = useState<ViewMode>('grid')
 
     const [imageMode, setImageMode] = useState<MediaMode>('url')
     const [videoMode, setVideoMode] = useState<MediaMode>('url')
@@ -99,7 +100,6 @@ export default function AdminProductsPage() {
             .from('products')
             .update({ is_available: !product.is_available })
             .eq('id', product.id)
-        
         if (error) alert("Error al cambiar disponibilidad")
         else fetchProducts()
     }
@@ -112,35 +112,20 @@ export default function AdminProductsPage() {
         setIsEditing(false)
     }
 
-    // Upload a file to /public/images/burgers/ via API route
     const handleFileUpload = async (file: File, type: 'image' | 'video') => {
         setUploading(true)
-        console.log(`Iniciando subida de ${type}:`, file.name)
-        
         try {
             const uploadFormData = new window.FormData()
             uploadFormData.append('file', file)
             uploadFormData.append('type', type)
-
             const res = await fetch('/api/upload', { method: 'POST', body: uploadFormData })
             const result = await res.json()
-
-            if (!res.ok) {
-                console.error('Error en API de subida:', result.error)
-                throw new Error(result.error || 'Upload failed')
-            }
-
+            if (!res.ok) throw new Error(result.error || 'Upload failed')
             const url = result.url
-            console.log('Subida exitosa. URL:', url)
-
-            if (type === 'image') {
-                setFormData(prev => ({ ...prev, image_url: url }))
-            } else {
-                setFormData(prev => ({ ...prev, video_url: url }))
-            }
+            if (type === 'image') setFormData(prev => ({ ...prev, image_url: url }))
+            else setFormData(prev => ({ ...prev, video_url: url }))
         } catch (err: any) {
-            console.error('Error completo en la subida:', err)
-            alert(`Error al subir el ${type}: ${err.message}. Verifica las políticas de Storage.`)
+            alert(`Error al subir el ${type}: ${err.message}`)
         } finally {
             setUploading(false)
         }
@@ -148,7 +133,6 @@ export default function AdminProductsPage() {
 
     const handleSave = async () => {
         if (!formData.name || !formData.price) return alert("Nombre y Precio son obligatorios")
-
         const productData = {
             name: formData.name,
             price: parseFloat(formData.price.toString()),
@@ -163,7 +147,6 @@ export default function AdminProductsPage() {
                 allergens: Array.isArray(formData.allergens) ? formData.allergens : []
             }
         }
-
         let error;
         if (editingId) {
             const res = await supabase.from('products').update(productData).eq('id', editingId)
@@ -172,7 +155,6 @@ export default function AdminProductsPage() {
             const res = await supabase.from('products').insert([productData])
             error = res.error
         }
-
         if (error) alert("Error al guardar: " + error.message)
         else { resetForm(); fetchProducts() }
     }
@@ -180,11 +162,7 @@ export default function AdminProductsPage() {
     const handleDelete = async (id: string) => {
         if (!confirm("¿Mover este producto a la papelera?")) return
         const { error } = await supabase.from('products').update({ deleted_at: new Date().toISOString() }).eq('id', id)
-        if (error) {
-            if (error.message.includes('deleted_at')) {
-                if (confirm("¿Borrarlo permanentemente?")) await supabase.from('products').delete().eq('id', id)
-            } else alert("Error al eliminar: " + error.message)
-        }
+        if (error) alert("Error al eliminar: " + error.message)
         fetchProducts()
     }
 
@@ -194,487 +172,338 @@ export default function AdminProductsPage() {
         else fetchProducts()
     }
 
-    const displayedProducts = products
-        .filter(p => showDeleted ? p.deleted_at : !p.deleted_at)
-        .filter(p => {
-            const name = p.name || ''
-            const desc = p.description || ''
-            const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                 desc.toLowerCase().includes(searchQuery.toLowerCase())
-            const matchesCategory = categoryFilter === 'all' || p.category_id === categoryFilter
-            return matchesSearch && matchesCategory
-        })
+    const displayedProducts = useMemo(() => {
+        return products
+            .filter(p => showDeleted ? p.deleted_at : !p.deleted_at)
+            .filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                     p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+                const matchesCategory = categoryFilter === 'all' || p.category_id === categoryFilter
+                return matchesSearch && matchesCategory
+            })
+    }, [products, showDeleted, searchQuery, categoryFilter])
+
+    const stats = useMemo(() => ({
+        total: products.filter(p => !p.deleted_at).length,
+        outOfStock: products.filter(p => !p.deleted_at && !p.is_available).length,
+        featured: products.filter(p => !p.deleted_at && p.options?.badge).length
+    }), [products])
 
     return (
-        <div className="space-y-6">
-            {/* Header / Stats Bar */}
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-black tracking-tight uppercase flex items-center gap-3">
-                        <span className="w-2 h-8 bg-primary rounded-full hidden sm:block"></span>
-                        {showDeleted ? 'Recuperación' : 'Catálogo Real'}
-                    </h1>
-                    <p className="text-muted-foreground text-sm font-medium">
-                        {showDeleted ? 'Resucita lo que enviaste al olvido.' : 'Gestiona tus armas culinarias en tiempo real.'}
-                    </p>
-                </div>
+        <div className="space-y-8 pb-20">
+            {/* Header Pro con Stats */}
+            <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10 group-hover:bg-primary/10 transition-colors duration-1000" />
                 
-                <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-                    {/* Buscador */}
-                    <div className="relative flex-1 sm:min-w-[300px]">
-                        <input 
-                            type="text"
-                            placeholder="Buscar por nombre o descripción..."
-                            className="w-full h-11 pl-10 pr-4 rounded-xl bg-white/5 border border-white/10 text-sm focus:border-primary/50 focus:ring-1 focus:ring-primary/20 outline-none transition-all"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                        />
-                        <Plus className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground rotate-45" />
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 relative z-10">
+                    <div className="space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest">
+                            <Zap className="w-3 h-3" /> Inventario Maestro
+                        </div>
+                        <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none">
+                            Catálogo <span className="text-primary">Pozu</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium max-w-lg text-lg">
+                            Control total sobre tus productos, precios y multimedia. Sube videos y destaca lo mejor.
+                        </p>
                     </div>
 
-                    {/* Filtro Categoría */}
-                    <select
-                        className="h-11 px-4 rounded-xl bg-white/5 border border-white/10 text-sm [&>option]:text-black focus:border-primary/50 outline-none"
-                        value={categoryFilter}
-                        onChange={e => setCategoryFilter(e.target.value)}
-                    >
-                        <option value="all">Todas las categorías</option>
-                        {categories.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                    </select>
-
-                    <Button
-                        variant={showDeleted ? "outline" : "ghost"}
-                        onClick={() => setShowDeleted(!showDeleted)}
-                        className={`h-11 px-4 rounded-xl ${showDeleted ? "bg-red-500/10 text-red-500 border-red-500/20" : "text-muted-foreground"}`}
-                    >
-                        {showDeleted ? <Archive className="w-4 h-4 mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
-                        {showDeleted ? 'Activos' : 'Papelera'}
-                    </Button>
-
-                    {!showDeleted && (
-                        <Button className="h-11 px-6 rounded-xl font-black uppercase text-xs tracking-wider gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all" onClick={() => { resetForm(); setIsEditing(true); }}>
-                            <Plus className="w-4 h-4" /> Nuevo Pro
-                        </Button>
-                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full lg:w-auto">
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                            <div className="text-3xl font-black italic text-primary">{stats.total}</div>
+                            <div className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mt-1">Activos</div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                            <div className="text-3xl font-black italic text-orange-500">{stats.outOfStock}</div>
+                            <div className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mt-1">Agotados</div>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center hidden sm:block">
+                            <div className="text-3xl font-black italic text-yellow-500">{stats.featured}</div>
+                            <div className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mt-1">Best Sellers</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Modal de Edición */}
-            {isEditing && (
-                <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto">
-                    <div className="bg-card w-full max-w-2xl rounded-2xl sm:rounded-3xl border border-white/10 shadow-2xl animate-in zoom-in-95 duration-200 my-auto">
-                        {/* Modal Header */}
-                        <div className="flex justify-between items-center p-5 border-b border-white/10">
-                            <h2 className="text-lg sm:text-xl font-bold">
-                                {editingId ? '✏️ Editar Producto' : '➕ Nuevo Producto'}
-                            </h2>
-                            <Button variant="ghost" size="icon" onClick={resetForm} className="rounded-full hover:bg-white/10">
-                                <X className="w-5 h-5" />
-                            </Button>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
-                            
-                            {/* Fila 1: Nombre + Precio + Etiqueta */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="sm:col-span-1 space-y-1.5">
-                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider">Nombre del Producto*</label>
-                                    <input
-                                        className="w-full h-11 px-4 rounded-xl bg-white/[0.03] border border-white/10 text-sm focus:border-primary/50 outline-none transition-all"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="Ej: Hamburguesa Pozu"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider">Precio (€)*</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        className="w-full h-11 px-4 rounded-xl bg-white/[0.03] border border-white/10 text-sm focus:border-primary/50 outline-none transition-all font-mono"
-                                        value={formData.price}
-                                        onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider">Etiqueta (Badge)</label>
-                                    <input
-                                        className="w-full h-11 px-4 rounded-xl bg-white/[0.03] border border-white/10 text-sm focus:border-primary/50 outline-none transition-all"
-                                        value={formData.badge || ''}
-                                        onChange={e => setFormData({ ...formData, badge: e.target.value })}
-                                        placeholder="Ej: Best Seller"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Categoría */}
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold">Categoría</label>
-                                <select
-                                    className="w-full h-10 px-3 rounded-lg bg-white/5 border border-white/10 text-sm [&>option]:text-black focus:border-primary/50 outline-none transition-colors"
-                                    value={formData.category_id}
-                                    onChange={e => setFormData({ ...formData, category_id: e.target.value })}
-                                >
-                                    {categories.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* IMAGEN */}
-                            <div className="space-y-2 p-4 bg-white/[0.03] rounded-2xl border border-white/8">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-semibold flex items-center gap-2">
-                                        <ImageIcon className="w-4 h-4 text-blue-400" /> Imagen del Producto (PNG/JPG)
-                                    </label>
-                                    {/* Toggle URL / Upload */}
-                                    <div className="flex gap-1 bg-white/5 rounded-lg p-1">
-                                        <button
-                                            onClick={() => setImageMode('url')}
-                                            className={`text-xs px-2 py-1 rounded-md flex items-center gap-1 transition-colors ${imageMode === 'url' ? 'bg-white/15 text-white' : 'text-muted-foreground hover:text-white'}`}
-                                        >
-                                            <Link2 className="w-3 h-3" /> URL
-                                        </button>
-                                        <button
-                                            onClick={() => setImageMode('upload')}
-                                            className={`text-xs px-2 py-1 rounded-md flex items-center gap-1 transition-colors ${imageMode === 'upload' ? 'bg-white/15 text-white' : 'text-muted-foreground hover:text-white'}`}
-                                        >
-                                            <Upload className="w-3 h-3" /> Subir
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {imageMode === 'url' ? (
-                                    <input
-                                        className="w-full h-10 px-3 rounded-lg bg-white/5 border border-white/10 text-sm focus:border-blue-400/50 outline-none transition-colors"
-                                        value={formData.image_url || ''}
-                                        onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                                        placeholder="/images/burgers/pozu.png"
-                                    />
-                                ) : (
-                                    <div>
-                                        <input
-                                            ref={imageInputRef}
-                                            type="file"
-                                            accept="image/png,image/jpeg,image/webp"
-                                            className="hidden"
-                                            onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'image')}
-                                        />
-                                        <button
-                                            onClick={() => imageInputRef.current?.click()}
-                                            disabled={uploading}
-                                            className="w-full h-20 rounded-xl border-2 border-dashed border-white/20 hover:border-blue-400/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-white transition-colors"
-                                        >
-                                            {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-                                            <span className="text-xs">{uploading ? 'Subiendo...' : 'Clic para seleccionar imagen'}</span>
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Preview imagen */}
-                                {formData.image_url && !formData.image_url.match(/\.(webm|mp4)$/i) && (
-                                    <div className="relative w-full h-28 rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                                        <Image src={formData.image_url} alt="Preview" fill className="object-contain" />
-                                        <button
-                                            onClick={() => setFormData(p => ({ ...p, image_url: '' }))}
-                                            className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-red-500/80 transition-colors"
-                                        >
-                                            <X className="w-3 h-3 text-white" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* VIDEO */}
-                            <div className="space-y-2 p-4 bg-white/[0.03] rounded-2xl border border-primary/15">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-semibold flex items-center gap-2">
-                                        <VideoIcon className="w-4 h-4 text-primary" /> Video (.webm) — Opcional
-                                    </label>
-                                    <div className="flex gap-1 bg-white/5 rounded-lg p-1">
-                                        <button
-                                            onClick={() => setVideoMode('url')}
-                                            className={`text-xs px-2 py-1 rounded-md flex items-center gap-1 transition-colors ${videoMode === 'url' ? 'bg-white/15 text-white' : 'text-muted-foreground hover:text-white'}`}
-                                        >
-                                            <Link2 className="w-3 h-3" /> URL
-                                        </button>
-                                        <button
-                                            onClick={() => setVideoMode('upload')}
-                                            className={`text-xs px-2 py-1 rounded-md flex items-center gap-1 transition-colors ${videoMode === 'upload' ? 'bg-white/15 text-white' : 'text-muted-foreground hover:text-white'}`}
-                                        >
-                                            <Upload className="w-3 h-3" /> Subir
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {videoMode === 'url' ? (
-                                    <input
-                                        className="w-full h-10 px-3 rounded-lg bg-white/5 border border-primary/20 text-sm focus:border-primary/50 outline-none transition-colors"
-                                        value={formData.video_url || ''}
-                                        onChange={e => setFormData({ ...formData, video_url: e.target.value })}
-                                        placeholder="/images/burgers/pozu.webm"
-                                    />
-                                ) : (
-                                    <div>
-                                        <input
-                                            ref={videoInputRef}
-                                            type="file"
-                                            accept="video/webm,video/mp4"
-                                            className="hidden"
-                                            onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'video')}
-                                        />
-                                        <button
-                                            onClick={() => videoInputRef.current?.click()}
-                                            disabled={uploading}
-                                            className="w-full h-20 rounded-xl border-2 border-dashed border-primary/20 hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-                                        >
-                                            {uploading ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <VideoIcon className="w-5 h-5" />}
-                                            <span className="text-xs">{uploading ? 'Subiendo...' : 'Clic para seleccionar video .webm'}</span>
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Preview video */}
-                                {formData.video_url && (
-                                    <div className="relative w-full h-28 rounded-xl overflow-hidden border border-primary/20 bg-black/20">
-                                        <video src={formData.video_url} autoPlay loop muted playsInline className="w-full h-full object-contain" />
-                                        <button
-                                            onClick={() => setFormData(p => ({ ...p, video_url: '' }))}
-                                            className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-red-500/80 transition-colors"
-                                        >
-                                            <X className="w-3 h-3 text-white" />
-                                        </button>
-                                    </div>
-                                )}
-
-                                <p className="text-[10px] text-muted-foreground">Si hay video, se muestra como principal y la imagen aparece como miniatura en la esquina.</p>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                {/* Ingredientes */}
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider text-center block">Ingredientes</label>
-                                    <textarea
-                                        className="w-full h-24 p-4 rounded-xl bg-white/[0.03] border border-white/10 resize-none text-sm focus:border-primary/50 outline-none transition-all"
-                                        value={Array.isArray(formData.ingredients) ? formData.ingredients.join(', ') : ''}
-                                        onChange={e => setFormData({
-                                            ...formData,
-                                            ingredients: e.target.value.split(',').map(i => i.trim()).filter(i => i !== '')
-                                        })}
-                                        placeholder="Ternera, Queso, Bacon..."
-                                    />
-                                </div>
-
-                                {/* Alérgenos */}
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-black uppercase text-muted-foreground tracking-wider text-center block text-red-400">Alérgenos</label>
-                                    <textarea
-                                        className="w-full h-24 p-4 rounded-xl bg-white/[0.03] border border-white/10 resize-none text-sm focus:border-red-400/30 outline-none transition-all"
-                                        value={Array.isArray(formData.allergens) ? formData.allergens.join(', ') : ''}
-                                        onChange={e => setFormData({
-                                            ...formData,
-                                            allergens: e.target.value.split(',').map(i => i.trim()).filter(i => i !== '')
-                                        })}
-                                        placeholder="Gluten, Lácteos, Huevos..."
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Descripción */}
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-semibold">Descripción <span className="text-muted-foreground font-normal">(texto de marketing)</span></label>
-                                <textarea
-                                    className="w-full h-16 p-3 rounded-lg bg-white/5 border border-white/10 resize-none text-sm focus:border-primary/50 outline-none transition-colors"
-                                    value={formData.description || ''}
-                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Una experiencia única con sabor ahumado..."
-                                />
-                            </div>
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="flex gap-3 p-5 border-t border-white/10">
-                            <Button variant="outline" onClick={resetForm} className="flex-1 border-white/10 hover:bg-white/5">
-                                Cancelar
-                            </Button>
-                            <Button onClick={handleSave} className="flex-1 font-bold gap-2">
-                                <Save className="w-4 h-4" /> {editingId ? 'Guardar Cambios' : 'Crear Producto'}
-                            </Button>
-                        </div>
-                    </div>
+            {/* Barra de Acciones */}
+            <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1 relative group">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <input
+                        className="w-full bg-[#1A1A1A] border border-white/10 rounded-2xl p-6 pl-14 outline-none focus:ring-2 focus:ring-primary/40 text-lg font-bold shadow-xl transition-all"
+                        placeholder="Buscar sabor, nombre o detalle..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                    />
                 </div>
-            )}
 
-            {/* Tabla/Cards de Productos */}
-            <div className="bg-card border border-white/10 rounded-2xl overflow-hidden">
+                <div className="flex gap-2 p-2 bg-[#1A1A1A] border border-white/10 rounded-2xl shadow-xl overflow-x-auto no-scrollbar">
+                    <select
+                        className="bg-transparent px-4 py-2 font-black uppercase text-xs tracking-widest outline-none border-r border-white/10 cursor-pointer"
+                        value={categoryFilter}
+                        onChange={e => setCategoryFilter(e.target.value)}
+                    >
+                        <option value="all" className="bg-[#1A1A1A]">Todo</option>
+                        {categories.map(c => <option key={c.id} value={c.id} className="bg-[#1A1A1A]">{c.name}</option>)}
+                    </select>
+
+                    <div className="flex gap-1 border-r border-white/10 pr-2">
+                        <button onClick={() => setViewMode('grid')} className={`p-3 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-primary text-black' : 'text-muted-foreground hover:bg-white/5'}`}><LayoutGrid className="w-4 h-4" /></button>
+                        <button onClick={() => setViewMode('table')} className={`p-3 rounded-xl transition-all ${viewMode === 'table' ? 'bg-primary text-black' : 'text-muted-foreground hover:bg-white/5'}`}><List className="w-4 h-4" /></button>
+                    </div>
+
+                    <button 
+                        onClick={() => setShowDeleted(!showDeleted)}
+                        className={`p-3 rounded-xl transition-all ${showDeleted ? 'bg-red-500 text-white' : 'text-muted-foreground hover:bg-white/5'}`}
+                        title="Papelera"
+                    >
+                        <Archive className="w-4 h-4" />
+                    </button>
+
+                    <Button onClick={() => { resetForm(); setIsEditing(true); }} className="px-8 py-2 rounded-xl font-black uppercase italic tracking-tighter gap-2 bg-primary hover:bg-primary/80 transition-all text-black h-full">
+                        <Plus className="w-5 h-5" /> Crear Pro
+                    </Button>
+                </div>
+            </div>
+
+            {/* Grid de Productos */}
+            <AnimatePresence mode="wait">
                 {loading ? (
-                    <div className="p-20 flex justify-center text-muted-foreground">
-                        <Loader2 className="w-8 h-8 animate-spin" />
-                    </div>
+                    <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-32 flex flex-col items-center gap-6">
+                        <Loader2 className="w-16 h-16 animate-spin text-primary" />
+                        <p className="font-black uppercase tracking-[0.3em] italic text-sm opacity-50">Sincronizando menú...</p>
+                    </motion.div>
                 ) : displayedProducts.length === 0 ? (
-                    <div className="p-20 text-center text-muted-foreground">
-                        {showDeleted ? "La papelera está vacía." : "No tienes productos activos."}
-                    </div>
+                    <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-32 text-center border-2 border-dashed border-white/5 rounded-3xl">
+                        <Layers className="w-20 h-20 mx-auto text-white/5 mb-6" />
+                        <h3 className="text-2xl font-black uppercase italic tracking-tighter">Sin resultados</h3>
+                        <p className="text-muted-foreground mt-2">Prueba otra búsqueda o cambia el filtro.</p>
+                    </motion.div>
+                ) : viewMode === 'grid' ? (
+                    <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {displayedProducts.map((p, i) => (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                key={p.id} 
+                                className="group relative bg-[#1A1A1A] border border-white/10 rounded-[2rem] overflow-hidden hover:border-primary/40 transition-all hover:shadow-2xl hover:shadow-primary/10"
+                            >
+                                {/* Media Container */}
+                                <div className="aspect-square relative overflow-hidden bg-black/40 border-b border-white/5">
+                                    {p.options?.video_url ? (
+                                        <video src={p.options.video_url} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
+                                    ) : (
+                                        <Image src={p.image_url || "/images/placeholder.png"} alt={p.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-90" />
+                                    )}
+                                    {/* Badges */}
+                                    <div className="absolute top-4 left-4 flex flex-col gap-2">
+                                        {p.options?.badge && (
+                                            <span className="px-3 py-1 rounded-full bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest italic shadow-lg">
+                                                {p.options.badge}
+                                            </span>
+                                        )}
+                                        {p.options?.video_url && (
+                                            <span className="px-3 py-1 rounded-full bg-primary text-black text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg">
+                                                <VideoIcon className="w-3 h-3" /> Motion
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="absolute top-4 right-4 group-hover:opacity-100 opacity-0 transition-opacity">
+                                        <button onClick={() => toggleAvailability(p)} className={`p-2 rounded-xl border ${p.is_available ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-red-500/20 border-red-500 text-red-500'}`}>
+                                            <Zap className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-6 space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h3 className="font-black text-xl italic uppercase tracking-tighter truncate group-hover:text-primary transition-colors">{p.name}</h3>
+                                            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em]">{categories.find(c => c.id === p.category_id)?.name}</p>
+                                        </div>
+                                        <div className="text-2xl font-black italic tracking-tighter text-white">{p.price.toFixed(2)}€</div>
+                                    </div>
+                                    
+                                    <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2.5rem] leading-relaxed">
+                                        {p.description || 'Sin descripción culinaria.'}
+                                    </p>
+
+                                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                                        <Button onClick={() => handleEdit(p)} variant="ghost" className="flex-1 bg-white/5 hover:bg-primary hover:text-black rounded-xl font-bold uppercase text-[10px] h-11 tracking-widest italic">
+                                            <Pencil className="w-3.5 h-3.5 mr-2" /> Editar
+                                        </Button>
+                                        <button onClick={() => handleDelete(p.id)} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
                 ) : (
-                    <>
-                        {/* Vista Tabla (md+) */}
-                        <table className="w-full text-left hidden md:table">
-                            <thead className="bg-white/5 text-xs uppercase font-bold text-muted-foreground">
+                    /* Vista Tabla Estilizada */
+                    <motion.div key="table" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl">
+                        <table className="w-full text-left">
+                            <thead className="bg-white/5 border-b border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                                 <tr>
-                                    <th className="p-4">Producto / Escancia</th>
-                                    <th className="p-4">Categoría / Rango</th>
-                                    <th className="p-4">Inversión</th>
-                                    <th className="p-4 text-center">Estado Vital</th>
-                                    <th className="p-4 text-right">Manejo</th>
+                                    <th className="p-6">Producto</th>
+                                    <th className="p-6">Categoría</th>
+                                    <th className="p-6 text-center">Inversión</th>
+                                    <th className="p-6 text-center">Status</th>
+                                    <th className="p-6 text-right">Manejo</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {displayedProducts.map((product) => (
-                                    <tr key={product.id} className="hover:bg-white/[0.02] transition-colors">
-                                        <td className="p-4">
+                                {displayedProducts.map(p => (
+                                    <tr key={p.id} className="hover:bg-white/[0.03] transition-colors group">
+                                        <td className="p-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-lg bg-white/5 relative overflow-hidden shrink-0">
-                                                    <Image
-                                                        src={product.image_url?.toLowerCase().endsWith('.webm')
-                                                            ? product.image_url.replace(/\.webm$/i, '.png')
-                                                            : (product.image_url || "/images/placeholder.png")}
-                                                        alt={product.name}
-                                                        fill
-                                                        className={`object-cover ${product.deleted_at ? 'grayscale' : ''}`}
-                                                    />
+                                                <div className="w-12 h-12 rounded-xl bg-black relative overflow-hidden border border-white/10">
+                                                    <Image src={p.image_url || "/images/placeholder.png"} alt={p.name} fill className="object-cover opacity-80" />
                                                 </div>
                                                 <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`font-bold text-base ${product.deleted_at ? 'text-muted-foreground line-through' : 'text-white'}`}>
-                                                            {product.name}
-                                                        </span>
-                                                        {product.options?.badge && (
-                                                            <span className="px-1.5 py-0.5 rounded-md bg-primary/20 text-primary border border-primary/30 text-[9px] font-black uppercase tracking-tighter">
-                                                                {product.options.badge}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        {product.options?.video_url && (
-                                                            <div className="flex items-center gap-1 text-[10px] text-primary/80 font-medium">
-                                                                <VideoIcon className="w-3 h-3" /> Video
-                                                            </div>
-                                                        )}
-                                                        {product.options?.allergens && product.options.allergens.length > 0 && (
-                                                            <div className="flex items-center gap-1 text-[10px] text-red-400/80 font-medium">
-                                                                <span className="w-1 h-1 rounded-full bg-red-400"></span>
-                                                                {product.options.allergens.length} Alérgenos
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <span className="font-black text-lg italic uppercase tracking-tighter truncate max-w-[200px] block">{p.name}</span>
+                                                    {p.options?.badge && <span className="text-[9px] text-yellow-500 font-black uppercase tracking-widest">{p.options.badge}</span>}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4 text-sm text-muted-foreground capitalize">
-                                            {categories.find(c => c.id === product.category_id)?.name || product.category_id}
+                                        <td className="p-6">
+                                            <span className="text-xs font-bold text-muted-foreground uppercase">{categories.find(c => c.id === p.category_id)?.name}</span>
                                         </td>
-                                        <td className="p-4 font-mono">{product.price.toFixed(2)}€</td>
-                                        <td className="p-4 text-center">
-                                            <button 
-                                                onClick={() => !product.deleted_at && toggleAvailability(product)}
-                                                className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                                    product.deleted_at
-                                                        ? 'bg-red-500/10 text-red-500 border-red-500/20'
-                                                        : product.is_available
-                                                            ? 'bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 hover:scale-105'
-                                                            : 'bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500/20 hover:scale-105'
-                                                }`}
-                                            >
-                                                {product.deleted_at ? 'Eliminado' : product.is_available ? 'Activo' : 'Agotado'}
-                                            </button>
+                                        <td className="p-6 text-center font-black italic text-lg">{p.price.toFixed(2)}€</td>
+                                        <td className="p-6 text-center">
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black border uppercase tracking-widest ${p.is_available ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                                                {p.is_available ? 'ACTIVO' : 'AGOTADO'}
+                                            </span>
                                         </td>
-                                        <td className="p-4 text-right">
+                                        <td className="p-6 text-right">
                                             <div className="flex justify-end gap-2">
-                                                {showDeleted ? (
-                                                    <Button size="sm" variant="outline" className="gap-2 text-green-500 hover:text-green-400 border-green-500/20 hover:bg-green-500/10" onClick={() => handleRestore(product.id)}>
-                                                        <RotateCcw className="w-3 h-3" /> Restaurar
-                                                    </Button>
-                                                ) : (
-                                                    <>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleEdit(product)}>
-                                                            <Pencil className="w-4 h-4" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive" onClick={() => handleDelete(product.id)}>
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </>
-                                                )}
+                                                <button onClick={() => handleEdit(p)} className="p-2 bg-white/5 hover:bg-primary hover:text-black rounded-lg transition-all"><Pencil className="w-4 h-4" /></button>
+                                                <button onClick={() => handleDelete(p.id)} className="p-2 bg-white/5 hover:bg-red-500/10 text-red-500 rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-
-                        {/* Vista Cards (móvil) */}
-                        <div className="md:hidden divide-y divide-white/5">
-                            {displayedProducts.map((product) => (
-                                <div key={product.id} className="p-4 flex items-center gap-3">
-                                    <div className="w-14 h-14 rounded-xl bg-white/5 relative overflow-hidden shrink-0 border border-white/5">
-                                        <Image
-                                            src={product.image_url?.toLowerCase().endsWith('.webm')
-                                                ? product.image_url.replace(/\.webm$/i, '.png')
-                                                : (product.image_url || "/images/placeholder.png")}
-                                            alt={product.name}
-                                            fill
-                                            className={`object-cover ${product.deleted_at ? 'grayscale' : ''}`}
-                                        />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className={`font-semibold truncate ${product.deleted_at ? 'line-through text-muted-foreground' : ''}`}>
-                                            {product.name}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-primary font-bold text-sm">{product.price.toFixed(2)}€</span>
-                                            {product.options?.video_url && (
-                                                <span className="flex items-center gap-0.5 text-[10px] text-primary/70">
-                                                    <VideoIcon className="w-3 h-3" /> video
-                                                </span>
-                                            )}
-                                        </div>
-                                        <button 
-                                            onClick={() => !product.deleted_at && toggleAvailability(product)}
-                                            className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                                product.deleted_at 
-                                                    ? 'bg-red-500/10 text-red-500 border-red-500/20' 
-                                                    : product.is_available 
-                                                        ? 'bg-green-500/10 text-green-500 border-green-500/20' 
-                                                        : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
-                                            }`}
-                                        >
-                                            {product.deleted_at ? 'Eliminado' : product.is_available ? 'Activo' : 'Agotado'}
-                                        </button>
-                                    </div>
-                                    <div className="flex gap-1 shrink-0">
-                                        {showDeleted ? (
-                                            <Button size="sm" variant="outline" className="h-8 w-8 p-0 text-green-500 border-green-500/20" onClick={() => handleRestore(product.id)}>
-                                                <RotateCcw className="w-3 h-3" />
-                                            </Button>
-                                        ) : (
-                                            <>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-primary" onClick={() => handleEdit(product)}>
-                                                    <Pencil className="w-4 h-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-destructive" onClick={() => handleDelete(product.id)}>
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
+                    </motion.div>
                 )}
-            </div>
+            </AnimatePresence>
+
+            {/* Modal de Edición Pro */}
+            {isEditing && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#151515] border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+                    >
+                        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20"><Zap className="w-6 h-6 text-primary" /></div>
+                                <h2 className="text-2xl font-black italic uppercase tracking-tighter">{editingId ? 'Refinar' : 'Forjar'} Producto</h2>
+                            </div>
+                            <button onClick={resetForm} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all"><X className="w-6 h-6" /></button>
+                        </div>
+
+                        <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Identidad Visual</label>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setImageMode('url')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${imageMode === 'url' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>URL Directa</button>
+                                        <button onClick={() => setImageMode('upload')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${imageMode === 'upload' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>Subir PNG</button>
+                                    </div>
+                                    {imageMode === 'url' ? (
+                                        <input className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm font-bold placeholder:opacity-30" placeholder="/images/burgers/pozu.png" value={formData.image_url || ''} onChange={e => setFormData({...formData, image_url: e.target.value})} />
+                                    ) : (
+                                        <button onClick={() => imageInputRef.current?.click()} className="w-full h-20 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary transition-all group">
+                                            <input ref={imageInputRef} type="file" className="hidden" onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'image')} />
+                                            <Upload className="w-5 h-5 opacity-40 group-hover:text-primary group-hover:opacity-100" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{uploading ? 'Procesando...' : 'Elegir Imagen'}</span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Movimiento (Video)</label>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setVideoMode('url')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${videoMode === 'url' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>URL WebM</button>
+                                        <button onClick={() => setVideoMode('upload')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${videoMode === 'upload' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>Subir WebM</button>
+                                    </div>
+                                    {videoMode === 'url' ? (
+                                        <input className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm font-bold placeholder:opacity-30" placeholder="/video/burga.webm" value={formData.video_url || ''} onChange={e => setFormData({...formData, video_url: e.target.value})} />
+                                    ) : (
+                                        <button onClick={() => videoInputRef.current?.click()} className="w-full h-20 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary transition-all group">
+                                            <input ref={videoInputRef} type="file" className="hidden" onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'video')} />
+                                            <VideoIcon className="w-5 h-5 opacity-40 group-hover:text-primary group-hover:opacity-100" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{uploading ? 'Codificando...' : 'Elegir Video'}</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <div className="sm:col-span-2 space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Nombre Comercial</label>
+                                    <input className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-lg font-black italic uppercase tracking-tighter" placeholder="BURGER POZU PRO" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Inversión (€)</label>
+                                    <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xl font-black italic text-primary" placeholder="12.00" value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Categoría del Producto</label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {categories.map(c => (
+                                        <button 
+                                            key={c.id} 
+                                            onClick={() => setFormData({...formData, category_id: c.id})}
+                                            className={`p-3 rounded-xl text-[10px] font-black uppercase transition-all border ${formData.category_id === c.id ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10'}`}
+                                        >
+                                            {c.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Composición (Ingredientes)</label>
+                                    <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs font-bold h-24 resize-none" placeholder="Separados por coma..." value={formData.ingredients?.join(', ') || ''} onChange={e => setFormData({...formData, ingredients: e.target.value.split(',').map(v => v.trim())})} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase text-red-500/60 tracking-widest">Alérgenos Críticos</label>
+                                    <textarea className="w-full bg-black/40 border border-red-500/10 rounded-xl p-4 text-xs font-bold h-24 resize-none" placeholder="Gluten, lácteos..." value={formData.allergens?.join(', ') || ''} onChange={e => setFormData({...formData, allergens: e.target.value.split(',').map(v => v.trim())})} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Relato Gastronómico (Descripción)</label>
+                                <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs font-medium h-20 resize-none opacity-60 focus:opacity-100 transition-opacity" placeholder="Describe la experiencia de este producto..." value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} />
+                            </div>
+                        </div>
+
+                        <div className="p-8 border-t border-white/10 bg-black/20 flex gap-4">
+                            <Button variant="ghost" onClick={resetForm} className="flex-1 h-16 rounded-[1.2rem] font-black uppercase italic tracking-widest text-xs">Descartar</Button>
+                            <Button onClick={handleSave} className="flex-[2] h-16 rounded-[1.2rem] font-black uppercase italic tracking-widest text-lg bg-primary hover:bg-primary/80 text-black shadow-2xl shadow-primary/20">
+                                {editingId ? 'Forjar Cambios' : 'Templar Producto'}
+                            </Button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+            `}</style>
         </div>
     )
 }
