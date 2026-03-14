@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { categories } from "@/lib/data"
 import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 type Product = {
     id: string
