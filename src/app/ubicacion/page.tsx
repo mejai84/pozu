@@ -47,16 +47,17 @@ export default function UbicacionPage() {
                     </div>
 
                     {/* Google Map */}
-                    <div className="lg:col-span-2 h-[300px] md:h-[450px] lg:h-[600px] w-full rounded-3xl overflow-hidden border-2 border-primary neon-border relative group shadow-[0_0_40px_rgba(255,184,0,0.15)] order-first lg:order-last">
+                    <div className="lg:col-span-2 h-[300px] md:h-[450px] lg:h-[600px] w-full rounded-3xl overflow-hidden border-2 border-primary neon-border relative group shadow-[0_0_40px_rgba(255,184,0,0.2)] order-first lg:order-last">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2909.103098523674!2d-5.5645!3d43.2458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd367b660a0a0a0a%3A0x0!2sC.%20R%C3%ADo%20Cares%2C%202%2C%2033980%20Pola%20de%20Laviana%2C%20Asturias!5e0!3m2!1ses!2ses!4v1642150000000!5m2!1ses!2ses"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2297.031548842247!2d-5.56726138406734!3d43.24529938631165!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd365b3496bc8c9d%3A0xba781dcc2549db16!2sEl%20Pozu%202.0!5e1!3m2!1ses!2ses!4v1710413000000!5m2!1ses!2ses"
                             width="100%"
                             height="100%"
-                            style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg)', mixBlendMode: 'screen' }}
+                            style={{ border: 0 }}
                             allowFullScreen
                             loading="lazy"
-                            className="grayscale-[0.8] transition-all duration-700 hover:grayscale-0 hover:mix-blend-normal opacity-80 hover:opacity-100"
+                            className="transition-all duration-700 opacity-90 hover:opacity-100 scale-105 hover:scale-100"
                         ></iframe>
+                        <div className="absolute inset-0 pointer-events-none border-[12px] border-[#111111] rounded-3xl"></div>
                     </div>
                 </div>
             </div>

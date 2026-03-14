@@ -446,6 +446,31 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 - ✅ **CTA de Alta Conversión**: El botón "¡HAZ TU PEDIDO!" y los textos persuasivos se sitúan debajo de la animación, equilibrando el peso visual de la página.
 - ✅ **Ajustes Tipográficos**: Reducción de escalas de fuente y espacios para una navegación más cómoda y profesional.
 
+### 18. **Actualización de Carta y Menú Dinámico** 🍔 ⭐ NUEVO (Marzo 2026)
+**Ubicación:** `/menu`, `/admin/products` y Base de Datos
+
+**Funcionalidades:**
+- ✅ **Sincronización Total**: Incorporación de 22 productos basados en la carta física oficial (Nachos, Jalapeños, Kentucky Burger, etc.).
+- ✅ **Observaciones Inteligentes**: Implementación de badges dinámicos en las tarjetas de producto (ej: "✨ Cualquier hamburguesa puede ser de pollo crujiente + 2€").
+- ✅ **Gestión de "Más Vendidas"**: Posicionamiento prioritario automático para las hamburguesas más populares (Pozu, Selecta) con etiquetas visuales ("Best Seller", "Más Vendida").
+- ✅ **Corrección de Queries**: Depuración de la lógica de fetch para eliminar dependencias de columnas inexistentes (`deleted_at`), estabilizando la carga del menú.
+
+### 19. **Experiencia de Ubicación 3D Satellite** 📍 ⭐ NUEVO
+**Ubicación:** `/ubicacion`
+
+**Funcionalidades:**
+- ✅ **Vista Satelital "Sorprendente"**: Actualización del mapa a vista satelital 3D de alta resolución.
+- ✅ **Precisión Milimétrica**: Corrección del pinpoint para centrar oficialmente el negocio "El Pozu 2.0".
+- ✅ **Diseño Neon Mirror**: Marco de neón dorado con efecto espejo y escala dinámica al pasar el ratón (hover).
+
+### 20. **Gestión Avanzada de Empleados (Auth CRUD)** 👨‍💼 ⭐ MEJORADO
+**Ubicación:** `/admin/employees` y API Route `/api/admin/employees`
+
+**Funcionalidades:**
+- ✅ **CRUD Completo de Identidad**: Capacidad para Crear, Editar y Eliminar empleados directamente vinculados a Supabase Auth.
+- ✅ **Cambio de Contraseñas**: Permite a los administradores resetear claves de empleados sin salir del panel.
+- ✅ **Gestión de Roles Segura**: Uso de `Service Role Key` en el backend para manipular usuarios de forma centralizada y segura.
+
 ---
 
 **Todo listo y desplegado! 🚀**

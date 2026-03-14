@@ -15,6 +15,7 @@ export type Product = {
     ingredients?: string[];
     badge?: string;
     allergens?: string[];
+    options?: any;
 };
 
 export const categories: Category[] = [

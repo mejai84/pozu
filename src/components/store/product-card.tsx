@@ -25,9 +25,9 @@ export function ProductCard({ product }: { product: Product }) {
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                     placeholderSize="md"
                 />
-                {product.badge && (
-                    <span className="absolute top-3 left-3 bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                        {product.badge}
+                {(product.badge || (product.options as any)?.badge) && (
+                    <span className="absolute top-3 left-3 bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
+                        {product.badge || (product.options as any)?.badge}
                     </span>
                 )}
             </Link>
@@ -43,6 +43,20 @@ export function ProductCard({ product }: { product: Product }) {
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
                         {product.ingredients?.join(", ") || product.description}
                     </p>
+
+                    {(product.options as any)?.observation && (
+                        <div className="mt-3 py-1.5 px-3 rounded-lg bg-primary/10 border border-primary/20">
+                            <p className="text-[10px] uppercase font-bold text-primary tracking-wider leading-tight">
+                                ✨ {(product.options as any).observation}
+                            </p>
+                        </div>
+                    )}
+
+                    {(product.options as any)?.sauce_note && (
+                        <p className="text-[10px] italic text-muted-foreground mt-2">
+                            * {(product.options as any).sauce_note}
+                        </p>
+                    )}
 
                     {product.allergens && (
                         <div className="flex gap-1.5 mt-3">

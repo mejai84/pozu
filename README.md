@@ -387,10 +387,13 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 - [x] Notificaciones en tiempo real
 - [x] Configuración persistente
 - [x] Exportación de datos
+- [x] **Actualización de Carta** (22+ productos sincronizados)
+- [x] **Ubicación Satelital 3D** (Precision Pointing)
+- [x] **Gestión CRUD de Auth** (Editar/Eliminar empleados)
 
-**Versión:** 2.5
+**Versión:** 2.6
 **Última actualización:** 2026-03-14  
-**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Design Elite SPA - Granular RBAC Ready
+**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Design Elite SPA - Granular RBAC Ready - Full Menu Sync
 
 
 ---

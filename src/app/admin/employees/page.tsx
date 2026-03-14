@@ -39,6 +39,13 @@ export default function EmployeesPage() {
         password: "",
         role: "staff"
     })
+    const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [editData, setEditData] = useState({
+        fullName: "",
+        password: "",
+        role: "staff" as any
+    })
 
     useEffect(() => {
         fetchEmployees()
@@ -79,6 +86,70 @@ export default function EmployeesPage() {
         } catch (error) {
             alert('Error al actualizar el rol')
         }
+    }
+
+    const handleDeleteEmployee = async (id: string) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar este empleado? Esta acción no se puede deshacer.')) return
+
+        try {
+            const response = await fetch(`/api/admin/employees?id=${id}`, {
+                method: 'DELETE'
+            })
+
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.error || 'Error al eliminar empleado')
+            }
+
+            alert('Empleado eliminado con éxito')
+            fetchEmployees()
+        } catch (error: any) {
+            alert(error.message)
+        }
+    }
+
+    const handleUpdateEmployee = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editingEmployee) return
+        setIsCreating(true)
+
+        try {
+            const response = await fetch('/api/admin/employees', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: editingEmployee.id,
+                    fullName: editData.fullName,
+                    role: editData.role,
+                    ...(editData.password ? { password: editData.password } : {})
+                })
+            })
+
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.error || 'Error al actualizar empleado')
+            }
+
+            alert('Empleado actualizado con éxito')
+            setIsEditModalOpen(false)
+            fetchEmployees()
+        } catch (error: any) {
+            alert(error.message)
+        } finally {
+            setIsCreating(false)
+        }
+    }
+
+    const openEditModal = (employee: Employee) => {
+        setEditingEmployee(employee)
+        setEditData({
+            fullName: employee.full_name || "",
+            password: "",
+            role: employee.role
+        })
+        setIsEditModalOpen(true)
     }
 
     const handleCreateEmployee = async (e: React.FormEvent) => {
@@ -213,12 +284,17 @@ export default function EmployeesPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         className="hover:text-primary transition-colors"
-                                                        onClick={() => updateRole(employee.id, employee.role === 'admin' ? 'staff' : 'admin')}
-                                                        title="Cambiar Rol"
+                                                        onClick={() => openEditModal(employee)}
+                                                        title="Editar / Cambiar Clave"
                                                     >
-                                                        <Shield className="w-5 h-5" />
+                                                        <Users className="w-5 h-5" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" className="hover:text-destructive transition-colors">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        className="hover:text-destructive transition-colors"
+                                                        onClick={() => handleDeleteEmployee(employee.id)}
+                                                    >
                                                         <Trash2 className="w-5 h-5" />
                                                     </Button>
                                                 </div>
@@ -335,6 +411,78 @@ export default function EmployeesPage() {
                                     disabled={isCreating}
                                 >
                                     {isCreating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Crear Acceso'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Editar Empleado */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#1A1A1A] border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-md relative">
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-6 relative">
+                            Editar Empleado
+                            <div className="absolute -bottom-2 left-0 w-12 h-1 bg-primary rounded-full" />
+                        </h2>
+
+                        <form onSubmit={handleUpdateEmployee} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-2">Nombre Completo</label>
+                                <input
+                                    type="text"
+                                    required
+                                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/50"
+                                    value={editData.fullName}
+                                    onChange={e => setEditData({ ...editData, fullName: e.target.value })}
+                                />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-2">Nueva Contraseña (Opcional)</label>
+                                <input
+                                    type="password"
+                                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/50"
+                                    placeholder="Dejar vacío para no cambiar"
+                                    value={editData.password}
+                                    onChange={e => setEditData({ ...editData, password: e.target.value })}
+                                    minLength={6}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-2">Rol de Acceso</label>
+                                <select
+                                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                                    value={editData.role}
+                                    onChange={e => setEditData({ ...editData, role: e.target.value as any })}
+                                >
+                                    <option value="staff" className="bg-[#1A1A1A]">Staff (Cocina y Pedidos)</option>
+                                    <option value="admin" className="bg-[#1A1A1A]">Administrador (Acceso Total)</option>
+                                    <option value="waiter" className="bg-[#1A1A1A]">Camarero</option>
+                                    <option value="kitchen" className="bg-[#1A1A1A]">Cocina</option>
+                                    <option value="cashier" className="bg-[#1A1A1A]">Cajero</option>
+                                    <option value="delivery" className="bg-[#1A1A1A]">Reparto</option>
+                                </select>
+                            </div>
+
+                            <div className="flex gap-4 pt-6">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full rounded-xl border-white/10"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                    disabled={isCreating}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="w-full rounded-xl font-bold font-black uppercase italic tracking-tighter shadow-lg"
+                                    disabled={isCreating}
+                                >
+                                    {isCreating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Guardar Cambios'}
                                 </Button>
                             </div>
                         </form>

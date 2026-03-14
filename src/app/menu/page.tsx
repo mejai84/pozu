@@ -37,8 +37,8 @@ function MenuContent() {
         const { data, error } = await supabase
             .from('products')
             .select('*')
-            .is('deleted_at', null)
             .eq('is_available', true)
+            .order('is_featured', { ascending: false })
             .order('name')
 
         if (!error && data) {
