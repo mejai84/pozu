@@ -27,25 +27,66 @@ export default function Home() {
       </div>
 
       <main className="flex-1 relative z-10 flex flex-col items-center pt-0 pb-24 sm:pb-32 w-full overflow-x-hidden">
+        
+        {/* 1. HERO TEXT CONTENT - SITUADO AL INICIO PARA MÓVILES */}
+        <section className="relative z-30 w-full pt-32 sm:pt-48 pb-12 sm:pb-20 px-6 text-center max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="space-y-8 sm:space-y-12"
+            >
+              {/* Entradilla / Ubicación */}
+              <div className="flex flex-col items-center gap-4">
+                <span className="text-primary font-black italic uppercase tracking-[0.4em] text-[10px] sm:text-xs bg-primary/10 px-6 py-2 rounded-full border border-primary/20 backdrop-blur-sm">
+                  Pola de Laviana • Asturias
+                </span>
+                <div className="h-16 w-[2px] bg-gradient-to-b from-primary/0 via-primary to-primary/0" />
+              </div>
 
-        {/* Hero Section - Animation First, Centered Content Layout */}
-        <div className="flex flex-col items-center mt-12 sm:mt-24 lg:mt-32 relative w-full pt-0 bg-transparent">
+              {/* Título Principal Brutal */}
+              <div className="space-y-4 sm:space-y-6">
+                <h1 className="text-5xl sm:text-8xl lg:text-9xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.8] drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
+                  Sabor Brutal que <br />
+                  <span className="text-primary italic neon-text-glow">Desafía la Gravedad</span>
+                </h1>
+                
+                <h2 className="text-2xl sm:text-5xl lg:text-6xl font-black italic text-white/90 tracking-tighter uppercase leading-none">
+                  Pozu <span className="text-primary">2.0</span>
+                </h2>
+              </div>
 
-          {/* Background Pattern Overlay - Subtle & Expansive */}
-          <div
-            className="absolute inset-x-0 -top-80 h-[150%] z-0 opacity-10 pointer-events-none mix-blend-screen"
-            style={{
-              backgroundImage: 'url("/images/hero-bg-pattern.png")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
+              {/* Bajada persuasiva */}
+              <div className="space-y-6 max-w-3xl mx-auto">
+                <p className="text-lg sm:text-3xl text-muted-foreground font-bold tracking-tight uppercase leading-tight">
+                  La técnica Smash definitiva. <br />
+                  <span className="text-white/40 font-black italic">No es solo comida, es un vicio artesanal.</span>
+                </p>
+                <p className="text-[10px] sm:text-xs text-primary/60 font-black uppercase tracking-[0.3em]">
+                   Técnica Smash impecable. Espíritu Rock. Vicio Artesanal.
+                </p>
+              </div>
 
-          {/* 1. CINEMATIC HERO ANIMATION (TOP) */}
+              {/* Botón CTA Primario - Ahora más arriba para conversión rápida */}
+              <div className="pt-4">
+                <Link href="/menu">
+                  <button className="relative overflow-hidden font-black text-xl sm:text-2xl rounded-full border-4 border-primary text-primary px-12 sm:px-24 py-4 sm:py-6 hover:bg-primary hover:text-black hover:shadow-[0_0_100px_rgba(234,179,8,0.7)] transition-all active:scale-95 group uppercase tracking-[0.2em] bg-black/60 backdrop-blur-md">
+                    <span className="relative z-10">Pide el Banquete</span>
+                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
+                  </button>
+                </Link>
+              </div>
+            </motion.div>
+        </section>
+
+        {/* 2. CINEMATIC HERO ANIMATION - BAJADA DE POSICIÓN */}
+        <div className="flex flex-col items-center mt-0 sm:-mt-20 lg:-mt-32 relative w-full pt-0 bg-transparent mb-20 sm:mb-32">
+          
           <div className="relative w-full flex justify-center items-center z-10 px-0">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 1 }}
               className="w-full h-full flex items-center justify-center relative min-w-full"
             >
               <ScrollVideo />
@@ -55,60 +96,26 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* 2. REORGANIZED CENTERED TEXT (BELOW BURGER) */}
-          <div className="flex flex-col items-center mt-6 sm:mt-12 lg:-mt-12 z-30 relative px-4 max-w-5xl text-center">
-
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="space-y-4"
-            >
-              <h1 className="sr-only">
-                POZU 2.0 ROCK & BURGER
-              </h1>
-
-              <p className="sr-only">
-                No es solo una comida, es un vicio artesanal
-              </p>
-            </motion.div>
-
-            {/* 3. CTA BUTTON */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.9 }}
-              className="mt-10 sm:mt-16"
-            >
-              <Link href="/menu">
-                <button className="relative overflow-hidden font-black text-xl sm:text-2xl rounded-full border-4 border-primary text-primary px-16 sm:px-28 py-5 sm:py-7 hover:bg-primary hover:text-black hover:shadow-[0_0_100px_rgba(234,179,8,0.7)] transition-all active:scale-95 group uppercase tracking-[0.2em] bg-black/60 backdrop-blur-md">
-                  <span className="relative z-10">Pide el Banquete</span>
-                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
-                </button>
-              </Link>
-            </motion.div>
-
-            {/* 4. SOCIAL PROOF (Refined) */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 1.5 }}
-              className="mt-12 flex flex-wrap justify-center gap-10 text-[#E8E0D5]/40 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em]"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-primary text-xl">★ ★ ★ ★ ★</span>
-                <span>4.9 Valoración</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-primary text-xl">⚡</span>
-                <span>+10k Servidas</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-primary text-xl">♥</span>
-                <span>Asturias Real</span>
-              </div>
-            </motion.div>
-          </div>
+          {/* Social Proof metrics */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.5 }}
+            className="mt-8 flex flex-wrap justify-center gap-10 text-[#E8E0D5]/40 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] z-20"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-primary text-xl">★ ★ ★ ★ ★</span>
+              <span>4.9 Valoración</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-primary text-xl">⚡</span>
+              <span>+10k Servidas</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-primary text-xl">♥</span>
+              <span>Asturias Real</span>
+            </div>
+          </motion.div>
         </div>
 
         {/* --- SPACER FOR FLOW --- */}

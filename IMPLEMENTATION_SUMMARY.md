@@ -413,4 +413,15 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 
 ---
 
+### 14. **Optimización de Conversión y UX (Marzo 2026)** ⭐ NUEVO
+**Ubicación:** Landing Page (Hero) y Preloader
+
+**Funcionalidades:**
+- ✅ **Hero Copy AIDA**: Reestructuración de la sección Hero situando el copy persuasivo ("Sabor Brutal") en la parte superior para máxima visibilidad en móviles.
+- ✅ **Narrativa Visual**: Orden de componentes optimizado: Mensaje de Marca → CTA → Animación ScrollVideo, mejorando la conversión inmediata.
+- ✅ **Preloader "High Retention"**: Aumentada la duración a 3 segundos con copy de intriga ("¿Hambre de algo legendario?") para preparar psicológicamente al cliente.
+- ✅ **Fix de Accesibilidad**: Eliminación de textos ocultos (`sr-only`) por títulos reales impactantes con efectos neón.
+
+---
+
 **Todo listo y desplegado! 🚀**
