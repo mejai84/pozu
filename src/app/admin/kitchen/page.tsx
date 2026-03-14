@@ -1,11 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Clock, Check, AlertTriangle, ArrowLeft, RefreshCw, Loader2, Flame, Bell, Eye, X, ZoomIn, ChefHat, Timer, Users, User, Phone, Zap } from "lucide-react"
+import { Clock, Check, AlertTriangle, ArrowLeft, RefreshCw, Loader2, Flame, Bell, Eye, X, ZoomIn, ChefHat, Timer, Users, User, Phone, Zap, Printer } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { motion, AnimatePresence } from "framer-motion"
+import { printOrderTicket } from "@/lib/utils/print-ticket"
 
 type OrderItem = {
     quantity: number
@@ -29,6 +30,11 @@ export default function KitchenPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
     const [lastFetch, setLastFetch] = useState<Date>(new Date())
     const [isAlertEnabled, setIsAlertEnabled] = useState(true)
+    const [businessInfo, setBusinessInfo] = useState<any>({
+        business_name: "Pozu 2.0",
+        address: "Pozu Restaurant",
+        phone: "600 000 000"
+    })
 
     const playAlertSound = () => {
         if (!isAlertEnabled) return
@@ -85,8 +91,14 @@ export default function KitchenPage() {
         setLastFetch(new Date())
     }
 
+    const fetchSettings = async () => {
+        const { data } = await supabase.from('settings').select('value').eq('key', 'business_info').single()
+        if (data?.value) setBusinessInfo(data.value)
+    }
+
     useEffect(() => {
         fetchOrders([])
+        fetchSettings()
         const interval = setInterval(() => {
             setOrders(current => {
                 fetchOrders(current)
@@ -244,13 +256,16 @@ export default function KitchenPage() {
                                                     <p className="text-4xl lg:text-5xl font-black italic uppercase tracking-tighter">
                                                         {item.products?.name || "Especialidad Pozu"}
                                                     </p>
-                                                    {item.customizations && Object.keys(item.customizations).length > 0 && (
-                                                        <div className="flex flex-wrap gap-2 pt-2">
-                                                            {Object.entries(item.customizations).map(([k, v]) => v ? (
-                                                                <span key={k} className="px-3 py-1 bg-red-500/20 text-red-500 text-xs font-black uppercase italic rounded-md border border-red-500/20">SIN {k}</span>
-                                                            ) : null)}
+                                                    {item.customizations?.notes && (
+                                                        <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl mt-3">
+                                                            <p className="text-primary text-xl font-black italic uppercase tracking-wider">
+                                                                → {item.customizations.notes}
+                                                            </p>
                                                         </div>
                                                     )}
+                                                    {item.customizations && Object.entries(item.customizations).map(([k, v]) => (k !== 'notes' && v) ? (
+                                                        <span key={k} className="px-3 py-1 bg-red-500/20 text-red-500 text-xs font-black uppercase italic rounded-md border border-red-500/20 mr-2">SIN {k}</span>
+                                                    ) : null)}
                                                 </div>
                                             </div>
                                         ))}
@@ -277,6 +292,9 @@ export default function KitchenPage() {
 
                             {/* Heavy Action Bar */}
                             <div className="p-10 border-t border-white/5 flex gap-6 bg-black">
+                                <Button variant="ghost" onClick={() => printOrderTicket(selectedOrder, businessInfo)} className="h-24 px-10 border border-white/10 hover:bg-white/5 gap-3">
+                                    <Printer className="w-8 h-8 text-primary" />
+                                </Button>
                                 <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="h-24 flex-1 text-2xl font-black uppercase italic tracking-widest hover:bg-white/5 rounded-[1.5rem] border border-white/5">VOLVER</Button>
                                 {selectedOrder.status === 'pending' ? (
                                     <Button onClick={() => updateStatus(selectedOrder.id, 'preparing')} className="h-24 flex-[2] text-4xl font-black italic uppercase tracking-tighter bg-orange-500 text-black hover:bg-orange-600 rounded-[1.5rem] shadow-2xl shadow-orange-500/20 gap-4">
@@ -343,8 +361,13 @@ function KDSCard({ order, onMarchar, onListo, onExpand, minutes, index }: any) {
                             </span>
                             <div className="space-y-0.5">
                                 <p className="font-bold text-lg uppercase italic tracking-tight leading-none group-hover:text-primary transition-colors">{item.products?.name || "Special"}</p>
-                                {item.customizations && Object.entries(item.customizations).some(([_, v]) => v) && (
-                                    <p className="text-[9px] font-black text-red-500/80 uppercase tracking-widest">PERSONALIZADO</p>
+                                {item.customizations?.notes && (
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 p-2 rounded mt-2 italic shadow-inner">
+                                        → {item.customizations.notes}
+                                    </p>
+                                )}
+                                {item.customizations && Object.entries(item.customizations).some(([k, v]) => k !== 'notes' && v) && (
+                                    <p className="text-[9px] font-black text-red-500/80 uppercase tracking-widest mt-1">PERSONALIZADO</p>
                                 )}
                             </div>
                         </div>

@@ -7,8 +7,28 @@ import { motion } from "framer-motion";
 import { Mic, Zap, Percent, Gift, MapPin, Clock, Phone, Calendar, Users } from "lucide-react";
 import { Preloader } from "@/components/ui/preloader";
 import { ScrollVideo } from "@/components/ui/scroll-video";
+import { AIChatButton } from "@/components/store/ai-chat-button";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase/client";
 
 export default function Home() {
+  const [showReservations, setShowReservations] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'feature_flags')
+        .single();
+      
+      if (data?.value) {
+        const features = data.value as any;
+        setShowReservations(features.reservations_enabled ?? true);
+      }
+    };
+    fetchSettings();
+  }, []);
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col relative overflow-hidden font-sans">
       <Preloader />
@@ -129,50 +149,52 @@ export default function Home() {
         </div>
 
         {/* --- SECTION: RESERVATIONS --- */}
-        <motion.section 
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="relative z-20 w-full max-w-5xl mx-auto px-6 py-12"
-        >
-          <div className="bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] border-2 border-primary/20 rounded-[3.5rem] p-10 sm:p-16 flex flex-col md:flex-row items-center gap-12 shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative overflow-hidden group">
-            {/* Decorative background elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors" />
-            
-            <div className="flex-1 space-y-6 text-center md:text-left relative z-10">
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
-                <Calendar className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Libro Abierto</span>
+        {showReservations && (
+          <motion.section 
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative z-20 w-full max-w-5xl mx-auto px-6 py-12"
+          >
+            <div className="bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] border-2 border-primary/20 rounded-[3.5rem] p-10 sm:p-16 flex flex-col md:flex-row items-center gap-12 shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative overflow-hidden group">
+              {/* Decorative background elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors" />
+              
+              <div className="flex-1 space-y-6 text-center md:text-left relative z-10">
+                <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Libro Abierto</span>
+                </div>
+                <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.9]">
+                  Asegura tu <span className="text-primary italic neon-text-glow">Mesa</span>
+                </h2>
+                <p className="text-muted-foreground font-bold text-base sm:text-xl leading-relaxed max-w-md">
+                  No te arriesgues a quedarte fuera. Reserva ahora y vive la auténtica experiencia Pozu 2.0 sin esperas.
+                </p>
+                <div className="pt-4">
+                  <Link href="/reservar">
+                    <button className="h-16 px-12 rounded-2xl bg-primary text-black font-black uppercase italic tracking-tighter text-lg hover:scale-105 transition-all shadow-[0_15px_30px_rgba(234,179,8,0.2)]">
+                      Reservar Mesa Ahora
+                    </button>
+                  </Link>
+                </div>
               </div>
-              <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.9]">
-                Asegura tu <span className="text-primary italic neon-text-glow">Mesa</span>
-              </h2>
-              <p className="text-muted-foreground font-bold text-base sm:text-xl leading-relaxed max-w-md">
-                No te arriesgues a quedarte fuera. Reserva ahora y vive la auténtica experiencia Pozu 2.0 sin esperas.
-              </p>
-              <div className="pt-4">
-                <Link href="/reservar">
-                  <button className="h-16 px-12 rounded-2xl bg-primary text-black font-black uppercase italic tracking-tighter text-lg hover:scale-105 transition-all shadow-[0_15px_30px_rgba(234,179,8,0.2)]">
-                    Reservar Mesa Ahora
-                  </button>
-                </Link>
-              </div>
-            </div>
 
-            <div className="flex-shrink-0 relative w-full md:w-[300px] h-[300px] flex items-center justify-center">
-              <div className="absolute inset-0 bg-primary/10 rounded-full blur-[60px] animate-pulse" />
-              <div className="relative z-10 p-8 border-4 border-dashed border-primary/30 rounded-full group-hover:rotate-12 transition-transform duration-1000">
-                 <div className="w-40 h-40 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary shadow-[0_0_50px_rgba(234,179,8,0.3)]">
-                    <Users className="w-16 h-16 text-primary" />
-                 </div>
-              </div>
-              {/* Floating badges */}
-              <div className="absolute top-4 right-4 bg-white/5 backdrop-blur-md border border-white/10 p-3 rounded-2xl shadow-xl animate-bounce">
-                <span className="text-xl font-black italic text-primary">Top</span>
+              <div className="flex-shrink-0 relative w-full md:w-[300px] h-[300px] flex items-center justify-center">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-[60px] animate-pulse" />
+                <div className="relative z-10 p-8 border-4 border-dashed border-primary/30 rounded-full group-hover:rotate-12 transition-transform duration-1000">
+                  <div className="w-40 h-40 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary shadow-[0_0_50px_rgba(234,179,8,0.3)]">
+                      <Users className="w-16 h-16 text-primary" />
+                  </div>
+                </div>
+                {/* Floating badges */}
+                <div className="absolute top-4 right-4 bg-white/5 backdrop-blur-md border border-white/10 p-3 rounded-2xl shadow-xl animate-bounce">
+                  <span className="text-xl font-black italic text-primary">Top</span>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.section>
+          </motion.section>
+        )}
 
         {/* --- SPACER FOR FLOW --- */}
         <div className="h-24 sm:h-32 lg:h-48" />
@@ -439,24 +461,10 @@ export default function Home() {
 
       </main>
 
-      {/* Floating Buttons */}
-      <div className="fixed bottom-6 sm:bottom-24 right-4 sm:right-6 flex flex-col gap-3 sm:gap-4 z-50 items-end">
-        <a
-          href="https://wa.me/34600000000"
-          target="_blank"
-          rel="noreferrer"
-          className="w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] rounded-full shadow-[0_0_20px_rgba(37,211,102,0.4)] flex items-center justify-center hover:scale-110 transition-transform cursor-pointer border border-white/20"
-        >
-          <svg viewBox="0 0 24 24" className="w-6 h-6 sm:w-7 sm:h-7 fill-white">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-          </svg>
-        </a>
-        <button className="hidden sm:flex items-center gap-3 bg-[linear-gradient(180deg,#3b3b3b,#1f1f1f)] border border-white/20 px-5 py-2.5 rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.5)] hover:scale-105 transition-transform">
-          <span className="text-xs font-bold text-[#E8E0D5]">¡Pide por Voz!</span>
-          <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
-            <Mic className="w-4 h-4 text-black" />
-          </div>
-        </button>
+      {/* Floating Buttons & AI Chat */}
+      <div className="fixed bottom-6 sm:bottom-12 right-4 sm:right-6 flex flex-col gap-4 z-50 items-end">
+        {/* Premium AI Chat Button */}
+        <AIChatButton />
       </div>
     </div>
   );

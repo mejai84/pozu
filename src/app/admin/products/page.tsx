@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Plus, Pencil, Trash2, X, Loader2, Save, RotateCcw, Archive, Upload, Link2, ImageIcon, VideoIcon, Search, Filter, Layers, Zap, Info, AlertOctagon, Eye, LayoutGrid, List } from "lucide-react"
+import { Plus, Pencil, Trash2, X, Loader2, Save, RotateCcw, Archive, Upload, Link2, ImageIcon, VideoIcon, Search, Filter, Layers, Zap, Info, AlertOctagon, Eye, LayoutGrid, List, Package } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useRef, useState, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
@@ -18,17 +18,18 @@ type Product = {
     is_available: boolean
     ingredients: string[] | null
     deleted_at: string | null
+    allergens: string | null // Campo nuevo
+    stock_quantity: number | null // Campo nuevo
     options?: {
         video_url?: string | null
         badge?: string | null
-        allergens?: string[] | null
+        allergens?: string[] | null // Deprecated pero lo mantenemos por compatibilidad
     }
 }
 
 type FormData = Partial<Product> & { 
     video_url?: string;
     badge?: string;
-    allergens?: string[];
 }
 
 type MediaMode = 'url' | 'upload' | 'library'
@@ -63,7 +64,8 @@ export default function AdminProductsPage() {
         video_url: '',
         badge: '',
         ingredients: [],
-        allergens: []
+        allergens: '',
+        stock_quantity: 0
     })
 
     const fetchProducts = async () => {
@@ -112,7 +114,8 @@ export default function AdminProductsPage() {
             video_url: product.options?.video_url || '',
             badge: product.options?.badge || '',
             ingredients: product.ingredients || [],
-            allergens: product.options?.allergens || []
+            allergens: product.allergens || '',
+            stock_quantity: product.stock_quantity || 0
         })
         setImageMode('url')
         setVideoMode('url')
@@ -130,7 +133,7 @@ export default function AdminProductsPage() {
 
     const resetForm = () => {
         setEditingId(null)
-        setFormData({ name: '', price: 0, category_id: 'cat_burgers', description: '', image_url: '', video_url: '', badge: '', ingredients: [], allergens: [] })
+        setFormData({ name: '', price: 0, category_id: 'cat_burgers', description: '', image_url: '', video_url: '', badge: '', ingredients: [], allergens: '', stock_quantity: 0 })
         setImageMode('url')
         setVideoMode('url')
         setIsEditing(false)
@@ -159,16 +162,17 @@ export default function AdminProductsPage() {
         if (!formData.name || !formData.price) return alert("Nombre y Precio son obligatorios")
         const productData = {
             name: formData.name,
-            price: parseFloat(formData.price.toString()),
+            price: parseFloat(formData.price!.toString()),
             category_id: formData.category_id,
             description: formData.description,
             image_url: formData.image_url,
-            is_available: formData.is_available ?? true,
+            is_available: (formData.stock_quantity ?? 0) > 0 ? (formData.is_available ?? true) : false,
             ingredients: Array.isArray(formData.ingredients) ? formData.ingredients : [],
+            allergens: formData.allergens,
+            stock_quantity: formData.stock_quantity,
             options: { 
                 video_url: formData.video_url || null,
-                badge: formData.badge || null,
-                allergens: Array.isArray(formData.allergens) ? formData.allergens : []
+                badge: formData.badge || null
             }
         }
         let error;
@@ -209,7 +213,7 @@ export default function AdminProductsPage() {
 
     const stats = useMemo(() => ({
         total: products.filter(p => !p.deleted_at).length,
-        outOfStock: products.filter(p => !p.deleted_at && !p.is_available).length,
+        outOfStock: products.filter(p => !p.deleted_at && ((p.stock_quantity ?? 0) <= 0 || !p.is_available)).length,
         featured: products.filter(p => !p.deleted_at && p.options?.badge).length
     }), [products])
 
@@ -332,9 +336,18 @@ export default function AdminProductsPage() {
                                                 <VideoIcon className="w-3 h-3" /> Motion
                                             </span>
                                         )}
+                                        {/* Stock Badge */}
+                                        <span className={cn(
+                                            "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1",
+                                            (p.stock_quantity ?? 0) > 10 ? "bg-green-500/20 text-green-500 border border-green-500/20" : 
+                                            (p.stock_quantity ?? 0) > 0 ? "bg-orange-500/20 text-orange-500 border border-orange-500/20" : 
+                                            "bg-red-500 text-white"
+                                        )}>
+                                            <Package className="w-3 h-3" /> {p.stock_quantity ?? 0}
+                                        </span>
                                     </div>
                                     <div className="absolute top-4 right-4 group-hover:opacity-100 opacity-0 transition-opacity">
-                                        <button onClick={() => toggleAvailability(p)} className={`p-2 rounded-xl border ${p.is_available ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-red-500/20 border-red-500 text-red-500'}`}>
+                                        <button onClick={() => toggleAvailability(p)} className={`p-2 rounded-xl border ${p.is_available && (p.stock_quantity ?? 0) > 0 ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-red-500/20 border-red-500 text-red-500'}`}>
                                             <Zap className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -343,13 +356,19 @@ export default function AdminProductsPage() {
                                 {/* Content */}
                                 <div className="p-6 space-y-4">
                                     <div className="flex justify-between items-start">
-                                        <div>
+                                        <div className="flex-1 min-w-0">
                                             <h3 className="font-black text-xl italic uppercase tracking-tighter truncate group-hover:text-primary transition-colors">{p.name}</h3>
                                             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em]">{categories.find(c => c.id === p.category_id)?.name}</p>
                                         </div>
-                                        <div className="text-2xl font-black italic tracking-tighter text-white">{p.price.toFixed(2)}€</div>
+                                        <div className="text-2xl font-black italic tracking-tighter text-white ml-2">{p.price.toFixed(2)}€</div>
                                     </div>
                                     
+                                    {p.allergens && (
+                                        <div className="flex items-center gap-1 text-[9px] font-black text-red-400 uppercase tracking-tighter bg-red-400/10 px-2 py-1 rounded-lg">
+                                            <AlertOctagon className="w-3 h-3" /> {p.allergens}
+                                        </div>
+                                    )}
+
                                     <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2.5rem] leading-relaxed">
                                         {p.description || 'Sin descripción culinaria.'}
                                     </p>
@@ -374,6 +393,7 @@ export default function AdminProductsPage() {
                                 <tr>
                                     <th className="p-6">Producto</th>
                                     <th className="p-6">Categoría</th>
+                                    <th className="p-6 text-center">Stock</th>
                                     <th className="p-6 text-center">Inversión</th>
                                     <th className="p-6 text-center">Status</th>
                                     <th className="p-6 text-right">Manejo</th>
@@ -389,17 +409,28 @@ export default function AdminProductsPage() {
                                                 </div>
                                                 <div>
                                                     <span className="font-black text-lg italic uppercase tracking-tighter truncate max-w-[200px] block">{p.name}</span>
-                                                    {p.options?.badge && <span className="text-[9px] text-yellow-500 font-black uppercase tracking-widest">{p.options.badge}</span>}
+                                                    <div className="flex gap-2 items-center">
+                                                        {p.options?.badge && <span className="text-[9px] text-yellow-500 font-black uppercase tracking-widest">{p.options.badge}</span>}
+                                                        {p.allergens && <span className="text-[9px] text-red-400 font-black uppercase tracking-widest flex items-center gap-1"><AlertOctagon className="w-2.5 h-2.5" /> Alérgenos</span>}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="p-6">
                                             <span className="text-xs font-bold text-muted-foreground uppercase">{categories.find(c => c.id === p.category_id)?.name}</span>
                                         </td>
+                                        <td className="p-6 text-center">
+                                            <div className={cn(
+                                                "font-black text-lg",
+                                                (p.stock_quantity ?? 0) <= 0 ? "text-red-500" : "text-white"
+                                            )}>
+                                                {p.stock_quantity ?? 0}
+                                            </div>
+                                        </td>
                                         <td className="p-6 text-center font-black italic text-lg">{p.price.toFixed(2)}€</td>
                                         <td className="p-6 text-center">
-                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black border uppercase tracking-widest ${p.is_available ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                                                {p.is_available ? 'ACTIVO' : 'AGOTADO'}
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black border uppercase tracking-widest ${p.is_available && (p.stock_quantity ?? 0) > 0 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                                                {p.is_available && (p.stock_quantity ?? 0) > 0 ? 'ACTIVO' : 'AGOTADO'}
                                             </span>
                                         </td>
                                         <td className="p-6 text-right">
@@ -517,13 +548,34 @@ export default function AdminProductsPage() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Composición (Ingredientes)</label>
-                                    <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs font-bold h-24 resize-none" placeholder="Separados por coma..." value={formData.ingredients?.join(', ') || ''} onChange={e => setFormData({...formData, ingredients: e.target.value.split(',').map(v => v.trim())})} />
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                                        <Package className="w-3 h-3 text-primary" /> Stock Disponible
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xl font-black italic text-white" 
+                                        placeholder="Ej: 50" 
+                                        value={formData.stock_quantity ?? 0} 
+                                        onChange={e => setFormData({...formData, stock_quantity: Number(e.target.value)})} 
+                                    />
+                                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">Si el stock llega a 0, la IA no lo venderá.</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-red-500/60 tracking-widest">Alérgenos Críticos</label>
-                                    <textarea className="w-full bg-black/40 border border-red-500/10 rounded-xl p-4 text-xs font-bold h-24 resize-none" placeholder="Gluten, lácteos..." value={formData.allergens?.join(', ') || ''} onChange={e => setFormData({...formData, allergens: e.target.value.split(',').map(v => v.trim())})} />
+                                    <label className="text-[10px] font-black uppercase text-red-500/60 tracking-widest flex items-center gap-2">
+                                        <AlertOctagon className="w-3 h-3" /> Alérgenos Críticos
+                                    </label>
+                                    <textarea 
+                                        className="w-full bg-black/40 border border-red-500/10 rounded-xl p-4 text-xs font-bold h-24 resize-none" 
+                                        placeholder="Gluten, lácteos, sésamo..." 
+                                        value={formData.allergens || ''} 
+                                        onChange={e => setFormData({...formData, allergens: e.target.value})} 
+                                    />
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Composición (Ingredientes)</label>
+                                <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs font-bold h-20 resize-none" placeholder="Separados por coma..." value={formData.ingredients?.join(', ') || ''} onChange={e => setFormData({...formData, ingredients: e.target.value.split(',').map(v => v.trim())})} />
                             </div>
 
                             <div className="space-y-2">

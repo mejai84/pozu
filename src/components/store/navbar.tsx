@@ -23,6 +23,7 @@ export function Navbar() {
     const [categories, setCategories] = useState<any[]>([])
 
     const [showCombos, setShowCombos] = useState(false)
+    const [showReservations, setShowReservations] = useState(true)
     const [isStoreOpen, setIsStoreOpen] = useState(true)
 
     useEffect(() => {
@@ -79,6 +80,7 @@ export function Navbar() {
             if (data?.value) {
                 const features = data.value as any
                 setShowCombos(!!features.enable_combos)
+                setShowReservations(features.reservations_enabled ?? true)
             }
 
             // 2. Fetch business core settings to check if open
@@ -153,7 +155,7 @@ export function Navbar() {
 
     const navLinks: { href: string; label: string; hasDropdown?: boolean }[] = [
         { href: "/menu", label: "La Carta" },
-        { href: "/reservar", label: "Reservas" },
+        ...(showReservations ? [{ href: "/reservar", label: "Reservas" }] : []),
         { href: "/#promos", label: "Chollos" },
         { href: "/#ubicacion", label: "Pozu Cerca" },
     ]

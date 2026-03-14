@@ -1,11 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Clock, MapPin, Bike, CheckCircle2, ChefHat, AlertCircle, X, User, Phone, Map, RefreshCcw, Plus, Trash2, Search, Filter, ArrowRight, DollarSign, ShoppingBag, Eye, CreditCard } from "lucide-react"
+import { Clock, MapPin, Bike, CheckCircle2, ChefHat, AlertCircle, X, User, Phone, Map, RefreshCcw, Plus, Trash2, Search, Filter, ArrowRight, DollarSign, ShoppingBag, Eye, CreditCard, Printer } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { motion, AnimatePresence } from "framer-motion"
+import { printOrderTicket } from "@/lib/utils/print-ticket"
 
 // Helper para tiempo transcurrido
 const getElapsed = (dateString: string) => {
@@ -66,10 +67,15 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([])
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
+    const [businessInfo, setBusinessInfo] = useState<any>({
+        business_name: "Pozu 2.0",
+        address: "Pozu Restaurant",
+        phone: "600 000 000"
+    })
 
     // Create Modal State
     const [isCreateOpen, setIsCreateOpen] = useState(false)
-    const [newOrderItems, setNewOrderItems] = useState<(Product & { quantity: number })[]>([])
+    const [newOrderItems, setNewOrderItems] = useState<(Product & { quantity: number; notes?: string })[]>([])
     const [customerName, setCustomerName] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
     const [orderSearch, setOrderSearch] = useState("")
@@ -93,13 +99,19 @@ export default function AdminOrdersPage() {
     }
 
     const fetchProducts = async () => {
-        const { data } = await supabase.from('products').select('*').is('deleted_at', null)
+        const { data } = await supabase.from('products').select('*')
         setProducts(data || [])
+    }
+
+    const fetchSettings = async () => {
+        const { data } = await supabase.from('settings').select('value').eq('key', 'business_info').single()
+        if (data?.value) setBusinessInfo(data.value)
     }
 
     useEffect(() => {
         fetchOrders()
         fetchProducts()
+        fetchSettings()
         const interval = setInterval(() => {
             setOrders(prev => [...prev])
         }, 30000)
@@ -125,15 +137,31 @@ export default function AdminOrdersPage() {
                 order_id: order.id,
                 product_id: item.id,
                 quantity: item.quantity,
-                unit_price: item.price
+                unit_price: item.price,
+                customizations: { notes: item.notes || "" }
             }))
             const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert)
             if (itemsError) throw itemsError
+            
+            // Auto print for direct orders
+            try {
+                await printOrderTicket({
+                    ...order,
+                    order_items: newOrderItems.map(i => ({ ...i, products: { name: i.name }, unit_price: i.price, customizations: { notes: i.notes } }))
+                }, businessInfo)
+            } catch (printErr) {
+                console.warn("Print error:", printErr)
+            }
+
+            alert("✓ Comanda enviada con éxito")
             setIsCreateOpen(false)
             setNewOrderItems([])
             setCustomerName("")
             fetchOrders()
-        } catch (e: any) { alert("Error: " + e.message) }
+        } catch (e: any) { 
+            console.error("Order creation error:", e)
+            alert("Error al crear comanda: " + (e.message || "Error desconocido")) 
+        }
     }
 
     const filteredOrders = useMemo(() => {
@@ -235,7 +263,7 @@ export default function AdminOrdersPage() {
                                             <button key={p.id} onClick={() => {
                                                 const existing = newOrderItems.find(i => i.id === p.id);
                                                 if (existing) setNewOrderItems(prev => prev.map(i => i.id === p.id ? {...i, quantity: i.quantity + 1} : i))
-                                                else setNewOrderItems(prev => [...prev, {...p, quantity: 1}])
+                                                else setNewOrderItems(prev => [...prev, {...p, quantity: 1, notes: ""}])
                                             }} className="p-4 bg-white/5 border border-white/5 rounded-2xl text-left hover:border-primary/40 hover:bg-primary/5 transition-all group">
                                                 <div className="font-black italic uppercase text-xs group-hover:text-primary mb-1 truncate">{p.name}</div>
                                                 <div className="text-lg font-black text-white">{p.price.toFixed(2)}€</div>
@@ -247,10 +275,24 @@ export default function AdminOrdersPage() {
                                     <h3 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-6">Resumen Comanda</h3>
                                     <input className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm font-bold mb-6 focus:border-primary/50 outline-none" placeholder="Nombre cliente / Mesa..." value={customerName} onChange={e => setCustomerName(e.target.value)} />
                                     <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                                        {newOrderItems.map(item => (
-                                            <div key={item.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
-                                                <div className="text-[10px] font-bold uppercase"><span className="text-primary mr-2">{item.quantity}x</span> {item.name}</div>
-                                                <button onClick={() => setNewOrderItems(prev => prev.filter(i => i.id !== item.id))} className="text-red-500 opacity-40 hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
+                                        {newOrderItems.map((item, idx) => (
+                                            <div key={`${item.id}-${idx}`} className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
+                                                <div className="flex justify-between items-center">
+                                                    <div className="text-[11px] font-black uppercase text-primary italic tracking-tight"><span className="bg-primary/20 px-2 py-0.5 rounded-md mr-2">{item.quantity}x</span> {item.name}</div>
+                                                    <button onClick={() => setNewOrderItems(prev => prev.filter((_, i) => i !== idx))} className="text-red-500 opacity-40 hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
+                                                </div>
+                                                <div className="relative">
+                                                    <input 
+                                                        className="w-full bg-black/40 border border-white/5 rounded-xl p-2 text-[10px] font-bold outline-none focus:border-primary/30 transition-all italic text-muted-foreground"
+                                                        placeholder="Toppings / Observaciones..."
+                                                        value={item.notes || ""}
+                                                        onChange={(e) => {
+                                                            const newItems = [...newOrderItems]
+                                                            newItems[idx].notes = e.target.value
+                                                            setNewOrderItems(newItems)
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -325,6 +367,9 @@ export default function AdminOrdersPage() {
                             </div>
 
                             <div className="p-8 bg-black/40 border-t border-white/5 flex gap-4">
+                                <Button variant="ghost" onClick={() => printOrderTicket(selectedOrder, businessInfo)} className="h-16 px-6 rounded-2xl border border-white/10 hover:bg-white/5 gap-2">
+                                    <Printer className="w-5 h-5" /> Ticket
+                                </Button>
                                 <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="flex-1 h-16 rounded-2xl font-black uppercase italic text-xs">Cerrar</Button>
                                 {['pending', 'preparing', 'ready', 'out_for_delivery'].includes(selectedOrder.status) && (
                                     <Button 

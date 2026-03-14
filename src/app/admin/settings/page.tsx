@@ -2,7 +2,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Instagram, Save, Upload, Store, Clock, MapPin, Phone, Mail, DollarSign, Truck, CheckCircle } from "lucide-react"
+import { Instagram, Save, Upload, Store, Clock, MapPin, Phone, Mail, DollarSign, Truck, CheckCircle, Printer, Plus, Trash2, Wifi, HardDrive, Smartphone } from "lucide-react"
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase/client"
 
@@ -15,6 +15,17 @@ interface Settings {
     min_order_amount: number
     is_open: boolean
     enable_combos: boolean
+    reservations_enabled: boolean
+    printers: PrinterConfig[]
+}
+
+interface PrinterConfig {
+    id: string
+    name: string
+    type: "cashier" | "kitchen" | "bar" | "other"
+    connection: "usb" | "network" | "bluetooth"
+    paper_size: "58mm" | "80mm"
+    target_ip?: string
 }
 
 const defaultSettings: Settings = {
@@ -25,7 +36,9 @@ const defaultSettings: Settings = {
     delivery_fee: 2.50,
     min_order_amount: 10.00,
     is_open: true,
-    enable_combos: false
+    enable_combos: false,
+    reservations_enabled: true,
+    printers: []
 }
 
 export default function AdminSettingsPage() {
@@ -111,7 +124,22 @@ export default function AdminSettingsPage() {
                 const features = featuresData.value as any
                 setSettings(prev => ({
                     ...prev,
-                    enable_combos: features.enable_combos ?? prev.enable_combos
+                    enable_combos: features.enable_combos ?? prev.enable_combos,
+                    reservations_enabled: features.reservations_enabled ?? prev.reservations_enabled
+                }))
+            }
+
+            // Load printers config
+            const { data: printersData } = await supabase
+                .from('settings')
+                .select('value')
+                .eq('key', 'printers_config')
+                .single()
+
+            if (printersData?.value) {
+                setSettings(prev => ({
+                    ...prev,
+                    printers: printersData.value as PrinterConfig[]
                 }))
             }
 
@@ -202,7 +230,8 @@ export default function AdminSettingsPage() {
         setLoading(true)
         try {
             const features = {
-                enable_combos: settings.enable_combos
+                enable_combos: settings.enable_combos,
+                reservations_enabled: settings.reservations_enabled
             }
 
             // Check if feature_flags exists
@@ -236,6 +265,54 @@ export default function AdminSettingsPage() {
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleSavePrinters = async () => {
+        setLoading(true)
+        try {
+            const { error } = await supabase
+                .from('settings')
+                .upsert({ 
+                    key: 'printers_config', 
+                    value: settings.printers 
+                }, { onConflict: 'key' })
+
+            if (error) throw error
+            showMessage("✓ Configuración de impresoras guardada")
+        } catch (error) {
+            console.error('Error saving printers:', error)
+            showMessage("✗ Error al guardar impresoras")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const addPrinterNode = () => {
+        const newNode: PrinterConfig = {
+            id: Date.now().toString(),
+            name: "NUEVA IMPRESORA",
+            type: "kitchen",
+            connection: "network",
+            paper_size: "80mm"
+        }
+        setSettings({
+            ...settings,
+            printers: [...settings.printers, newNode]
+        })
+    }
+
+    const updatePrinterNode = (id: string, updates: Partial<PrinterConfig>) => {
+        setSettings({
+            ...settings,
+            printers: settings.printers.map(p => p.id === id ? { ...p, ...updates } : p)
+        })
+    }
+
+    const removePrinterNode = (id: string) => {
+        setSettings({
+            ...settings,
+            printers: settings.printers.filter(p => p.id !== id)
+        })
     }
 
     const toggleBusinessDay = (day: string) => {
@@ -299,6 +376,13 @@ export default function AdminSettingsPage() {
                 >
                     <CheckCircle className="w-4 h-4 inline mr-2" />
                     Funcionalidades
+                </button>
+                <button
+                    onClick={() => setActiveTab("printers")}
+                    className={`px-6 py-3 font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'printers' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                >
+                    <Printer className="w-4 h-4 inline mr-2" />
+                    Impresoras
                 </button>
                 <button
                     onClick={() => setActiveTab("instagram")}
@@ -574,6 +658,130 @@ export default function AdminSettingsPage() {
                     </div>
                 )}
 
+                {activeTab === 'printers' && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 text-primary">
+                                <Printer className="w-6 h-6" />
+                                <h3 className="text-xl font-bold italic uppercase tracking-tighter">Hardware Bridge</h3>
+                            </div>
+                            <Button 
+                                onClick={addPrinterNode}
+                                className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-black gap-2"
+                                size="sm"
+                            >
+                                <Plus className="w-4 h-4" /> Vincular Terminal
+                            </Button>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {settings.printers.map((printer) => (
+                                <div key={printer.id} className="bg-card border border-white/10 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none -mr-8 -mt-8 group-hover:scale-110 transition-transform duration-700">
+                                        <Printer className="w-32 h-32" />
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-start relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                                                <Printer className="w-6 h-6" />
+                                            </div>
+                                            <input 
+                                                value={printer.name}
+                                                onChange={(e) => updatePrinterNode(printer.id, { name: e.target.value.toUpperCase() })}
+                                                className="bg-transparent border-none p-0 text-xl font-black italic uppercase tracking-tighter w-full focus:ring-0 outline-none"
+                                            />
+                                        </div>
+                                        <button 
+                                            onClick={() => removePrinterNode(printer.id)}
+                                            className="p-2 text-red-500 opacity-40 hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 relative z-10">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Zona</label>
+                                            <select 
+                                                value={printer.type}
+                                                onChange={(e) => updatePrinterNode(printer.id, { type: e.target.value as any })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs font-bold uppercase outline-none focus:border-primary/50"
+                                            >
+                                                <option value="cashier">Facturación</option>
+                                                <option value="kitchen">Cocina</option>
+                                                <option value="bar">Bar</option>
+                                                <option value="other">Otros</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Conexión</label>
+                                            <select 
+                                                value={printer.connection}
+                                                onChange={(e) => updatePrinterNode(printer.id, { connection: e.target.value as any })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs font-bold uppercase outline-none focus:border-primary/50"
+                                            >
+                                                <option value="usb">USB Local</option>
+                                                <option value="network">LAN / Red</option>
+                                                <option value="bluetooth">Bluetooth</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Papel</label>
+                                            <select 
+                                                value={printer.paper_size}
+                                                onChange={(e) => updatePrinterNode(printer.id, { paper_size: e.target.value as any })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs font-bold uppercase outline-none focus:border-primary/50"
+                                            >
+                                                <option value="80mm">80mm Pro</option>
+                                                <option value="58mm">58mm Lite</option>
+                                            </select>
+                                        </div>
+                                        {printer.connection === 'network' && (
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Dirección IP</label>
+                                                <div className="relative">
+                                                    <Wifi className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground opacity-40" />
+                                                    <input 
+                                                        value={printer.target_ip || ""}
+                                                        placeholder="192.168.1..."
+                                                        onChange={(e) => updatePrinterNode(printer.id, { target_ip: e.target.value })}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pl-8 text-xs font-mono outline-none focus:border-primary/50"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+
+                            {settings.printers.length === 0 && (
+                                <div className="md:col-span-2 py-20 border-2 border-dashed border-white/5 rounded-[3rem] text-center space-y-4">
+                                    <Printer className="w-12 h-12 mx-auto text-muted-foreground opacity-20" />
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-muted-foreground">No hay impresoras configuradas</p>
+                                        <p className="text-xs text-muted-foreground/60">Vincule una terminal para habilitar la impresión de tickets</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="pt-6">
+                            <Button
+                                onClick={handleSavePrinters}
+                                disabled={loading}
+                                className="h-16 px-10 bg-primary text-black font-black uppercase italic rounded-2xl shadow-xl hover:bg-primary/80 transition-all gap-3"
+                            >
+                                {loading ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : (
+                                    <>
+                                        <Save className="w-5 h-5" /> GUARDAR ARQUITECTURA
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
                 {activeTab === 'instagram' && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl border border-pink-500/20">
@@ -636,6 +844,19 @@ export default function AdminSettingsPage() {
                                     className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.enable_combos ? 'bg-green-500' : 'bg-gray-600'}`}
                                 >
                                     <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.enable_combos ? 'translate-x-7' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                                <div>
+                                    <div className="font-bold">Reservas de Mesa</div>
+                                    <div className="text-sm text-muted-foreground">Habilitar el sistema de reservas y mostrarlo en el sitio web</div>
+                                </div>
+                                <button
+                                    onClick={() => setSettings({ ...settings, reservations_enabled: !settings.reservations_enabled })}
+                                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.reservations_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                                >
+                                    <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.reservations_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
                                 </button>
                             </div>
                         </div>

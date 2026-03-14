@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin", roles: ['admin', 'manager', 'cashier'] },
+    { icon: Zap, label: "Monitor Live", href: "/admin/realtime-monitor", roles: ['admin', 'manager', 'cashier', 'waiter', 'delivery'] },
     { icon: Calendar, label: "Reservas", href: "/admin/reservations", roles: ['admin', 'manager', 'cashier', 'waiter'] },
     { icon: ShoppingBag, label: "Pedidos", href: "/admin/orders", roles: ['admin', 'manager', 'cashier', 'waiter', 'delivery'] },
     { icon: ChefHat, label: "Cocina (KDS)", href: "/admin/kitchen", roles: ['admin', 'manager', 'kitchen'] },
@@ -19,6 +20,7 @@ const sidebarItems = [
     { icon: Settings, label: "Configuración", href: "/admin/settings", roles: ['admin'] },
 ]
 
+import { Zap } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"

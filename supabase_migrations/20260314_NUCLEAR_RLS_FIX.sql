@@ -1,9 +1,5 @@
-
--- ================================================================
--- ☢️ SANEAMIENTO NUCLEAR DE RLS - POZU 2.0
--- ================================================================
--- Este script soluciona definitivamente el error "{}" (Recursión Infinita)
--- en Clientes, Reportes, Pedidos y Reservas.
+-- SANEAMIENTO NUCLEAR DE RLS - POZU 2.0
+-- Soluciona error de recursion y bloqueos en pedidos.
 
 -- 1. LIMPIEZA TOTAL ATÓMICA
 DROP FUNCTION IF EXISTS public.get_mi_rol() CASCADE;
@@ -59,8 +55,8 @@ CREATE POLICY "pozu_profiles_self" ON public.profiles FOR SELECT USING (id = aut
 CREATE POLICY "pozu_orders_team" ON public.orders FOR ALL 
 USING (public.get_pozu_role() IN ('admin', 'manager', 'staff', 'kitchen', 'cashier', 'delivery', 'waiter'));
 
--- ITEMS DE PEDIDOS: Todo el equipo ve (Vital para Reportes)
-CREATE POLICY "pozu_items_team" ON public.order_items FOR SELECT 
+-- ITEMS DE PEDIDOS: Todo el equipo gestiona (Vital para Terminal y Reportes)
+CREATE POLICY "pozu_items_team" ON public.order_items FOR ALL 
 USING (public.get_pozu_role() IN ('admin', 'manager', 'staff', 'kitchen', 'cashier', 'delivery', 'waiter'));
 
 -- RESERVAS: Gestión para equipo de sala
