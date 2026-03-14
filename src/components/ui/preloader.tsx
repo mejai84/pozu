@@ -71,17 +71,33 @@ export function Preloader() {
                                 className="object-contain brightness-0 invert drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-pulse"
                             />
                         </motion.div>
-                        <div className="text-center space-y-2 mt-4">
+                        <div className="text-center space-y-4 mt-8 px-6">
                             <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 1.5 }}
-                                className="flex flex-col items-center gap-4"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5, duration: 0.5 }}
+                                className="space-y-4"
                             >
-                                <div className="h-[2px] w-24 bg-gradient-to-r from-transparent via-primary to-transparent" />
-                                <p className="text-xs md:text-sm font-bold tracking-[0.4em] text-muted-foreground uppercase animate-pulse">
-                                    Calentando la plancha...
-                                </p>
+                                <motion.h2 
+                                    animate={{ 
+                                        opacity: [0, 1, 1, 0],
+                                    }}
+                                    transition={{ 
+                                        duration: 3,
+                                        times: [0, 0.1, 0.9, 1],
+                                        repeat: Infinity
+                                    }}
+                                    className="text-lg md:text-2xl font-black italic uppercase tracking-tighter text-white"
+                                >
+                                    ¿Hambre de algo <span className="text-primary">legendario</span>?
+                                </motion.h2>
+
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="h-[2px] w-32 bg-gradient-to-r from-transparent via-primary to-transparent" />
+                                    <p className="text-[10px] md:text-xs font-black tracking-[0.3em] text-primary uppercase">
+                                        Preparando tu experiencia Pozu 2.0
+                                    </p>
+                                </div>
                             </motion.div>
                         </div>
                     </div>

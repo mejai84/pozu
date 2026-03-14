@@ -1,11 +1,11 @@
-
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Clock, Check, AlertTriangle, ArrowLeft, RefreshCw, Loader2, Flame, Bell, Eye, X, ZoomIn } from "lucide-react"
+import { Clock, Check, AlertTriangle, ArrowLeft, RefreshCw, Loader2, Flame, Bell, Eye, X, ZoomIn, ChefHat, Timer, Users, User, Phone, Zap } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
+import { motion, AnimatePresence } from "framer-motion"
 
 type OrderItem = {
     quantity: number
@@ -26,7 +26,8 @@ type Order = {
 export default function KitchenPage() {
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null) // Para el popup
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+    const [lastFetch, setLastFetch] = useState<Date>(new Date())
 
     const fetchOrders = async () => {
         setLoading(true)
@@ -45,12 +46,10 @@ export default function KitchenPage() {
             .in('status', ['pending', 'preparing'])
             .order('created_at', { ascending: true })
 
-        if (error) {
-            console.error(error)
-        } else {
-            setOrders(data as any || [])
-        }
+        if (error) console.error(error)
+        else setOrders(data as any || [])
         setLoading(false)
+        setLastFetch(new Date())
     }
 
     useEffect(() => {
@@ -60,242 +59,269 @@ export default function KitchenPage() {
     }, [])
 
     const updateStatus = async (id: string, newStatus: string) => {
-        setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o).filter(o => newStatus !== 'ready' || o.id !== id))
-
-        await supabase.from('orders').update({ status: newStatus }).eq('id', id)
-
-        if (selectedOrder && selectedOrder.id === id) {
-            setSelectedOrder(null) // Cerrar modal si se completa desde ahí
+        // Optimistic UI
+        if (newStatus === 'ready') {
+            setOrders(prev => prev.filter(o => o.id !== id))
+        } else {
+            setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o))
         }
 
-        if (newStatus !== 'ready') fetchOrders()
+        const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', id)
+        if (error) {
+            console.error(error)
+            fetchOrders() // Rollback
+        }
+        
+        if (selectedOrder?.id === id) {
+            if (newStatus === 'ready') setSelectedOrder(null)
+            else setSelectedOrder({...selectedOrder, status: newStatus})
+        }
     }
 
-    const getElapsed = (dateString: string) => {
+    const getElapsedMinutes = (dateString: string) => {
         const start = new Date(dateString).getTime()
         const now = new Date().getTime()
-        const diff = Math.floor((now - start) / 60000)
-        return `${diff} min`
+        return Math.floor((now - start) / 60000)
     }
 
-    const getStatusInfo = (order: Order) => {
-        const minutes = parseInt(getElapsed(order.created_at))
-
-        if (order.status === 'preparing') {
-            // Estado EN PLANCHA: Muy visible, fondo amarillo oscuro
-            return {
-                color: 'border-yellow-500',
-                bgHeader: 'bg-yellow-600 text-black',
-                bgBody: 'bg-yellow-950/30',
-                label: 'EN PLANCHA 🔥',
-                icon: Flame
-            }
-        }
-
-        if (minutes > 20) return { color: 'border-red-600', bgHeader: 'bg-red-600', bgBody: 'bg-gray-900', label: 'DEMORADO ⚠️', icon: AlertTriangle }
-
-        // Estado NORMAL EN COLA
-        return { color: 'border-slate-600', bgHeader: 'bg-slate-700', bgBody: 'bg-gray-900', label: 'EN COLA', icon: Bell }
-    }
-
-    const preparing = orders.filter(o => o.status === 'preparing')
-    const pending = orders.filter(o => o.status === 'pending')
+    const { preparing, pending } = useMemo(() => ({
+        preparing: orders.filter(o => o.status === 'preparing'),
+        pending: orders.filter(o => o.status === 'pending')
+    }), [orders])
 
     return (
-        <div className="min-h-screen bg-black text-white p-4 md:p-6 font-sans">
-            {/* Header KDS */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="min-h-screen bg-black text-white p-4 lg:p-10 font-sans selection:bg-orange-500 selection:text-white">
+            {/* HUD KDS Pro */}
+            <header className="flex flex-col lg:flex-row justify-between items-center mb-12 gap-8 bg-[#111] border border-white/5 p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 blur-[100px] -z-10 rounded-full" />
+                
+                <div className="flex items-center gap-6 w-full lg:w-auto">
                     <Link href="/admin/orders">
-                        <Button variant="outline" size="icon" className="border-white/20 hover:bg-white/10 text-white">
-                            <ArrowLeft className="w-5 h-5" />
+                        <Button variant="ghost" className="h-16 w-16 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5">
+                            <ArrowLeft className="w-6 h-6" />
                         </Button>
                     </Link>
-                    <h1 className="text-3xl font-bold font-mono tracking-tight flex items-center gap-2">
-                        COCINA <span className="text-primary">KDS</span>
-                    </h1>
-                    <Button variant="ghost" size="icon" onClick={fetchOrders} className={`text-white hover:bg-white/10 ${loading ? "animate-spin" : ""}`}>
-                        <RefreshCw className="w-5 h-5" />
-                    </Button>
+                    <div className="space-y-1">
+                        <h1 className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+                            KDS <span className="text-orange-500">POZU</span>
+                        </h1>
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.3em] opacity-40">Cocina en tiempo real v2.0</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4 w-full md:w-auto justify-end">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 text-yellow-500 rounded-lg border border-yellow-500/30 animate-pulse">
-                        <Flame className="w-5 h-5" />
-                        <span className="font-bold text-xl">{preparing.length}</span>
+
+                <div className="flex items-center gap-6 w-full lg:w-auto justify-end">
+                    <div className="flex gap-4">
+                        <div className="bg-orange-500/10 border border-orange-500/20 px-6 py-4 rounded-3xl text-center min-w-[120px]">
+                            <p className="text-[9px] font-black uppercase text-orange-500/60 mb-1">En Plancha</p>
+                            <p className="text-3xl font-black italic">{preparing.length}</p>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 px-6 py-4 rounded-3xl text-center min-w-[120px]">
+                            <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 mb-1">En Cola</p>
+                            <p className="text-3xl font-black italic">{pending.length}</p>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 text-slate-300 rounded-lg border border-slate-600">
-                        <Bell className="w-5 h-5" />
-                        <span className="font-bold text-xl">{pending.length}</span>
+
+                    <div className="flex flex-col items-center">
+                        <Button variant="ghost" size="icon" onClick={fetchOrders} className={`h-12 w-12 rounded-xl hover:bg-white/10 ${loading ? "animate-spin text-orange-500" : "text-muted-foreground"}`}>
+                            <RefreshCw className="w-5 h-5" />
+                        </Button>
+                        <span className="text-[8px] font-bold opacity-30 mt-1 uppercase">{lastFetch.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
                     </div>
+                </div>
+            </header>
+
+            {/* Matrix Grid */}
+            <AnimatePresence mode="popLayout">
+                {orders.length === 0 && !loading ? (
+                    <motion.div key="empty" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-[60vh] flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[4rem] bg-[#0A0A0A]">
+                        <ChefHat className="w-32 h-32 text-white/5 mb-8" />
+                        <h2 className="text-4xl font-black italic uppercase tracking-tighter opacity-10">Cocina Despejada</h2>
+                        <p className="text-muted-foreground mt-2 font-mono uppercase tracking-widest text-xs opacity-40">No hay comandas pendientes de fuego</p>
+                    </motion.div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                        {orders.map((order, idx) => (
+                            <KDSCard 
+                                key={order.id} 
+                                order={order} 
+                                index={idx}
+                                onMarchar={() => updateStatus(order.id, 'preparing')}
+                                onListo={() => updateStatus(order.id, 'ready')}
+                                onExpand={() => setSelectedOrder(order)}
+                                minutes={getElapsedMinutes(order.created_at)}
+                            />
+                        ))}
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Industrial Detail Modal */}
+            <AnimatePresence>
+                {selectedOrder && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/98 backdrop-blur-3xl">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 50 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0, y: 50 }} 
+                            className="bg-[#0D0D0D] border border-white/10 rounded-[3rem] w-full max-w-5xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]"
+                        >
+                            {/* Modal Header con Brillo dinámico */}
+                            <div className={`p-10 flex justify-between items-center relative overflow-hidden ${selectedOrder.status === 'preparing' ? 'bg-orange-500 text-black' : 'bg-[#151515] text-white border-b border-white/5'}`}>
+                                {selectedOrder.status === 'preparing' && <div className="absolute top-0 left-0 w-full h-full bg-white/10 animate-pulse" />}
+                                <div className="relative z-10">
+                                    <h2 className="text-6xl font-black italic tracking-tighter">ID #{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
+                                    <div className="flex items-center gap-6 mt-4 text-xl font-black italic uppercase tracking-widest opacity-80">
+                                        <div className="flex items-center gap-2"><Timer className="w-6 h-6" /> {getElapsedMinutes(selectedOrder.created_at)} MIN</div>
+                                        <div>•</div>
+                                        <div className="flex items-center gap-2">{selectedOrder.status === 'preparing' ? '🔥 ACTIVADO' : '🧊 EN COLA'}</div>
+                                    </div>
+                                </div>
+                                <button onClick={() => setSelectedOrder(null)} className="h-20 w-20 rounded-3xl bg-black/10 hover:bg-black/20 flex items-center justify-center transition-all relative z-10 border border-black/5">
+                                    <X className="w-10 h-10" />
+                                </button>
+                            </div>
+
+                            {/* Huge Items List */}
+                            <div className="p-12 flex-1 overflow-y-auto no-scrollbar space-y-12">
+                                <div className="space-y-6">
+                                    <label className="text-xs font-black uppercase tracking-[0.5em] text-muted-foreground opacity-30 block text-center">Detalle Comanda</label>
+                                    <div className="grid gap-4">
+                                        {selectedOrder.order_items.map((item, i) => (
+                                            <div key={i} className="flex items-center gap-8 p-8 bg-white/5 rounded-[2rem] border border-white/5">
+                                                <span className={`text-6xl font-black px-8 py-4 rounded-3xl min-w-[6rem] text-center shadow-2xl ${selectedOrder.status === 'preparing' ? 'bg-orange-400 text-black' : 'bg-white/10 text-white'}`}>
+                                                    {item.quantity}
+                                                </span>
+                                                <div className="space-y-2">
+                                                    <p className="text-4xl lg:text-5xl font-black italic uppercase tracking-tighter">
+                                                        {item.products?.name || "Especialidad Pozu"}
+                                                    </p>
+                                                    {item.customizations && Object.keys(item.customizations).length > 0 && (
+                                                        <div className="flex flex-wrap gap-2 pt-2">
+                                                            {Object.entries(item.customizations).map(([k, v]) => v ? (
+                                                                <span key={k} className="px-3 py-1 bg-red-500/20 text-red-500 text-xs font-black uppercase italic rounded-md border border-red-500/20">SIN {k}</span>
+                                                            ) : null)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+                                    <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5 space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Identidad del Cliente</label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-12 w-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"><User className="w-6 h-6" /></div>
+                                            <p className="text-2xl font-black italic uppercase tracking-tight">{selectedOrder.guest_info?.name || "Cliente P"}</p>
+                                        </div>
+                                    </div>
+                                    <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5 space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Canal de Contacto</label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Phone className="w-6 h-6" /></div>
+                                            <p className="text-2xl font-black italic tracking-tight font-mono">{selectedOrder.guest_info?.phone || "N/A"}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Heavy Action Bar */}
+                            <div className="p-10 border-t border-white/5 flex gap-6 bg-black">
+                                <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="h-24 flex-1 text-2xl font-black uppercase italic tracking-widest hover:bg-white/5 rounded-[1.5rem] border border-white/5">VOLVER</Button>
+                                {selectedOrder.status === 'pending' ? (
+                                    <Button onClick={() => updateStatus(selectedOrder.id, 'preparing')} className="h-24 flex-[2] text-4xl font-black italic uppercase tracking-tighter bg-orange-500 text-black hover:bg-orange-600 rounded-[1.5rem] shadow-2xl shadow-orange-500/20 gap-4">
+                                        MARCHAR COMANDA <Zap className="w-8 h-8" />
+                                    </Button>
+                                ) : (
+                                    <Button onClick={() => updateStatus(selectedOrder.id, 'ready')} className="h-24 flex-[2] text-4xl font-black italic uppercase tracking-tighter bg-green-600 text-black hover:bg-green-500 rounded-[1.5rem] shadow-2xl shadow-green-500/20 gap-4">
+                                        DESPACHAR YA <Check className="w-8 h-8" />
+                                    </Button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <style jsx global>{`
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                @keyframes pulse-intense {
+                    0% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.8; transform: scale(0.98); }
+                    100% { opacity: 1; transform: scale(1); }
+                }
+                .pulse-kitchen { animation: pulse-intense 2s infinite ease-in-out; }
+            `}</style>
+        </div>
+    )
+}
+
+function KDSCard({ order, onMarchar, onListo, onExpand, minutes, index }: any) {
+    const isPreparing = order.status === 'preparing'
+    const isUrgent = minutes > 15 && !isPreparing
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+            className={`group flex flex-col rounded-[2.5rem] overflow-hidden border-2 transition-all duration-500 bg-[#0A0A0A] ${isPreparing ? 'border-orange-500 shadow-[0_0_50px_-15px_rgba(249,115,22,0.4)] scale-100 z-10' : isUrgent ? 'border-red-600 shadow-[0_0_40px_-15px_rgba(220,38,38,0.3)] animate-pulse' : 'border-white/10 grayscale-[0.5] hover:grayscale-0 hover:border-white/30'}`}
+        >
+            {/* Header Ticket */}
+            <div className={`p-5 flex justify-between items-start transition-colors duration-500 ${isPreparing ? 'bg-orange-500 text-black' : isUrgent ? 'bg-red-600 text-white' : 'bg-white/5 text-white'}`}>
+                <div>
+                    <h3 className="text-2xl font-black italic tracking-tighter">#{order.id.split('-')[0].toUpperCase()}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${isPreparing ? 'bg-black/10' : 'bg-white/10'}`}>
+                            {isPreparing ? 'EN PLANCHA 🔥' : isUrgent ? 'DEMORADO ⚠️' : 'EN COLA'}
+                        </span>
+                    </div>
+                </div>
+                <div className="text-right">
+                    <div className={`text-2xl font-black italic tracking-tighter font-mono ${isPreparing ? 'text-black/80' : 'text-primary'}`}>{minutes}m</div>
                 </div>
             </div>
 
-            {/* Grid */}
-            {loading && orders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[50vh] text-muted-foreground gap-4">
-                    <Loader2 className="w-12 h-12 animate-spin" />
-                    <p>Cargando comandas...</p>
-                </div>
-            ) : orders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[60vh] text-gray-500 gap-4 border-2 border-dashed border-gray-800 rounded-3xl bg-gray-900/20">
-                    <Check className="w-24 h-24 opacity-20" />
-                    <p className="text-3xl font-mono font-bold">TODO LIMPIO</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    {[...preparing, ...pending].map((order) => {
-                        const style = getStatusInfo(order)
-                        const StatusIcon = style.icon
-
-                        return (
-                            <div
-                                key={order.id}
-                                className={`flex flex-col rounded-xl overflow-hidden border-2 shadow-lg transition-all duration-300 h-full ${style.color} ${style.bgBody} ${order.status === 'preparing' ? 'scale-[1.02] ring-4 ring-yellow-500/20' : 'opacity-90'}`}
-                            >
-                                {/* Ticket Header */}
-                                <div className={`p-3 flex justify-between items-start ${style.bgHeader} text-white`}>
-                                    <div>
-                                        <div className="flex items-center gap-2 font-bold opacity-90 text-xs mb-1">
-                                            <StatusIcon className="w-4 h-4" /> {style.label}
-                                        </div>
-                                        <span className="text-2xl font-black tracking-widest">#{order.id.split('-')[0].toUpperCase()}</span>
-                                    </div>
-                                    <div className="flex flex-col items-end">
-                                        <div className="font-mono font-bold text-xl bg-black/30 px-2 py-1 rounded">
-                                            {getElapsed(order.created_at)}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Ticket Body (Preview - max 4 items) */}
-                                <div className="p-4 flex-1 space-y-3">
-                                    {order.order_items.map((item, i) => (
-                                        <div key={i} className="flex items-start gap-3 pb-2 border-b border-white/5 last:border-0">
-                                            <span className={`font-bold text-lg px-2 rounded-md font-mono min-w-[2rem] text-center ${order.status === 'preparing' ? 'bg-yellow-500 text-black' : 'bg-slate-700 text-white'}`}>
-                                                {item.quantity}
-                                            </span>
-                                            <span className="font-bold text-lg leading-tight break-words">
-                                                {item.products?.name || "Producto"}
-                                            </span>
-                                        </div>
-                                    ))}
-                                    {/* Si hay muchos items, mostrar indicador */}
-                                    {/* (Omitido por ahora para mostrar todo, el scroll del card manejará overflow si es necesario) */}
-                                </div>
-
-                                {/* Actions */}
-                                <div className="p-2 gap-2 grid grid-cols-[auto_1fr] bg-black/20 border-t border-white/5 mt-auto">
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => setSelectedOrder(order)}
-                                        className="h-14 w-14 rounded-lg bg-gray-800 hover:bg-gray-700 border border-white/10"
-                                    >
-                                        <ZoomIn className="w-6 h-6" />
-                                    </Button>
-
-                                    {order.status === 'pending' ? (
-                                        <Button
-                                            onClick={() => updateStatus(order.id, 'preparing')}
-                                            className="h-14 text-lg font-bold bg-yellow-600 hover:bg-yellow-500 text-white w-full"
-                                        >
-                                            MARCHAR 🔥
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            onClick={() => updateStatus(order.id, 'ready')}
-                                            className="h-14 text-lg font-bold bg-green-600 hover:bg-green-500 text-white w-full"
-                                        >
-                                            LISTO ✅
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
-
-            {/* BIG DETAIL MODAL */}
-            {selectedOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in duration-200">
-                    <div className="bg-gray-900 w-full max-w-4xl rounded-3xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh]">
-                        {/* Header Modal */}
-                        <div className={`p-6 flex justify-between items-center ${selectedOrder.status === 'preparing' ? 'bg-yellow-600 text-black' : 'bg-slate-800 text-white'} rounded-t-3xl`}>
-                            <div>
-                                <h2 className="text-4xl font-black tracking-widest">#{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
-                                <div className="flex items-center gap-3 mt-2 text-lg font-bold opacity-90">
-                                    <Clock className="w-5 h-5" /> {getElapsed(selectedOrder.created_at)}
-                                    <span>•</span>
-                                    {selectedOrder.status === 'preparing' ? 'EN PLANCHA 🔥' : 'EN COLA'}
-                                </div>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-black/20 hover:bg-black/40" onClick={() => setSelectedOrder(null)}>
-                                <X className="w-8 h-8" />
-                            </Button>
-                        </div>
-
-                        {/* Body Modal - Huge Text for Kitchen */}
-                        <div className="flex-1 overflow-y-auto p-8 bg-black/20">
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold uppercase opacity-50 border-b border-white/10 pb-2">Comanda Completa</h3>
-                                    {selectedOrder.order_items.map((item, i) => (
-                                        <div key={i} className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-                                            <span className={`text-3xl font-black px-4 py-2 rounded-xl min-w-[3.5rem] text-center ${selectedOrder.status === 'preparing' ? 'bg-yellow-500 text-black' : 'bg-slate-700 text-white'}`}>
-                                                {item.quantity}
-                                            </span>
-                                            <div>
-                                                <p className="text-3xl font-bold leading-tight">
-                                                    {item.products?.name || "Producto"}
-                                                </p>
-                                                {/* Aquí se mostrarían ingredientes extra/menos si los tuviéramos en customizations */}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold uppercase opacity-50 border-b border-white/10 pb-2">Información Extra</h3>
-                                    <div className="p-6 bg-white/5 rounded-2xl space-y-4">
-                                        <div>
-                                            <label className="text-sm uppercase opacity-50 font-bold">Cliente</label>
-                                            <p className="text-2xl font-medium">{selectedOrder.guest_info?.name || "Cliente Registrado"}</p>
-                                        </div>
-                                        {selectedOrder.guest_info?.phone && (
-                                            <div>
-                                                <label className="text-sm uppercase opacity-50 font-bold">Teléfono</label>
-                                                <p className="text-xl font-mono">{selectedOrder.guest_info.phone}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+            {/* Content Ticket */}
+            <div className="p-6 flex-1 space-y-4">
+                <div className="space-y-3 min-h-[140px]">
+                    {order.order_items.map((item: any, i: number) => (
+                        <div key={i} className="flex items-start gap-4">
+                            <span className={`text-xl font-black px-2 py-1 rounded-lg min-w-[2.2rem] text-center border-b-2 ${isPreparing ? 'bg-orange-500/20 text-orange-500 border-orange-500/40' : 'bg-white/10 text-white border-white/10'}`}>
+                                {item.quantity}
+                            </span>
+                            <div className="space-y-0.5">
+                                <p className="font-bold text-lg uppercase italic tracking-tight leading-none group-hover:text-primary transition-colors">{item.products?.name || "Special"}</p>
+                                {item.customizations && Object.entries(item.customizations).some(([_, v]) => v) && (
+                                    <p className="text-[9px] font-black text-red-500/80 uppercase tracking-widest">PERSONALIZADO</p>
+                                )}
                             </div>
                         </div>
+                    ))}
+                </div>
 
-                        {/* Footer Actions */}
-                        <div className="p-6 border-t border-white/10 flex gap-4 bg-gray-900 rounded-b-3xl">
-                            <Button variant="outline" className="h-20 flex-1 text-2xl" onClick={() => setSelectedOrder(null)}>
-                                Cerrar
-                            </Button>
-                            {selectedOrder.status === 'pending' ? (
-                                <Button
-                                    onClick={() => updateStatus(selectedOrder.id, 'preparing')}
-                                    className="h-20 flex-[2] text-3xl font-bold bg-yellow-600 hover:bg-yellow-500 text-white"
-                                >
-                                    MARCHAR 🔥
-                                </Button>
-                            ) : (
-                                <Button
-                                    onClick={() => updateStatus(selectedOrder.id, 'ready')}
-                                    className="h-20 flex-[2] text-3xl font-bold bg-green-600 hover:bg-green-500 text-white"
-                                >
-                                    LISTO ✅
-                                </Button>
-                            )}
-                        </div>
+                <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2 opacity-40">
+                        <User className="w-3 h-3" />
+                        <span className="text-[10px] font-bold uppercase truncate max-w-[100px]">{order.guest_info?.name || "C. Registrado"}</span>
                     </div>
+                    <button onClick={onExpand} className="p-2 hover:bg-white/10 rounded-xl transition-all"><ZoomIn className="w-4 h-4 text-muted-foreground hover:text-white" /></button>
                 </div>
-            )}
-        </div>
+            </div>
+
+            {/* Industrial Button Bar */}
+            <div className="p-3 bg-white/5 gap-2 grid grid-cols-[auto_1fr]">
+                <Button variant="ghost" onClick={onExpand} className="h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5">
+                    <Eye className="w-6 h-6" />
+                </Button>
+                {isPreparing ? (
+                    <Button onClick={onListo} className="h-14 text-lg font-black italic uppercase bg-green-600 text-black hover:bg-green-500 rounded-2xl shadow-xl shadow-green-600/10">DESPACHAR ✅</Button>
+                ) : (
+                    <Button onClick={onMarchar} className="h-14 text-lg font-black italic uppercase bg-orange-500 text-black hover:bg-orange-400 rounded-2xl shadow-xl shadow-orange-500/10">MARCHAR 🔥</Button>
+                )}
+            </div>
+        </motion.div>
     )
 }

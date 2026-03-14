@@ -1,19 +1,19 @@
-
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Clock, MapPin, Bike, CheckCircle2, ChefHat, AlertCircle, X, User, Phone, Map, RefreshCcw, Plus, Trash2 } from "lucide-react"
+import { Clock, MapPin, Bike, CheckCircle2, ChefHat, AlertCircle, X, User, Phone, Map, RefreshCcw, Plus, Trash2, Search, Filter, ArrowRight, DollarSign, ShoppingBag, Eye, CreditCard } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
+import { motion, AnimatePresence } from "framer-motion"
 
 // Helper para tiempo transcurrido
 const getElapsed = (dateString: string) => {
     const start = new Date(dateString).getTime()
     const now = new Date().getTime()
-    const diff = Math.floor((now - start) / 60000) // minutos
+    const diff = Math.floor((now - start) / 60000)
     if (diff < 1) return "Ahora"
-    if (diff < 60) return `${diff} min`
+    if (diff < 60) return `${diff}m`
     const hours = Math.floor(diff / 60)
     const mins = diff % 60
     return `${hours}h ${mins}m`
@@ -43,12 +43,13 @@ interface Order {
     id: string
     created_at: string
     status: 'pending' | 'preparing' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled'
-    order_type: 'pickup' | 'delivery'
+    order_type: 'pickup' | 'delivery' | 'dine_in'
     total: number
     subtotal: number
     guest_info: {
         name: string
         phone?: string
+        email?: string
     }
     order_items: OrderItem[]
     payment_method: string
@@ -58,7 +59,7 @@ interface Order {
 export default function AdminOrdersPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
     const [orders, setOrders] = useState<Order[]>([])
-    const [products, setProducts] = useState<Product[]>([]) // Para el selector
+    const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState(true)
 
     // Create Modal State
@@ -66,8 +67,8 @@ export default function AdminOrdersPage() {
     const [newOrderItems, setNewOrderItems] = useState<(Product & { quantity: number })[]>([])
     const [customerName, setCustomerName] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
+    const [orderSearch, setOrderSearch] = useState("")
 
-    // Fetch orders real
     const fetchOrders = async () => {
         setLoading(true)
         const { data, error } = await supabase
@@ -81,17 +82,13 @@ export default function AdminOrdersPage() {
             `)
             .order('created_at', { ascending: false })
 
-        if (error) {
-            console.error(error)
-        } else {
-            setOrders(data || [])
-        }
+        if (error) console.error(error)
+        else setOrders(data || [])
         setLoading(false)
     }
 
-    // Fetch products for dropdown
     const fetchProducts = async () => {
-        const { data } = await supabase.from('products').select('*')
+        const { data } = await supabase.from('products').select('*').is('deleted_at', null)
         setProducts(data || [])
     }
 
@@ -100,456 +97,302 @@ export default function AdminOrdersPage() {
         fetchProducts()
         const interval = setInterval(() => {
             setOrders(prev => [...prev])
-        }, 60000)
+        }, 30000)
         return () => clearInterval(interval)
     }, [])
 
     const handleCreateOrder = async () => {
         if (newOrderItems.length === 0) return alert("Añade productos")
-
         try {
-            // Calcular total
             const total = newOrderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0)
-
             const orderData = {
-                status: 'pending', // Podríamos poner 'preparing' directo si es presencial
-                order_type: 'pickup', // Asumimos presencial/pickup por defecto en manual
+                status: 'pending',
+                order_type: 'pickup',
                 total: total,
                 subtotal: total,
                 guest_info: { name: customerName || "Cliente Presencial", phone: "" },
                 payment_method: 'cash',
                 payment_status: 'pending'
             }
-
             const { data: order, error } = await supabase.from('orders').insert([orderData]).select().single()
             if (error) throw error
-
-            // Insert items
             const itemsToInsert = newOrderItems.map(item => ({
                 order_id: order.id,
                 product_id: item.id,
                 quantity: item.quantity,
                 unit_price: item.price
             }))
-
             const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert)
             if (itemsError) throw itemsError
-
             setIsCreateOpen(false)
             setNewOrderItems([])
             setCustomerName("")
-            setSearchTerm("")
             fetchOrders()
-            alert("Pedido creado correctamente ✅")
-
-        } catch (e: any) {
-            alert("Error al crear: " + e.message)
-        }
+        } catch (e: any) { alert("Error: " + e.message) }
     }
 
-    const addToNewOrder = (productId: string) => {
-        const product = products.find(p => p.id === productId)
-        if (!product) return
-
-        const existing = newOrderItems.find(i => i.id === productId)
-        if (existing) {
-            setNewOrderItems(prev => prev.map(i => i.id === productId ? { ...i, quantity: i.quantity + 1 } : i))
-        } else {
-            setNewOrderItems(prev => [...prev, { ...product, quantity: 1 }])
-        }
-        setSearchTerm("") // Clear search after adding
-    }
-
-    const removeFromNewOrder = (productId: string) => {
-        setNewOrderItems(prev => prev.filter(i => i.id !== productId))
-    }
-
-    const getCustomerName = (order: any) => {
-        if (order.guest_info?.name) return order.guest_info.name
-        return "Cliente Registrado"
-    }
-
-    const filteredProducts = products.filter(p =>
-        !p.deleted_at && (
-            p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredOrders = useMemo(() => {
+        if (!orderSearch) return orders
+        return orders.filter(o => 
+            o.id.toLowerCase().includes(orderSearch.toLowerCase()) || 
+            o.guest_info?.name?.toLowerCase().includes(orderSearch.toLowerCase())
         )
-    )
+    }, [orders, orderSearch])
 
-    const pendingOrders = orders.filter(o => o.status === 'pending')
-    const preparingOrders = orders.filter(o => o.status === 'preparing')
-    const readyOrders = orders.filter(o => o.status === 'ready' || o.status === 'out_for_delivery')
-    const completedOrders = orders.filter(o => o.status === 'delivered' || o.status === 'cancelled')
+    const groups = {
+        pending: filteredOrders.filter(o => o.status === 'pending'),
+        preparing: filteredOrders.filter(o => o.status === 'preparing'),
+        ready: filteredOrders.filter(o => o.status === 'ready' || o.status === 'out_for_delivery'),
+        completed: filteredOrders.filter(o => o.status === 'delivered' || o.status === 'cancelled')
+    }
+
+    const stats = {
+        todayTotal: orders.reduce((acc, o) => acc + (new Date(o.created_at).toDateString() === new Date().toDateString() ? o.total : 0), 0),
+        activeCount: orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length
+    }
 
     return (
-        <div className="h-full flex flex-col space-y-6 relative">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Pedidos en Curso</h1>
-                    <p className="text-muted-foreground">Gestiona el flujo de cocina y reparto.</p>
+        <div className="space-y-6 pb-20 max-w-[1600px] mx-auto min-h-screen">
+            {/* Header Pro con Stats Rápidas */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-[#1A1A1A] border border-white/10 p-6 rounded-[2rem] relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-50" />
+                
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+                        Terminal <span className="text-primary">Comandas</span>
+                    </h1>
+                    <p className="text-xs text-muted-foreground font-bold tracking-widest uppercase opacity-60">Gestión de flujo operativo en tiempo real</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button onClick={() => setIsCreateOpen(true)} className="bg-primary text-black hover:bg-primary/90 font-bold gap-2">
-                        <Plus className="w-5 h-5" /> Nuevo Pedido Manual
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={fetchOrders}>
-                        <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    </Button>
-                    <Link href="/admin/kitchen">
-                        <Button variant="outline" className="gap-2">
-                            <ChefHat className="w-4 h-4" /> Vista Cocina (KDS)
+
+                <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
+                    <div className="flex gap-4">
+                        <div className="bg-black/40 border border-white/5 rounded-2xl p-4 min-w-[120px]">
+                            <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">Hoy</p>
+                            <p className="text-xl font-black italic text-primary">{stats.todayTotal.toFixed(1)}€</p>
+                        </div>
+                        <div className="bg-black/40 border border-white/5 rounded-2xl p-4 min-w-[120px]">
+                            <p className="text-[10px] font-black uppercase text-muted-foreground opacity-50 mb-1">En Curso</p>
+                            <p className="text-xl font-black italic text-secondary">{stats.activeCount}</p>
+                        </div>
+                    </div>
+
+                    <div className="h-10 w-[1px] bg-white/10 hidden xl:block" />
+
+                    <div className="flex gap-2">
+                        <Button onClick={() => setIsCreateOpen(true)} className="h-14 px-6 rounded-2xl font-black uppercase italic tracking-tighter gap-3 bg-primary text-black hover:bg-primary/80 shadow-lg shadow-primary/10">
+                            <Plus className="w-5 h-5" /> Nueva Comanda
                         </Button>
-                    </Link>
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-x-auto">
-                <div className="flex gap-6 min-w-[1000px] h-full pb-4">
-                    <OrderColumn title="Nuevos" color="border-blue-500/50" count={pendingOrders.length} icon={AlertCircle}>
-                        {pendingOrders.map(order => (
-                            <OrderCard key={order.id} order={order} onView={() => setSelectedOrder(order)} customerName={getCustomerName(order)} />
-                        ))}
-                    </OrderColumn>
-
-                    <OrderColumn title="En Cocina" color="border-yellow-500/50" count={preparingOrders.length} icon={ChefHat}>
-                        {preparingOrders.map(order => (
-                            <OrderCard key={order.id} order={order} onView={() => setSelectedOrder(order)} customerName={getCustomerName(order)} />
-                        ))}
-                    </OrderColumn>
-
-                    <OrderColumn title="Listo / Reparto" color="border-purple-500/50" count={readyOrders.length} icon={Bike}>
-                        {readyOrders.map(order => (
-                            <OrderCard key={order.id} order={order} onView={() => setSelectedOrder(order)} customerName={getCustomerName(order)} />
-                        ))}
-                    </OrderColumn>
-
-                    <OrderColumn title="Completados / Historial" color="border-green-500/50" count={completedOrders.length} icon={CheckCircle2} opacity="opacity-70">
-                        {completedOrders.slice(0, 10).map(order => (
-                            <OrderCard key={order.id} order={order} onView={() => setSelectedOrder(order)} customerName={getCustomerName(order)} />
-                        ))}
-                    </OrderColumn>
-                </div>
-            </div>
-
-            {/* CREATE ORDER MODAL */}
-            {isCreateOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-card w-full max-w-4xl rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                            <div>
-                                <h2 className="text-2xl font-bold flex items-center gap-2"><Plus className="w-6 h-6 text-primary" /> Nuevo Pedido</h2>
-                                <p className="text-sm text-muted-foreground">Selecciona productos para crear una comanda manual.</p>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => setIsCreateOpen(false)}><X /></Button>
-                        </div>
-
-                        <div className="flex-1 overflow-hidden grid md:grid-cols-2">
-                            {/* Left: Product Selector */}
-                            <div className="p-6 border-r border-white/10 flex flex-col h-full overflow-hidden">
-                                <label className="text-sm font-bold uppercase text-muted-foreground mb-3">Catálogo</label>
-                                <div className="relative mb-4">
-                                    <input
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pl-10 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
-                                        placeholder="Buscar producto..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && filteredProducts.length > 0) {
-                                                addToNewOrder(filteredProducts[0].id)
-                                            }
-                                        }}
-                                    />
-                                    <Clock className="w-4 h-4 text-muted-foreground absolute left-3 top-3.5" />
-                                </div>
-
-                                <div className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                                    {filteredProducts.map(p => (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => addToNewOrder(p.id)}
-                                            className="product-item w-full text-left p-4 rounded-xl bg-white/5 hover:bg-white/10 hover:border-primary/30 border border-white/5 flex justify-between items-center transition-all group"
-                                        >
-                                            <div>
-                                                <span className="font-bold block group-hover:text-primary transition-colors">{p.name}</span>
-                                                <span className="text-xs text-muted-foreground line-clamp-1">{p.description}</span>
-                                            </div>
-                                            <span className="font-mono text-primary font-bold bg-primary/10 px-2 py-1 rounded">{p.price}€</span>
-                                        </button>
-                                    ))}
-                                    {filteredProducts.length === 0 && (
-                                        <p className="text-center text-muted-foreground py-10 italic">No se encontraron productos</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Right: Order Summary */}
-                            <div className="p-6 flex flex-col h-full bg-white/5">
-                                <label className="text-sm font-bold uppercase text-muted-foreground mb-3">Detalles del Pedido</label>
-
-                                {/* Customer Input */}
-                                <div className="mb-6">
-                                    <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                                        <label className="text-xs text-muted-foreground block mb-1">Cliente / Mesa</label>
-                                        <input
-                                            className="w-full bg-transparent border-none p-0 text-lg font-bold placeholder:text-muted-foreground/50 focus:ring-0"
-                                            placeholder="Ej: Mesa 4"
-                                            value={customerName}
-                                            onChange={e => setCustomerName(e.target.value)}
-                                            autoFocus
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Current Items List */}
-                                <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                                    {newOrderItems.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-white/10 rounded-xl">
-                                            <span className="text-4xl mb-2">🛒</span>
-                                            <p>Cesta vacía</p>
-                                        </div>
-                                    ) : (
-                                        newOrderItems.map(item => (
-                                            <div key={item.id} className="flex justify-between items-center p-3 rounded-xl bg-black/20 border border-white/5 animate-in slide-in-from-right-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex items-center gap-2 bg-white/10 rounded-lg px-2 py-1 border border-white/5">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                if (item.quantity > 1) {
-                                                                    setNewOrderItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i))
-                                                                } else {
-                                                                    removeFromNewOrder(item.id)
-                                                                }
-                                                            }}
-                                                            className="hover:text-primary w-6 h-6 flex items-center justify-center transition-colors"
-                                                        >
-                                                            -
-                                                        </button>
-                                                        <span className="font-bold text-primary w-4 text-center">{item.quantity}</span>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                addToNewOrder(item.id);
-                                                            }}
-                                                            className="hover:text-primary w-6 h-6 flex items-center justify-center transition-colors"
-                                                        >
-                                                            +
-                                                        </button>
-                                                    </div>
-                                                    <span className="font-medium">{item.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="font-mono">{(item.price * item.quantity).toFixed(2)}€</span>
-                                                    <button onClick={() => removeFromNewOrder(item.id)} className="text-muted-foreground hover:text-red-500 transition-colors p-2">
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                {/* Total & Actions */}
-                                <div className="mt-6 pt-4 border-t border-white/10 space-y-4">
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-muted-foreground">Total a pagar</span>
-                                        <span className="text-3xl font-black text-primary">{newOrderItems.reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2)}€</span>
-                                    </div>
-
-                                    <Button
-                                        onClick={handleCreateOrder}
-                                        disabled={newOrderItems.length === 0}
-                                        className={`w-full h-14 text-lg font-bold transition-all ${newOrderItems.length > 0 ? 'bg-green-600 hover:bg-green-500 shadow-lg shadow-green-900/20' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
-                                    >
-                                        {newOrderItems.length > 0 ? '✅ Confirmar Pedido' : 'Selecciona productos'}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* DETAIL MODAL (Ya existente) */}
-            {selectedOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-card w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                            <div>
-                                <h2 className="text-2xl font-bold">Pedido #{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
-                                <p className="text-muted-foreground text-sm flex items-center gap-2">
-                                    <Clock className="w-3 h-3" /> Hace {getElapsed(selectedOrder.created_at)}
-                                    <span className="bg-primary/20 text-primary px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">
-                                        {selectedOrder.status}
-                                    </span>
-                                </p>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(null)}>
-                                <X className="w-6 h-6" />
+                        <Link href="/admin/kitchen">
+                            <Button variant="outline" className="h-14 px-6 rounded-2xl font-black uppercase italic tracking-tighter gap-3 border-white/10 hover:bg-white/5">
+                                <ChefHat className="w-5 h-5 text-primary" /> KDS
                             </Button>
-                        </div>
+                        </Link>
+                    </div>
+                </div>
+            </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                            <div>
-                                <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Productos</h3>
-                                <div className="space-y-3">
-                                    {selectedOrder.order_items?.map((item: any) => {
-                                        const productName = item.products?.name || item.customizations?.name || "Producto desconocido";
-                                        return (
-                                            <div key={item.id} className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/5">
-                                                <div className="flex items-center gap-4">
-                                                    <span className="font-bold text-lg text-primary w-8 text-center">{item.quantity}x</span>
-                                                    <span className="font-medium">{productName}</span>
-                                                </div>
-                                                <span className="text-muted-foreground font-mono">{(item.unit_price * item.quantity).toFixed(2)}€</span>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                                <div className="mt-4 flex justify-between items-center pt-4 border-t border-white/10 text-xl font-bold">
-                                    <span>Total</span>
-                                    <span>{selectedOrder.total.toFixed(2)}€</span>
-                                </div>
+            {/* Barra de Filtros */}
+            <div className="relative group">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <input 
+                    className="w-full bg-[#1A1A1A] border border-white/10 rounded-2xl p-5 pl-14 outline-none focus:ring-2 focus:ring-primary/40 font-bold transition-all"
+                    placeholder="Filtrar por ID de pedido o nombre del cliente..."
+                    value={orderSearch}
+                    onChange={e => setOrderSearch(e.target.value)}
+                />
+            </div>
+
+            {/* Tablero Kanban Pro */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-full items-start">
+                <OrderColumn title="Nuevas" icon={AlertCircle} color="text-blue-500" badgeColor="bg-blue-500/20 text-blue-500" orders={groups.pending} onView={setSelectedOrder} />
+                <OrderColumn title="Cocina" icon={ChefHat} color="text-yellow-500" badgeColor="bg-yellow-500/20 text-yellow-500" orders={groups.preparing} onView={setSelectedOrder} />
+                <OrderColumn title="Listos" icon={Bike} color="text-purple-500" badgeColor="bg-purple-500/20 text-purple-500" orders={groups.ready} onView={setSelectedOrder} />
+                <OrderColumn title="Historial" icon={CheckCircle2} color="text-green-500" badgeColor="bg-green-500/20 text-green-500" orders={groups.completed.slice(0, 15)} onView={setSelectedOrder} isHistory />
+            </div>
+
+            {/* Create Order Modal (No modificado sustancialmente pero integrado) */}
+            <AnimatePresence>
+                {isCreateOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#151515] border border-white/10 rounded-[2.5rem] w-full max-w-5xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                                <h2 className="text-2xl font-black italic uppercase tracking-tighter">Terminal de Punto de Venta</h2>
+                                <button onClick={() => setIsCreateOpen(false)} className="p-2 hover:bg-white/5 rounded-xl"><X /></button>
                             </div>
-
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 className="text-sm font-bold uppercase text-muted-foreground mb-4">Cliente</h3>
-                                    <div className="flex flex-col gap-3">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                                            <User className="w-5 h-5 text-muted-foreground" />
-                                            <div>
-                                                <div className="font-medium">{getCustomerName(selectedOrder)}</div>
+                            <div className="flex-1 grid md:grid-cols-[1fr_400px] overflow-hidden">
+                                <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar border-r border-white/5">
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pl-10 text-sm outline-none focus:border-primary/50" placeholder="Buscar producto..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(p => (
+                                            <button key={p.id} onClick={() => {
+                                                const existing = newOrderItems.find(i => i.id === p.id);
+                                                if (existing) setNewOrderItems(prev => prev.map(i => i.id === p.id ? {...i, quantity: i.quantity + 1} : i))
+                                                else setNewOrderItems(prev => [...prev, {...p, quantity: 1}])
+                                            }} className="p-4 bg-white/5 border border-white/5 rounded-2xl text-left hover:border-primary/40 hover:bg-primary/5 transition-all group">
+                                                <div className="font-black italic uppercase text-xs group-hover:text-primary mb-1 truncate">{p.name}</div>
+                                                <div className="text-lg font-black text-white">{p.price.toFixed(2)}€</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="p-8 bg-black/40 flex flex-col h-full">
+                                    <h3 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-6">Resumen Comanda</h3>
+                                    <input className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm font-bold mb-6 focus:border-primary/50 outline-none" placeholder="Nombre cliente / Mesa..." value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                                    <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+                                        {newOrderItems.map(item => (
+                                            <div key={item.id} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
+                                                <div className="text-[10px] font-bold uppercase"><span className="text-primary mr-2">{item.quantity}x</span> {item.name}</div>
+                                                <button onClick={() => setNewOrderItems(prev => prev.filter(i => i.id !== item.id))} className="text-red-500 opacity-40 hover:opacity-100 transition-opacity"><Trash2 className="w-4 h-4" /></button>
                                             </div>
+                                        ))}
+                                    </div>
+                                    <div className="pt-6 border-t border-white/10 mt-6 space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-bold text-muted-foreground">TOTAL</span>
+                                            <span className="text-3xl font-black italic text-primary">{newOrderItems.reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2)}€</span>
                                         </div>
+                                        <Button onClick={handleCreateOrder} disabled={newOrderItems.length === 0} className="w-full h-16 rounded-2xl font-black uppercase italic bg-primary text-black hover:bg-primary/80">Lanzar Comanda</Button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="p-6 border-t border-white/10 bg-white/5 flex flex-col md:flex-row justify-between gap-4">
-                            <div className="flex gap-2">
-                                {selectedOrder.status === 'pending' && (
-                                    <Button
-                                        className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold h-12 px-6"
-                                        onClick={async () => {
-                                            const { error } = await supabase.from('orders').update({ status: 'preparing' }).eq('id', selectedOrder.id)
-                                            if (error) {
-                                                alert("Error al actualizar: " + error.message)
-                                                console.error(error)
-                                            } else {
-                                                fetchOrders()
-                                                setSelectedOrder(null)
-                                            }
-                                        }}
-                                    >
-                                        👨‍🍳 Enviar a Cocina
-                                    </Button>
-                                )}
-
-                                {selectedOrder.status === 'preparing' && (
-                                    <Button
-                                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-12 px-6"
-                                        onClick={async () => {
-                                            const { error } = await supabase.from('orders').update({ status: 'ready' }).eq('id', selectedOrder.id)
-                                            if (error) {
-                                                alert("Error al actualizar: " + error.message)
-                                            } else {
-                                                fetchOrders()
-                                                setSelectedOrder(null)
-                                            }
-                                        }}
-                                    >
-                                        ✅ Pedido Listo
-                                    </Button>
-                                )}
-
-                                {(selectedOrder.status === 'ready' || selectedOrder.status === 'out_for_delivery') && (
-                                    <Button
-                                        className="bg-green-600 hover:bg-green-700 text-white font-bold h-12 px-6"
-                                        onClick={async () => {
-                                            const { error } = await supabase.from('orders').update({ status: 'delivered' }).eq('id', selectedOrder.id)
-                                            if (error) {
-                                                alert("Error al actualizar: " + error.message)
-                                            } else {
-                                                fetchOrders()
-                                                setSelectedOrder(null)
-                                            }
-                                        }}
-                                    >
-                                        🛵 Marcar Entregado
-                                    </Button>
-                                )}
-                            </div>
-
-                            <div className="flex gap-3 ml-auto">
-                                <Button variant="outline" className="text-destructive hover:bg-destructive/10 border-destructive/20" onClick={async () => {
-                                    if (confirm("¿Cancelar este pedido?")) {
-                                        await supabase.from('orders').update({ status: 'cancelled' }).eq('id', selectedOrder.id)
-                                        fetchOrders()
-                                        setSelectedOrder(null)
-                                    }
-                                }}>
-                                    Cancelar
-                                </Button>
-                                <Button variant="outline" onClick={() => setSelectedOrder(null)}>Cerrar</Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    )
-}
-
-function OrderColumn({ title, count, children, color, icon: Icon, opacity = "" }: any) {
-    return (
-        <div className={`flex-1 flex flex-col bg-card/30 rounded-2xl border border-white/5 h-full ${opacity}`}>
-            <div className={`p-4 border-b border-white/5 flex items-center justify-between ${color} border-t-4 rounded-t-2xl`}>
-                <div className="flex items-center gap-2 font-bold">
-                    <Icon className="w-4 h-4" />
-                    {title}
-                </div>
-                <span className="bg-white/10 px-2 py-0.5 rounded text-xs font-mono">{count}</span>
-            </div>
-            <div className="p-4 space-y-3 overflow-y-auto flex-1 h-[600px] scrollbar-hide">
-                {children}
-                {(!children || children.length === 0) && (
-                    <div className="h-24 flex items-center justify-center text-muted-foreground text-sm border-2 border-dashed border-white/5 rounded-xl">
-                        Vacío
+                        </motion.div>
                     </div>
                 )}
-            </div>
+            </AnimatePresence>
+
+            {/* Detail Modal Pro */}
+            <AnimatePresence>
+                {selectedOrder && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#151515] border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl">
+                            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/2">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-primary/10 rounded-2xl"><ShoppingBag className="w-6 h-6 text-primary" /></div>
+                                    <div>
+                                        <h2 className="text-2xl font-black italic uppercase tracking-tighter">ID #{selectedOrder.id.split('-')[0].toUpperCase()}</h2>
+                                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{selectedOrder.order_type} • {selectedOrder.payment_method}</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setSelectedOrder(null)} className="p-3 hover:bg-white/5 rounded-2xl trasition-all"><X /></button>
+                            </div>
+
+                            <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto no-scrollbar">
+                                <div className="space-y-4">
+                                    <h3 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Composición del Pedido</h3>
+                                    <div className="space-y-2">
+                                        {selectedOrder.order_items.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between items-center p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-xl font-black italic text-primary">{item.quantity}x</span>
+                                                    <span className="font-bold uppercase text-sm tracking-tight">{item.products?.name || "Especial"}</span>
+                                                </div>
+                                                <span className="font-black italic">{(item.unit_price * item.quantity).toFixed(2)}€</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl space-y-1">
+                                        <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50">Cliente</p>
+                                        <p className="font-extrabold uppercase italic tracking-tighter text-lg">{selectedOrder.guest_info?.name || "Sin identificar"}</p>
+                                    </div>
+                                    <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl space-y-1">
+                                        <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50">Contacto</p>
+                                        <p className="font-extrabold text-sm">{selectedOrder.guest_info?.phone || "N/A"}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between items-center p-6 bg-primary/5 border border-primary/20 rounded-3xl">
+                                    <span className="font-black italic text-muted-foreground">INVERSIÓN TOTAL</span>
+                                    <span className="text-4xl font-black italic text-primary">{selectedOrder.total.toFixed(2)}€</span>
+                                </div>
+                            </div>
+
+                            <div className="p-8 bg-black/40 border-t border-white/5 flex gap-4">
+                                <Button variant="ghost" onClick={() => setSelectedOrder(null)} className="flex-1 h-16 rounded-2xl font-black uppercase italic text-xs">Cerrar</Button>
+                                {['pending', 'preparing', 'ready', 'out_for_delivery'].includes(selectedOrder.status) && (
+                                    <Button 
+                                        onClick={async () => {
+                                            const nextStatus: any = { 'pending': 'preparing', 'preparing': 'ready', 'ready': 'delivered', 'out_for_delivery': 'delivered' }
+                                            const { error } = await supabase.from('orders').update({ status: nextStatus[selectedOrder.status] }).eq('id', selectedOrder.id)
+                                            if (!error) { fetchOrders(); setSelectedOrder(null) }
+                                        }}
+                                        className="flex-[2] h-16 rounded-2xl font-black uppercase italic bg-primary text-black hover:bg-primary/80"
+                                    >
+                                        {selectedOrder.status === 'pending' ? 'Enviar a Cocina' : selectedOrder.status === 'preparing' ? 'Marcar como Listo' : 'Finalizar Pedido'}
+                                    </Button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+            `}</style>
         </div>
     )
 }
 
-function OrderCard({ order, onView, customerName }: any) {
-    const elapsed = getElapsed(order.created_at)
-
+function OrderColumn({ title, icon: Icon, color, badgeColor, orders, onView, isHistory = false }: any) {
     return (
-        <div onClick={onView} className="bg-card p-4 rounded-xl border border-white/10 hover:border-primary/50 transition-colors cursor-pointer shadow-sm group">
-            <div className="flex justify-between items-start mb-3">
-                <div>
-                    <span className="font-bold text-lg">#{order.id.split('-')[0].toUpperCase()}</span>
-                    <div className="text-sm text-muted-foreground">{customerName}</div>
+        <div className="flex flex-col gap-4 h-full">
+            <div className={`flex items-center justify-between p-4 bg-[#1A1A1A] border border-white/10 rounded-2xl shadow-xl`}>
+                <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${badgeColor}`}><Icon className="w-4 h-4" /></div>
+                    <span className="font-black italic uppercase text-sm tracking-tighter">{title}</span>
                 </div>
-                <span className="bg-white/5 px-2 py-1 rounded text-xs font-mono text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors whitespace-nowrap">
-                    {elapsed}
-                </span>
+                <span className={`px-2.5 py-1 rounded-md bg-white/5 text-[10px] font-black border border-white/5 ${color}`}>{orders.length}</span>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                {order.order_type === 'pickup' ? <div className="flex items-center gap-1 text-orange-400 font-bold"><User className="w-3 h-3" /> Recogida/Local</div> : <div className="flex items-center gap-1"><Bike className="w-3 h-3" /> Delivery</div>}
-                <span>•</span>
-                <span>{order.order_items?.length || 0} items</span>
-            </div>
+            <div className="space-y-4 overflow-y-auto no-scrollbar max-h-[calc(100vh-320px)] pb-20">
+                {orders.map((o: any, i: number) => (
+                    <motion.div 
+                        initial={{ opacity: 0, x: -10 }} 
+                        animate={{ opacity: 1, x: 0 }} 
+                        transition={{ delay: i * 0.05 }}
+                        key={o.id} 
+                        onClick={() => onView(o)}
+                        className={`group relative bg-[#1A1A1A] border ${isHistory ? 'border-white/5 opacity-60' : 'border-white/10'} rounded-3xl p-5 cursor-pointer hover:border-primary/40 transition-all hover:shadow-2xl hover:shadow-primary/5 active:scale-95`}
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 className="font-black text-lg italic uppercase tracking-tighter group-hover:text-primary transition-colors">#{o.id.split('-')[0].toUpperCase()}</h4>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">{o.guest_info?.name || "Cliente P"}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                                <div className="text-[10px] font-black italic bg-white/5 px-2 py-0.5 rounded text-primary">{getElapsed(o.created_at)}</div>
+                                {o.payment_method === 'stripe' && <CreditCard className="w-3.5 h-3.5 text-blue-400" />}
+                            </div>
+                        </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                <span className="font-bold">{order.total.toFixed(2)}€</span>
-                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); onView(); }}>
-                    Ver
-                </Button>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="flex flex-1 items-center gap-1 opacity-40">
+                                {o.order_type === 'delivery' ? <Bike className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                <span className="text-[9px] font-black uppercase tracking-widest">{o.order_type}</span>
+                            </div>
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-black/30 rounded-md border border-white/5">{o.order_items?.length || 0} ITEMS</span>
+                        </div>
+
+                        <div className="flex justify-between items-end pt-4 border-t border-white/5">
+                            <div className="text-xl font-black italic tracking-tighter">{o.total.toFixed(1)}€</div>
+                            <Button variant="ghost" size="sm" className="h-8 px-4 rounded-xl text-[10px] font-black uppercase italic bg-primary/10 text-primary border border-primary/20">Expandir</Button>
+                        </div>
+                    </motion.div>
+                ))}
+                {orders.length === 0 && (
+                    <div className="p-10 text-center border-2 border-dashed border-white/5 rounded-3xl opacity-20">
+                        <ShoppingBag className="w-8 h-8 mx-auto mb-2" />
+                        <p className="text-[10px] font-black uppercase tracking-widest">Desierto</p>
+                    </div>
+                )}
             </div>
         </div>
     )
