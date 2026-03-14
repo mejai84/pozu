@@ -81,18 +81,33 @@ Este documento detalla todas las mejoras y funcionalidades implementadas en el p
 **Ubicación:** `/admin/employees`
 
 **Funcionalidades:**
-- ✅ Lista de empleados (Admin y Staff)
-- ✅ Cambio de roles (Admin ↔ Staff)
-- ✅ Información de contacto
+- ✅ Lista de empleados con roles granulares
+- ✅ Cambio de roles dinámico
+- ✅ Información de contacto y perfil
 - ✅ Búsqueda de empleados
-- ✅ Permisos diferenciados por rol
-- ✅ Descripción de roles y permisos
+- ✅ Permisos diferenciados por rol (Admin, Manager, Kitchen, Cashier, Delivery, Waiter, Staff)
+- ✅ Vista de dashboard filtrada por rol (ej: Cocina solo acceso a KDS)
 
-**Roles:**
-- **Admin**: Control total (productos, pedidos, configuración, empleados)
-- **Staff**: Acceso a pedidos y cocina (sin editar productos ni configuración)
+**Roles de Pozu (Burger Edition):**
+- **Admin**: Control total y acceso a métricas financieras.
+- **Manager**: Gestión operativa completa (productos, pedidos, empleados).
+- **Kitchen**: Acceso exclusivo a la Cocina (KDS).
+- **Cashier**: Gestión de caja y pedidos (métricas financieras ocultas).
+- **Delivery**: Gestión de repartos y estados de envío.
+- **Waiter**: Toma de pedidos y gestión de salón.
+- **Staff**: Acceso general a operaciones.
 
 ---
+
+### 17. **Sistema de Roles Granulares (RBAC) y Seguridad** 🛡️ ⭐ NUEVO
+**Ubicación:** Todo el Panel Admin y Base de Datos (Supabase)
+
+**Funcionalidades:**
+- ✅ **Roles Especializados**: Implementación de 7 roles específicos para la operativa de una hamburguesería.
+- ✅ **Filtrado de UI Inteligente**: El menú lateral y el dashboard se adaptan automáticamente al rol del usuario, ocultando secciones no autorizadas.
+- ✅ **Bypass de Recursión RLS**: Nueva arquitectura de seguridad en Supabase usando funciones `SECURITY DEFINER` para evitar bucles infinitos en Row Level Security.
+- ✅ **Protección de Métricas**: Los roles no administrativos (Cajero, Cocina, Reparto) tienen bloqueado el acceso a ingresos, reportes y configuraciones de pasarela.
+- ✅ **Acceso Maestro de Emergencia**: Handshake de seguridad para el administrador principal mediante validación de correo electrónico.
 
 ### 7. **Reportes y Análisis** 📈 ⭐ NUEVO
 **Ubicación:** `/admin/reports`

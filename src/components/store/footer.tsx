@@ -1,4 +1,5 @@
 import { Instagram, Facebook, Youtube, Music2 } from "lucide-react"
+import Link from "next/link"
 
 export function Footer() {
     return (
@@ -31,6 +32,13 @@ export function Footer() {
                     <div className="flex flex-col items-center md:items-end">
                         <span>Abierto</span>
                         <span className="text-muted-foreground mt-1">Mar-Dom: 19:30 - 23:30</span>
+                        
+                        {/* Admin Link at the very bottom */}
+                        <Link href="/admin" className="mt-4 text-[10px] text-white/20 hover:text-primary transition-colors flex items-center gap-1 group/admin">
+                             <span className="opacity-0 group-hover/admin:opacity-100 transition-opacity uppercase tracking-[0.2em] font-black italic">Acceso</span> 
+                             <div className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-primary" />
+                             ADMIN
+                        </Link>
                     </div>
                 </div>
             </div>

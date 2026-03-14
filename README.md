@@ -301,18 +301,27 @@ WHERE email = 'tu_email@ejemplo.com';
 ## 🔐 Roles y Permisos
 
 ### Admin:
-- Acceso total al panel
-- Gestión de productos
-- Gestión de pedidos
-- Configuración del sistema
-- Gestión de empleados
-- Reportes
+- Acceso total al panel y métricas financieras
+- Gestión de productos y categorías
+- Gestión de empleados y roles
 
-### Staff:
-- Gestión de pedidos
-- Acceso a cocina (KDS)
-- Sin acceso a configuración
-- Sin acceso a productos
+### Manager:
+- Gestión operativa completa (pedidos, productos, reservas)
+- Control de stock y alérgenos
+
+### Kitchen:
+- Acceso exclusivo al KDS (Kitchen Display System)
+- Marcación de stock agotado
+
+### Cashier:
+- Gestión de pedidos y cobranza
+- Sin acceso a reportes financieros de alto nivel
+
+### Delivery:
+- Gestión de despachos y estados de repartidor
+
+### Waiter:
+- Toma de pedidos y gestión de mesas
 
 ### Customer:
 - Ver y hacer pedidos
@@ -369,19 +378,19 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 
 ✅ **COMPLETADO Y FUNCIONAL**
 
-- [x] Frontend de tienda
-- [x] Panel de administración completo
-- [x] Sistema de pedidos
-- [x] Gestión de productos
-- [x] Gestión de usuarios
-- [x] Reportes y analytics
+- [x] Frontend de tienda Rock & Burger
+- [x] Panel de administración completo (7 roles)
+- [x] Sistema de pedidos y personalización
+- [x] Gestión de productos con alérgenos y multimedia
+- [x] Gestión de seguridad granular (RBAC) sin recursión
+- [x] Reportes y analytics protegidos
 - [x] Notificaciones en tiempo real
 - [x] Configuración persistente
 - [x] Exportación de datos
 
-**Versión:** 2.4  
-**Última actualización:** 2026-03-12  
-**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Design Elite SPA
+**Versión:** 2.5
+**Última actualización:** 2026-03-14  
+**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Design Elite SPA - Granular RBAC Ready
 
 
 ---

@@ -208,7 +208,7 @@ export default function AdminSettingsPage() {
             // Check if feature_flags exists
             const { data } = await supabase
                 .from('settings')
-                .select('id')
+                .select('key')
                 .eq('key', 'feature_flags')
                 .single()
 

@@ -23,20 +23,21 @@ export function Navbar() {
     const [categories, setCategories] = useState<any[]>([])
 
     const [showCombos, setShowCombos] = useState(false)
+    const [isStoreOpen, setIsStoreOpen] = useState(true)
 
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             const currentUser = session?.user ?? null
             setUser(currentUser)
-            if (currentUser) checkAdmin(currentUser.id)
+            if (currentUser) checkAdmin(currentUser.id, currentUser.email)
         })
 
         // Listen for changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             const currentUser = session?.user ?? null
             setUser(currentUser)
-            if (currentUser) checkAdmin(currentUser.id)
+            if (currentUser) checkAdmin(currentUser.id, currentUser.email)
             else setIsAdmin(false)
         })
 
@@ -47,28 +48,86 @@ export function Navbar() {
         return () => subscription.unsubscribe()
     }, [])
 
-    const checkAdmin = async (userId: string) => {
+    const checkAdmin = async (userId: string, email?: string) => {
+        // Fallback inmediato por email si es el admin principal
+        if (email === 'jajl840316@gmail.com') {
+            setIsAdmin(true)
+            return
+        }
+
         const { data, error } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', userId)
             .single()
-
+ 
         if (!error && data) {
-            setIsAdmin(data.role === 'admin' || data.role === 'staff')
+            const allowedRoles = ['admin', 'manager', 'staff', 'kitchen', 'cashier', 'delivery', 'waiter']
+            setIsAdmin(allowedRoles.includes(data.role))
         }
     }
 
     const fetchSettings = async () => {
-        const { data } = await supabase
-            .from('settings')
-            .select('value')
-            .eq('key', 'feature_flags')
-            .single()
+        try {
+            // 1. Fetch feature flags
+            const { data } = await supabase
+                .from('settings')
+                .select('value')
+                .eq('key', 'feature_flags')
+                .single()
 
-        if (data?.value) {
-            const features = data.value as any
-            setShowCombos(!!features.enable_combos)
+            if (data?.value) {
+                const features = data.value as any
+                setShowCombos(!!features.enable_combos)
+            }
+
+            // 2. Fetch business core settings to check if open
+            const { data: infoData } = await supabase.from('settings').select('value').eq('key', 'business_info').single()
+            const { data: hoursData } = await supabase.from('settings').select('value').eq('key', 'business_hours').single()
+
+            let open = true
+            const bInfo = infoData?.value as any
+            const bHours = hoursData?.value as any
+
+            if (bInfo && bInfo.is_open === false) {
+                open = false
+            } else if (bHours) {
+                const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+                const now = new Date()
+                const currentDay = dayMap[now.getDay()]
+                const todaySchedule = bHours[currentDay]
+
+                if (todaySchedule && todaySchedule.closed) {
+                    open = false
+                } else if (todaySchedule) {
+                    const currentHours = now.getHours()
+                    const currentMinutes = now.getMinutes()
+
+                    const [openH, openM] = (todaySchedule.open || "00:00").split(':').map(Number)
+                    const [closeH, closeM] = (todaySchedule.close || "23:59").split(':').map(Number)
+
+                    const nowMins = currentHours * 60 + currentMinutes
+                    const openMins = openH * 60 + openM
+                    let closeMins = closeH * 60 + closeM
+
+                    // Handle past midnight closing times
+                    if (closeMins < openMins) {
+                        closeMins += 24 * 60
+                    }
+
+                    let effectiveNowMins = nowMins
+                    if (currentHours < openH && nowMins < (closeMins - 24 * 60)) {
+                        effectiveNowMins += 24 * 60
+                    }
+
+                    if (effectiveNowMins < openMins || effectiveNowMins > closeMins) {
+                        open = false
+                    }
+                }
+            }
+            setIsStoreOpen(open)
+        } catch (error) {
+            console.error("Error fetching settings in navbar:", error)
         }
     }
 
@@ -227,9 +286,16 @@ export function Navbar() {
                             )}
                         </Button>
                         <Link href="/menu" className="hidden md:block">
-                            <button className="relative overflow-hidden font-black text-xl rounded-full neon-border text-primary px-8 py-2 hover:bg-primary hover:text-black transition-all uppercase tracking-wider neon-text-glow group">
-                                <span className="relative z-10">PIDE YA!</span>
-                                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
+                            <button 
+                                className={cn(
+                                    "relative overflow-hidden font-black text-xl rounded-full px-8 py-2 transition-all uppercase tracking-wider group border-2",
+                                    isStoreOpen 
+                                        ? "border-primary text-primary hover:bg-primary hover:text-black neon-border neon-text-glow shadow-[0_0_15px_rgba(234,179,8,0.3)]"
+                                        : "border-red-500/50 text-red-500 bg-red-500/10 cursor-not-allowed"
+                                )}
+                            >
+                                <span className="relative z-10">{isStoreOpen ? "PIDE YA!" : "CERRADO"}</span>
+                                {isStoreOpen && <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />}
                             </button>
                         </Link>
                         <Button

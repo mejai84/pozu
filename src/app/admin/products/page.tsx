@@ -31,7 +31,7 @@ type FormData = Partial<Product> & {
     allergens?: string[];
 }
 
-type MediaMode = 'url' | 'upload'
+type MediaMode = 'url' | 'upload' | 'library'
 type ViewMode = 'grid' | 'table'
 
 export default function AdminProductsPage() {
@@ -42,6 +42,9 @@ export default function AdminProductsPage() {
     const [editingId, setEditingId] = useState<string | null>(null)
     const [uploading, setUploading] = useState(false)
     const [viewMode, setViewMode] = useState<ViewMode>('grid')
+    
+    const [mediaLibrary, setMediaLibrary] = useState<any[]>([])
+    const [loadingMedia, setLoadingMedia] = useState(false)
 
     const [imageMode, setImageMode] = useState<MediaMode>('url')
     const [videoMode, setVideoMode] = useState<MediaMode>('url')
@@ -72,6 +75,27 @@ export default function AdminProductsPage() {
         if (error) console.error('Error fetching products:', error)
         else setProducts(data || [])
         setLoading(false)
+    }
+
+    const fetchMediaLibrary = async () => {
+        setLoadingMedia(true)
+        try {
+            const { data, error } = await supabase.storage.from('media').list('burgers', {
+                limit: 100,
+                sortBy: { column: 'created_at', order: 'desc' }
+            })
+            if (error) throw error
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+            
+            setMediaLibrary((data || []).filter(f => f.name !== '.emptyFolderPlaceholder').map(f => ({
+                name: f.name,
+                url: `${supabaseUrl}/storage/v1/object/public/media/burgers/${f.name}`,
+                type: f.metadata?.mimetype?.includes('video') ? 'video' : 'image'
+            })))
+        } catch (e: any) {
+            console.error(e)
+        }
+        setLoadingMedia(false)
     }
 
     useEffect(() => { fetchProducts() }, [])
@@ -410,37 +434,57 @@ export default function AdminProductsPage() {
 
                         <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Identidad Visual</label>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setImageMode('url')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${imageMode === 'url' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>URL Directa</button>
-                                        <button onClick={() => setImageMode('upload')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${imageMode === 'upload' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>Subir PNG</button>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 block">Identidad Visual</label>
+                                    <div className="flex gap-2 mb-2">
+                                        <button onClick={() => setImageMode('url')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${imageMode === 'url' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 transition-colors'}`}>URL</button>
+                                        <button onClick={() => setImageMode('upload')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${imageMode === 'upload' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 transition-colors'}`}>Subir</button>
+                                        <button onClick={() => { setImageMode('library'); fetchMediaLibrary(); }} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${imageMode === 'library' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 transition-colors'}`}>Galería</button>
                                     </div>
                                     {imageMode === 'url' ? (
                                         <input className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm font-bold placeholder:opacity-30" placeholder="/images/burgers/pozu.png" value={formData.image_url || ''} onChange={e => setFormData({...formData, image_url: e.target.value})} />
-                                    ) : (
-                                        <button onClick={() => imageInputRef.current?.click()} className="w-full h-20 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary transition-all group">
+                                    ) : imageMode === 'upload' ? (
+                                        <button onClick={() => imageInputRef.current?.click()} className="w-full h-24 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary transition-all group">
                                             <input ref={imageInputRef} type="file" className="hidden" onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'image')} />
                                             <Upload className="w-5 h-5 opacity-40 group-hover:text-primary group-hover:opacity-100" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{uploading ? 'Procesando...' : 'Elegir Imagen'}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{uploading ? 'Procesando...' : 'Elegir Imagen Local'}</span>
                                         </button>
+                                    ) : (
+                                        <div className="w-full bg-black/40 border border-white/10 rounded-xl p-4 h-[120px] overflow-y-auto custom-scrollbar grid grid-cols-4 gap-2">
+                                            {loadingMedia ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary col-span-4 mt-6" /> : mediaLibrary.filter(m => !m.name.includes('.mp4') && !m.name.includes('.webm')).map(m => (
+                                                <div key={m.name} onClick={() => setFormData({...formData, image_url: m.url})} className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${formData.image_url === m.url ? 'border-primary shadow-[0_0_15px_rgba(234,179,8,0.4)] scale-95' : 'border-transparent hover:border-white/20'}`} title={m.name}>
+                                                    <Image src={m.url} alt={m.name} fill className="object-cover" />
+                                                </div>
+                                            ))}
+                                            {!loadingMedia && mediaLibrary.length === 0 && <span className="col-span-4 text-center text-xs text-muted-foreground mt-6">Sin imágenes</span>}
+                                        </div>
                                     )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Movimiento (Video)</label>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setVideoMode('url')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${videoMode === 'url' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>URL WebM</button>
-                                        <button onClick={() => setVideoMode('upload')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${videoMode === 'upload' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground'}`}>Subir WebM</button>
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-2 block">Cine (Video Opcional)</label>
+                                    <div className="flex gap-2 mb-2">
+                                        <button onClick={() => setVideoMode('url')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${videoMode === 'url' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 transition-colors'}`}>URL</button>
+                                        <button onClick={() => setVideoMode('upload')} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${videoMode === 'upload' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 transition-colors'}`}>Subir</button>
+                                        <button onClick={() => { setVideoMode('library'); fetchMediaLibrary(); }} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest ${videoMode === 'library' ? 'bg-primary border-primary text-black' : 'bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10 transition-colors'}`}>Galería</button>
                                     </div>
                                     {videoMode === 'url' ? (
                                         <input className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm font-bold placeholder:opacity-30" placeholder="/video/burga.webm" value={formData.video_url || ''} onChange={e => setFormData({...formData, video_url: e.target.value})} />
-                                    ) : (
-                                        <button onClick={() => videoInputRef.current?.click()} className="w-full h-20 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary transition-all group">
+                                    ) : videoMode === 'upload' ? (
+                                        <button onClick={() => videoInputRef.current?.click()} className="w-full h-24 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary transition-all group">
                                             <input ref={videoInputRef} type="file" className="hidden" onChange={e => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'video')} />
                                             <VideoIcon className="w-5 h-5 opacity-40 group-hover:text-primary group-hover:opacity-100" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{uploading ? 'Codificando...' : 'Elegir Video'}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{uploading ? 'Procesando...' : 'Elegir Video Local'}</span>
                                         </button>
+                                    ) : (
+                                        <div className="w-full bg-black/40 border border-white/10 rounded-xl p-4 h-[120px] overflow-y-auto custom-scrollbar grid grid-cols-4 gap-2">
+                                            {loadingMedia ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary col-span-4 mt-6" /> : mediaLibrary.filter(m => m.name.includes('.mp4') || m.name.includes('.webm')).map(m => (
+                                                <div key={m.name} onClick={() => setFormData({...formData, video_url: m.url})} className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all flex items-center justify-center bg-black ${formData.video_url === m.url ? 'border-primary shadow-[0_0_15px_rgba(234,179,8,0.4)] scale-95' : 'border-transparent hover:border-white/20'}`} title={m.name}>
+                                                    <VideoIcon className="w-6 h-6 opacity-40" />
+                                                </div>
+                                            ))}
+                                            {!loadingMedia && mediaLibrary.filter(m => m.name.includes('.mp4') || m.name.includes('.webm')).length === 0 && <span className="col-span-4 text-center text-xs text-muted-foreground mt-6">Sin videos</span>}
+                                        </div>
                                     )}
                                 </div>
                             </div>

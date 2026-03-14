@@ -3,13 +3,70 @@
 
 import { useCart } from "./cart-context"
 import { Button } from "@/components/ui/button"
-import { X, Plus, Minus, ShoppingBag } from "lucide-react"
+import { X, Plus, Minus, ShoppingBag, AlertTriangle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase/client"
+import { useEffect, useState } from "react"
 
 export function CartSheet() {
     const { items, removeItem, updateQuantity, cartTotal, isCartOpen, toggleCart } = useCart()
+    const [isStoreOpen, setIsStoreOpen] = useState(true)
+
+    useEffect(() => {
+        if (!isCartOpen) return
+
+        const fetchStoreStatus = async () => {
+            try {
+                const { data: infoData } = await supabase.from('settings').select('value').eq('key', 'business_info').single()
+                const { data: hoursData } = await supabase.from('settings').select('value').eq('key', 'business_hours').single()
+
+                let open = true
+                const bInfo = infoData?.value as any
+                const bHours = hoursData?.value as any
+
+                if (bInfo && bInfo.is_open === false) {
+                    open = false
+                } else if (bHours) {
+                    const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+                    const now = new Date()
+                    const currentDay = dayMap[now.getDay()]
+                    const todaySchedule = bHours[currentDay]
+
+                    if (todaySchedule && todaySchedule.closed) {
+                        open = false
+                    } else if (todaySchedule) {
+                        const currentHours = now.getHours()
+                        const currentMinutes = now.getMinutes()
+
+                        const [openH, openM] = (todaySchedule.open || "00:00").split(':').map(Number)
+                        const [closeH, closeM] = (todaySchedule.close || "23:59").split(':').map(Number)
+
+                        const nowMins = currentHours * 60 + currentMinutes
+                        const openMins = openH * 60 + openM
+                        let closeMins = closeH * 60 + closeM
+
+                        if (closeMins < openMins) closeMins += 24 * 60
+
+                        let effectiveNowMins = nowMins
+                        if (currentHours < openH && nowMins < (closeMins - 24 * 60)) {
+                            effectiveNowMins += 24 * 60
+                        }
+
+                        if (effectiveNowMins < openMins || effectiveNowMins > closeMins) {
+                            open = false
+                        }
+                    }
+                }
+                setIsStoreOpen(open)
+            } catch (error) {
+                console.error("Error fetching store status:", error)
+            }
+        }
+
+        fetchStoreStatus()
+    }, [isCartOpen])
 
     if (!isCartOpen) return null
 
@@ -102,7 +159,7 @@ export function CartSheet() {
                 </div>
 
                 {items.length > 0 && (
-                    <div className="p-6 border-t border-white/10 bg-white/5 space-y-4">
+                    <div className="p-6 border-t border-white/10 bg-white/5 space-y-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-10 relative">
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between text-muted-foreground">
                                 <span>Subtotal</span>
@@ -117,11 +174,25 @@ export function CartSheet() {
                                 <span>{(cartTotal + 2.50).toFixed(2)}€</span>
                             </div>
                         </div>
-                        <Link href="/checkout" onClick={toggleCart}>
-                            <Button className="w-full h-12 text-lg font-bold">
-                                Tramitar Pedido
+
+                        {!isStoreOpen && (
+                            <div className="flex items-start gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500">
+                                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                <p className="text-xs font-medium">La tienda está cerrada en este momento. Vuelve dentro del horario de apertura.</p>
+                            </div>
+                        )}
+
+                        {isStoreOpen ? (
+                            <Link href="/checkout" onClick={toggleCart} className="block w-full">
+                                <Button className="w-full h-14 text-lg font-black uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_40px_rgba(234,179,8,0.6)] transition-all">
+                                    Tramitar Pedido
+                                </Button>
+                            </Link>
+                        ) : (
+                            <Button disabled className="w-full h-14 py-4 text-lg font-black uppercase tracking-wider rounded-xl bg-white/5 text-white/30 border border-white/10 cursor-not-allowed">
+                                Tienda Cerrada
                             </Button>
-                        </Link>
+                        )}
                     </div>
                 )}
             </div>

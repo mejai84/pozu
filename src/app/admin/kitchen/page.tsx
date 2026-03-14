@@ -28,9 +28,31 @@ export default function KitchenPage() {
     const [loading, setLoading] = useState(true)
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
     const [lastFetch, setLastFetch] = useState<Date>(new Date())
+    const [isAlertEnabled, setIsAlertEnabled] = useState(true)
 
-    const fetchOrders = async () => {
-        setLoading(true)
+    const playAlertSound = () => {
+        if (!isAlertEnabled) return
+        try {
+            const audio = new Audio('/sounds/notification.mp3') // Assume we have a sound or fallback
+            // We use a simple beep fallback if file not present
+            audio.play().catch(() => {
+                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+                const osc = ctx.createOscillator()
+                const gain = ctx.createGain()
+                osc.connect(gain)
+                gain.connect(ctx.destination)
+                osc.type = 'triangle'
+                osc.frequency.setValueAtTime(800, ctx.currentTime)
+                osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1)
+                gain.gain.setValueAtTime(0.5, ctx.currentTime)
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5)
+                osc.start()
+                osc.stop(ctx.currentTime + 0.5)
+            })
+        } catch (e) {}
+    }
+
+    const fetchOrders = async (currentOrders: Order[]) => {
         const { data, error } = await supabase
             .from('orders')
             .select(`
@@ -46,15 +68,31 @@ export default function KitchenPage() {
             .in('status', ['pending', 'preparing'])
             .order('created_at', { ascending: true })
 
-        if (error) console.error(error)
-        else setOrders(data as any || [])
+        if (!error && data) {
+            // Check for new pending orders
+            const currentIds = new Set(currentOrders.map(o => o.id))
+            const newOrders = data.filter(o => o.status === 'pending' && !currentIds.has(o.id))
+            
+            if (newOrders.length > 0 && currentOrders.length > 0) {
+                // Play sound if there's a newly inserted order
+                playAlertSound()
+            }
+            
+            setOrders(data as any)
+        }
+        
         setLoading(false)
         setLastFetch(new Date())
     }
 
     useEffect(() => {
-        fetchOrders()
-        const interval = setInterval(fetchOrders, 10000)
+        fetchOrders([])
+        const interval = setInterval(() => {
+            setOrders(current => {
+                fetchOrders(current)
+                return current
+            })
+        }, 10000)
         return () => clearInterval(interval)
     }, [])
 
@@ -69,7 +107,7 @@ export default function KitchenPage() {
         const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', id)
         if (error) {
             console.error(error)
-            fetchOrders() // Rollback
+            fetchOrders(orders) // Rollback
         }
         
         if (selectedOrder?.id === id) {
@@ -121,11 +159,22 @@ export default function KitchenPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col items-center">
-                        <Button variant="ghost" size="icon" onClick={fetchOrders} className={`h-12 w-12 rounded-xl hover:bg-white/10 ${loading ? "animate-spin text-orange-500" : "text-muted-foreground"}`}>
-                            <RefreshCw className="w-5 h-5" />
-                        </Button>
-                        <span className="text-[8px] font-bold opacity-30 mt-1 uppercase">{lastFetch.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                variant={isAlertEnabled ? "default" : "outline"} 
+                                size="icon" 
+                                onClick={() => setIsAlertEnabled(!isAlertEnabled)} 
+                                className={`h-12 w-12 rounded-xl border-white/10 ${isAlertEnabled ? 'bg-orange-500 text-black hover:bg-orange-600' : 'bg-transparent text-muted-foreground'}`}
+                                title={isAlertEnabled ? "Sonido Activado" : "Sonido Desactivado"}
+                            >
+                                <Bell className="w-5 h-5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => fetchOrders(orders)} className={`h-12 w-12 rounded-xl hover:bg-white/10 border border-white/10 ${loading ? "animate-spin text-orange-500" : "text-white"}`}>
+                                <RefreshCw className="w-5 h-5" />
+                            </Button>
+                        </div>
+                        <span className="text-[8px] font-bold opacity-30 uppercase">{lastFetch.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
                     </div>
                 </div>
             </header>

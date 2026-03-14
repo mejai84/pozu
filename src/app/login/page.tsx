@@ -35,9 +35,13 @@ export default function LoginPage() {
 
                     <AuthForm />
 
-                    <div className="pt-6 border-t border-white/5 w-full text-center">
-                        <Link href="/menu" className="text-primary font-bold hover:underline transition-all">
+                    <div className="pt-6 border-t border-white/5 w-full text-center space-y-4">
+                        <Link href="/menu" className="block text-primary font-bold hover:underline transition-all">
                             Continuar a la carta sin registrarse
+                        </Link>
+                        
+                        <Link href="/admin" className="block text-[10px] text-muted-foreground hover:text-primary uppercase tracking-[0.2em] font-black transition-colors pt-4 border-t border-white/5 mx-10">
+                            Acceso Empleados / Admin
                         </Link>
                     </div>
                 </motion.div>

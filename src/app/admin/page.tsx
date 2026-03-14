@@ -46,6 +46,7 @@ const StatsCard = ({ title, value, icon: Icon, trend, trendUp, loading, subtitle
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true)
+    const [userRole, setUserRole] = useState<string | null>(null)
     const [stats, setStats] = useState({
         todayRevenue: 0,
         yesterdayRevenue: 0,
@@ -61,6 +62,18 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
         setLoading(true)
+        
+        // Fetch User Role
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single()
+            if (profile) setUserRole(profile.role)
+        }
+
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const todayISO = today.toISOString()
@@ -117,7 +130,7 @@ export default function AdminDashboard() {
         // 4. Top Products (Simplified aggregation)
         const { data: items, error: itemsError } = await supabase
             .from('order_items')
-            .select('quantity, price, products(name)')
+            .select('quantity, unit_price, products(name)')
             .gte('created_at', todayISO)
 
         if (!itemsError && items) {
@@ -128,7 +141,7 @@ export default function AdminDashboard() {
                     counts[name] = { quantity: 0, revenue: 0 }
                 }
                 counts[name].quantity += item.quantity
-                counts[name].revenue += item.quantity * item.price
+                counts[name].revenue += item.quantity * item.unit_price
             })
             const sorted = Object.entries(counts)
                 .map(([name, data]) => ({ name, sales: data.quantity, revenue: data.revenue }))
@@ -251,17 +264,19 @@ export default function AdminDashboard() {
 
             {/* Grid de Métricas Principales (Kpis Financieros y de Volumen) */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <StatsCard
-                    title="Ventas (Online + POS)"
-                    value={`${stats.todayRevenue.toFixed(2)}€`}
-                    subtitle={`Ayer: ${stats.yesterdayRevenue.toFixed(2)}€`}
-                    icon={DollarSign}
-                    trend={calculateTrend(stats.todayRevenue, stats.yesterdayRevenue)}
-                    trendUp={stats.todayRevenue >= stats.yesterdayRevenue}
-                    loading={loading}
-                    href="/admin/reports"
-                    colorClass="from-green-500/20 to-transparent"
-                />
+                {(userRole === 'admin' || userRole === 'manager') && (
+                    <StatsCard
+                        title="Ventas (Online + POS)"
+                        value={`${stats.todayRevenue.toFixed(2)}€`}
+                        subtitle={`Ayer: ${stats.yesterdayRevenue.toFixed(2)}€`}
+                        icon={DollarSign}
+                        trend={calculateTrend(stats.todayRevenue, stats.yesterdayRevenue)}
+                        trendUp={stats.todayRevenue >= stats.yesterdayRevenue}
+                        loading={loading}
+                        href="/admin/reports"
+                        colorClass="from-green-500/20 to-transparent"
+                    />
+                )}
                 <StatsCard
                     title="Tráfico del Día"
                     value={stats.totalOrdersToday}
@@ -298,100 +313,102 @@ export default function AdminDashboard() {
                 />
             </div>
 
-            {/* Módulos Analíticos Avanzados */}
-            <div className="grid lg:grid-cols-2 gap-8">
-                {/* Gráfico de Crecimiento */}
-                <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 relative overflow-hidden group hover:border-white/20 transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-6 border-b border-white/5 gap-4">
-                        <div>
-                            <h3 className="text-2xl font-black italic uppercase tracking-tighter">Metricas de <span className="text-primary">Evolución</span></h3>
-                            <p className="text-sm text-muted-foreground mt-1">Ingresos brutos de los últimos 7 días</p>
+            {/* Módulos Analíticos Avanzados - Solo Admin/Manager */}
+            {(userRole === 'admin' || userRole === 'manager') && (
+                <div className="grid lg:grid-cols-2 gap-8">
+                    {/* Gráfico de Crecimiento */}
+                    <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 relative overflow-hidden group hover:border-white/20 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-6 border-b border-white/5 gap-4">
+                            <div>
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter">Metricas de <span className="text-primary">Evolución</span></h3>
+                                <p className="text-sm text-muted-foreground mt-1">Ingresos brutos de los últimos 7 días</p>
+                            </div>
+                            <Link href="/admin/reports">
+                                <Button variant="outline" size="sm" className="gap-2 rounded-xl border-white/10 font-bold bg-white/5 hover:bg-white/10">
+                                    <Eye className="w-4 h-4" /> Informe Completo
+                                </Button>
+                            </Link>
                         </div>
-                        <Link href="/admin/reports">
-                            <Button variant="outline" size="sm" className="gap-2 rounded-xl border-white/10 font-bold bg-white/5 hover:bg-white/10">
-                                <Eye className="w-4 h-4" /> Informe Completo
-                            </Button>
-                        </Link>
-                    </div>
-                    <div className="space-y-6">
-                        {weeklyRevenue.map((day, i) => {
-                            const maxRevenue = Math.max(...weeklyRevenue.map(d => d.revenue), 1)
-                            const width = (day.revenue / maxRevenue) * 100
+                        <div className="space-y-6">
+                            {weeklyRevenue.map((day, i) => {
+                                const maxRevenue = Math.max(...weeklyRevenue.map(d => d.revenue), 1)
+                                const width = (day.revenue / maxRevenue) * 100
 
-                            return (
-                                <div key={i} className="space-y-3 group/bar">
-                                    <div className="flex justify-between items-end">
-                                        <span className="font-bold uppercase text-[10px] tracking-widest text-muted-foreground group-hover/bar:text-white transition-colors">
-                                            {day.day}
-                                        </span>
-                                        <span className="font-mono text-sm font-bold opacity-70 group-hover/bar:opacity-100 transition-opacity group-hover/bar:text-primary">
-                                            {day.revenue.toFixed(2)}€
-                                        </span>
-                                    </div>
-                                    <div className="h-4 bg-white/5 rounded-full overflow-hidden relative">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-1000 ease-out relative"
-                                            style={{ width: `${width}%` }}
-                                        >
-                                            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/30 to-transparent" />
+                                return (
+                                    <div key={i} className="space-y-3 group/bar">
+                                        <div className="flex justify-between items-end">
+                                            <span className="font-bold uppercase text-[10px] tracking-widest text-muted-foreground group-hover/bar:text-white transition-colors">
+                                                {day.day}
+                                            </span>
+                                            <span className="font-mono text-sm font-bold opacity-70 group-hover/bar:opacity-100 transition-opacity group-hover/bar:text-primary">
+                                                {day.revenue.toFixed(2)}€
+                                            </span>
+                                        </div>
+                                        <div className="h-4 bg-white/5 rounded-full overflow-hidden relative">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-1000 ease-out relative"
+                                                style={{ width: `${width}%` }}
+                                            >
+                                                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white/30 to-transparent" />
+                                            </div>
                                         </div>
                                     </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Pasarela y Pagos (Módulo Pro) */}
+                    <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 flex flex-col">
+                        <div className="mb-8 pb-6 border-b border-white/5">
+                            <h3 className="text-2xl font-black italic uppercase tracking-tighter">Control de <span className="text-primary">Pagos</span></h3>
+                            <p className="text-sm text-muted-foreground mt-1">Estado de la pasarela y transacciones</p>
+                        </div>
+
+                        <div className="flex-1 space-y-6">
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                        <DollarSign className="w-6 h-6 text-blue-500" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold">Stripe / Bizum</h4>
+                                        <p className="text-xs font-mono text-muted-foreground mt-1">Online & Apple Pay</p>
+                                    </div>
                                 </div>
-                            )
-                        })}
+                                <div className="text-right">
+                                    <span className="px-3 py-1 bg-green-500/10 text-green-500 font-bold text-[10px] uppercase tracking-widest rounded-full border border-green-500/20">Activo</span>
+                                </div>
+                            </div>
+
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                        <DollarSign className="w-6 h-6 text-emerald-500" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold">Efectivo / Caja</h4>
+                                        <p className="text-xs font-mono text-muted-foreground mt-1">TPV Físico</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 font-bold text-[10px] uppercase tracking-widest rounded-full border border-yellow-500/20">Manual</span>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 mt-auto">
+                                <Button
+                                    onClick={() => window.location.href = '/admin/settings'}
+                                    className="w-full h-12 rounded-xl font-bold uppercase tracking-widest text-xs bg-white/10 hover:bg-primary hover:text-black border border-white/10 transition-all"
+                                >
+                                    Configurar Pasarelas
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                {/* Pasarela y Pagos (Módulo Pro) */}
-                <div className="bg-[#1A1A1A] border border-white/10 rounded-[2rem] p-8 flex flex-col">
-                    <div className="mb-8 pb-6 border-b border-white/5">
-                        <h3 className="text-2xl font-black italic uppercase tracking-tighter">Control de <span className="text-primary">Pagos</span></h3>
-                        <p className="text-sm text-muted-foreground mt-1">Estado de la pasarela y transacciones</p>
-                    </div>
-
-                    <div className="flex-1 space-y-6">
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                                    <DollarSign className="w-6 h-6 text-blue-500" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold">Stripe / Bizum</h4>
-                                    <p className="text-xs font-mono text-muted-foreground mt-1">Online & Apple Pay</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <span className="px-3 py-1 bg-green-500/10 text-green-500 font-bold text-[10px] uppercase tracking-widest rounded-full border border-green-500/20">Activo</span>
-                            </div>
-                        </div>
-
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                                    <DollarSign className="w-6 h-6 text-emerald-500" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold">Efectivo / Caja</h4>
-                                    <p className="text-xs font-mono text-muted-foreground mt-1">TPV Físico</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <span className="px-3 py-1 bg-yellow-500/10 text-yellow-500 font-bold text-[10px] uppercase tracking-widest rounded-full border border-yellow-500/20">Manual</span>
-                            </div>
-                        </div>
-
-                        <div className="pt-6 mt-auto">
-                            <Button
-                                onClick={() => window.location.href = '/admin/settings'}
-                                className="w-full h-12 rounded-xl font-bold uppercase tracking-widest text-xs bg-white/10 hover:bg-primary hover:text-black border border-white/10 transition-all"
-                            >
-                                Configurar Pasarelas
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            )}
 
             {/* Feed Operativo */}
             <div className="grid lg:grid-cols-3 gap-8">
@@ -405,6 +422,7 @@ export default function AdminDashboard() {
                             </Button>
                         </Link>
                     </div>
+
                     <div className="space-y-4">
                         {recentOrders.length === 0 && !loading && (
                             <div className="py-12 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02]">

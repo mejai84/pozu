@@ -8,15 +8,15 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const sidebarItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
-    { icon: Calendar, label: "Reservas", href: "/admin/reservations" },
-    { icon: ShoppingBag, label: "Pedidos", href: "/admin/orders" },
-    { icon: ChefHat, label: "Cocina (KDS)", href: "/admin/kitchen" },
-    { icon: UtensilsCrossed, label: "Productos", href: "/admin/products" },
-    { icon: Users, label: "Clientes", href: "/admin/customers" },
-    { icon: Users, label: "Empleados", href: "/admin/employees" },
-    { icon: BarChart3, label: "Reportes", href: "/admin/reports" },
-    { icon: Settings, label: "Configuración", href: "/admin/settings" },
+    { icon: LayoutDashboard, label: "Dashboard", href: "/admin", roles: ['admin', 'manager', 'cashier'] },
+    { icon: Calendar, label: "Reservas", href: "/admin/reservations", roles: ['admin', 'manager', 'cashier', 'waiter'] },
+    { icon: ShoppingBag, label: "Pedidos", href: "/admin/orders", roles: ['admin', 'manager', 'cashier', 'waiter', 'delivery'] },
+    { icon: ChefHat, label: "Cocina (KDS)", href: "/admin/kitchen", roles: ['admin', 'manager', 'kitchen'] },
+    { icon: UtensilsCrossed, label: "Productos", href: "/admin/products", roles: ['admin', 'manager'] },
+    { icon: Users, label: "Clientes", href: "/admin/customers", roles: ['admin', 'manager', 'cashier'] },
+    { icon: Users, label: "Empleados", href: "/admin/employees", roles: ['admin'] },
+    { icon: BarChart3, label: "Reportes", href: "/admin/reports", roles: ['admin'] },
+    { icon: Settings, label: "Configuración", href: "/admin/settings", roles: ['admin'] },
 ]
 
 import Image from "next/image"
@@ -29,6 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname()
     const router = useRouter()
     const [loading, setLoading] = useState(true)
+    const [userRole, setUserRole] = useState<string | null>(null)
     const [authorized, setAuthorized] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -47,17 +48,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 .eq('id', session.user.id)
                 .single()
 
-            if (error || !data || (data.role !== 'admin' && data.role !== 'staff')) {
+            const allowedRoles = ['admin', 'manager', 'staff', 'kitchen', 'cashier', 'delivery', 'waiter']
+            const isMainAdmin = session.user.email === 'jajl840316@gmail.com'
+
+            if (!isMainAdmin && (error || !data || !allowedRoles.includes(data.role))) {
+                console.error("Auth redirect:", { error, data, role: data?.role, email: session.user.email })
                 router.push("/")
                 return
             }
 
+            setUserRole(isMainAdmin ? 'admin' : data?.role)
             setAuthorized(true)
             setLoading(false)
         }
 
         checkAuth()
     }, [router])
+
+    const filteredSidebarItems = sidebarItems.filter(item => {
+        if (!userRole) return false;
+        // Si el item tiene roles definidos, verificar si el rol del usuario está incluido
+        if (item.roles) {
+            return item.roles.includes(userRole);
+        }
+        return false;
+    })
 
     if (loading) {
         return (
@@ -106,7 +121,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                    {sidebarItems.map((item) => {
+                    {filteredSidebarItems.map((item) => {
                         const Icon = item.icon
                         const isActive = pathname === item.href
 
