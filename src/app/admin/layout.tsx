@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -91,7 +91,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             POZU ADMIN
                         </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        <a href="/" target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="icon" title="Ver Tienda">
+                                <ExternalLink className="w-4 h-4 text-primary" />
+                            </Button>
+                        </a>
                         <NotificationBell />
                         <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
                             <X className="w-5 h-5" />
