@@ -46,21 +46,21 @@ export default function Home() {
 
               {/* Título Principal Brutal */}
               <div className="space-y-4 sm:space-y-6">
-                <h1 className="text-5xl sm:text-8xl lg:text-9xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.8] drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
+                <h1 className="text-4xl sm:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.9] drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
                   Sabor Brutal que <br />
                   <span className="text-primary italic neon-text-glow">Desafía la Gravedad</span>
                 </h1>
                 
-                <h2 className="text-2xl sm:text-5xl lg:text-6xl font-black italic text-white/90 tracking-tighter uppercase leading-none">
+                <h2 className="text-xl sm:text-4xl lg:text-5xl font-black italic text-white/90 tracking-tighter uppercase leading-none">
                   Pozu <span className="text-primary">2.0</span>
                 </h2>
               </div>
 
               {/* Bajada persuasiva */}
               <div className="space-y-6 max-w-3xl mx-auto">
-                <p className="text-lg sm:text-3xl text-muted-foreground font-bold tracking-tight uppercase leading-tight">
+                <p className="text-base sm:text-2xl text-muted-foreground font-bold tracking-tight uppercase leading-tight">
                   La técnica Smash definitiva. <br />
-                  <span className="text-white/40 font-black italic">No es solo comida, es un vicio artesanal.</span>
+                  <span className="text-white/40 font-black italic text-sm sm:text-lg">No es solo comida, es un vicio artesanal.</span>
                 </p>
                 <p className="text-[10px] sm:text-xs text-primary/60 font-black uppercase tracking-[0.3em]">
                    Técnica Smash impecable. Espíritu Rock. Vicio Artesanal.
@@ -68,10 +68,10 @@ export default function Home() {
               </div>
 
               {/* Botón CTA Primario - Ahora más arriba para conversión rápida */}
-              <div className="pt-4">
+              <div className="pt-8 sm:pt-12">
                 <Link href="/menu">
                   <button className="relative overflow-hidden font-black text-xl sm:text-2xl rounded-full border-4 border-primary text-primary px-12 sm:px-24 py-4 sm:py-6 hover:bg-primary hover:text-black hover:shadow-[0_0_100px_rgba(234,179,8,0.7)] transition-all active:scale-95 group uppercase tracking-[0.2em] bg-black/60 backdrop-blur-md">
-                    <span className="relative z-10">Pide el Banquete</span>
+                    <span className="relative z-10">¡HAZ TU PEDIDO!</span>
                     <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
                   </button>
                 </Link>
