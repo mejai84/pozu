@@ -37,6 +37,11 @@ interface OrderItem {
     products: {
         name: string
     } | null
+    customizations?: {
+        name?: string
+        notes?: string | null
+        mock_id?: string | null
+    }
 }
 
 interface Order {
@@ -287,7 +292,14 @@ export default function AdminOrdersPage() {
                                             <div key={idx} className="flex justify-between items-center p-4 bg-white/[0.03] border border-white/5 rounded-2xl">
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-xl font-black italic text-primary">{item.quantity}x</span>
-                                                    <span className="font-bold uppercase text-sm tracking-tight">{item.products?.name || "Especial"}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold uppercase text-sm tracking-tight">{item.products?.name || item.customizations?.name || "Especial"}</span>
+                                                        {item.customizations?.notes && (
+                                                            <span className="text-[10px] text-primary font-black italic uppercase tracking-widest mt-0.5 transform -skew-x-12">
+                                                                → {item.customizations.notes}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <span className="font-black italic">{(item.unit_price * item.quantity).toFixed(2)}€</span>
                                             </div>

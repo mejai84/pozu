@@ -29,12 +29,15 @@ Sistema completo de pedidos online y gestión administrativa para restaurante de
 - 🛍️ Carrito de compras con localStorage
 - 💳 Checkout con información de contacto
 - 📱 Diseño completamente responsive
-- 🎨 UI moderna con animaciones
+- 📅 **Reservas Online** con confirmación automática
+- 📝 **Personalización de Productos** (notas sobre ingredientes, puntos de carne, etc.)
+- 🎨 UI moderna con animaciones de alto impacto
 
 ### Para Administradores:
 - 📊 **Dashboard** con métricas en tiempo real
-- 🛒 **Gestión de Pedidos** completa
-- 👨‍🍳 **KDS (Kitchen Display System)** para cocina
+- 🛒 **Gestión de Pedidos** completa con visualización de personalizaciones
+- 📅 **Libro de Reservas Pro** para gestión de mesas y aforo
+- 👨‍🍳 **KDS (Kitchen Display System)** con notas de cocina en tiempo real
 - 🍔 **Gestión de Productos** (CRUD completo)
 - 👥 **Gestión de Clientes** con historial
 - 👨‍💼 **Gestión de Empleados** y roles

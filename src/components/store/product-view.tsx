@@ -16,6 +16,7 @@ import { ProductImage } from "@/components/store/product-image"
 
 export function ProductView({ product }: { product: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [observations, setObservations] = useState("")
 
     // Mapeo de iconos para alérgenos comunes
     const getAllergenIcon = (name: string) => {
@@ -219,9 +220,28 @@ export function ProductView({ product }: { product: any }) {
                     </div>
                 </div>
 
+                {/* Observaciones / Personalización */}
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <h3 className="font-bold flex items-center gap-2 text-[#E8E0D5]">
+                        <ChefHat className="w-4 h-4 text-primary" />
+                        ¿Quieres personalizar tu pedido?
+                    </h3>
+                    <div className="relative group">
+                        <textarea
+                            value={observations}
+                            onChange={(e) => setObservations(e.target.value)}
+                            placeholder="Ej: Sin cebolla, pan sin gluten, carne muy hecha..."
+                            className="w-full h-24 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all resize-none placeholder:text-muted-foreground/50"
+                        />
+                        <div className="absolute bottom-3 right-3 text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest pointer-events-none group-focus-within:text-primary/50 transition-colors">
+                            Opcional
+                        </div>
+                    </div>
+                </div>
+
                 {/* Add to Cart */}
                 <div className="pt-6 border-t border-white/10">
-                    <AddToCartButton product={product} />
+                    <AddToCartButton product={product} options={observations} />
                 </div>
             </div>
 

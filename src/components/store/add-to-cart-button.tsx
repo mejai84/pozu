@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button"
 import { type Product } from "@/lib/data"
 import { Minus, Plus, ShoppingBag } from "lucide-react"
 
-export function AddToCartButton({ product }: { product: Product }) {
+export function AddToCartButton({ product, options }: { product: Product, options?: string }) {
     const [quantity, setQuantity] = useState(1)
     const { addItem } = useCart()
 
     const handleAdd = () => {
-        // Por ahora simulamos añadir N veces, en el futuro el addItem podría aceptar cantidad
+        // Añadimos el item con sus opciones al carrito
         for (let i = 0; i < quantity; i++) {
-            addItem(product)
+            addItem(product, options)
         }
     }
 

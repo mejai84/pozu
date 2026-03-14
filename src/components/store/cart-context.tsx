@@ -6,12 +6,13 @@ import type { Product } from "@/lib/data"
 
 export type CartItem = Product & {
     quantity: number
-    uniqueId: string // Para diferenciar items iguales con distintas opciones (futuro)
+    uniqueId: string 
+    options?: string // Notas de personalización (ej: "Sin cebolla", "Pan brioche")
 }
 
 type CartContextType = {
     items: CartItem[]
-    addItem: (product: Product) => void
+    addItem: (product: Product, options?: string) => void
     removeItem: (uniqueId: string) => void
     updateQuantity: (uniqueId: string, quantity: number) => void
     clearCart: () => void
@@ -47,17 +48,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
     }, [items, isMounted])
 
-    const addItem = (product: Product) => {
+    const addItem = (product: Product, options?: string) => {
         setItems((prev) => {
-            const existing = prev.find((item) => item.id === product.id)
+            // Buscamos si ya existe el mismo producto con las MISMAS opciones
+            const existing = prev.find((item) => 
+                item.id === product.id && item.options === options
+            )
+
             if (existing) {
                 return prev.map((item) =>
-                    item.id === product.id
+                    (item.id === product.id && item.options === options)
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 )
             }
-            return [...prev, { ...product, quantity: 1, uniqueId: crypto.randomUUID() }]
+            return [...prev, { ...product, quantity: 1, uniqueId: crypto.randomUUID(), options }]
         })
         setIsCartOpen(true)
     }

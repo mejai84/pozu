@@ -57,7 +57,14 @@ export function CartSheet() {
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between">
                                     <div className="flex justify-between items-start">
-                                        <h3 className="font-semibold">{item.name}</h3>
+                                        <div className="flex flex-col">
+                                            <h3 className="font-semibold">{item.name}</h3>
+                                            {item.options && (
+                                                <p className="text-[10px] text-primary font-medium italic mt-0.5 line-clamp-1">
+                                                    "{item.options}"
+                                                </p>
+                                            )}
+                                        </div>
                                         <span className="font-bold text-primary">
                                             {(item.price * item.quantity).toFixed(2)}€
                                         </span>

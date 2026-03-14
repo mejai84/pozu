@@ -413,14 +413,23 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 
 ---
 
-### 14. **Optimización de Conversión y UX (Marzo 2026)** ⭐ NUEVO
-**Ubicación:** Landing Page (Hero) y Preloader
+### 15. **Módulo de Personalización de Productos** 📝 ⭐ NUEVO
+**Ubicación:** `/producto/[id]`, Carrito, Checkout y Admin Orders
 
 **Funcionalidades:**
-- ✅ **Hero Copy AIDA**: Reestructuración de la sección Hero situando el copy persuasivo ("Sabor Brutal") en la parte superior para máxima visibilidad en móviles.
-- ✅ **Narrativa Visual**: Orden de componentes optimizado: Mensaje de Marca → CTA → Animación ScrollVideo, mejorando la conversión inmediata.
-- ✅ **Preloader "High Retention"**: Aumentada la duración a 3 segundos con copy de intriga ("¿Hambre de algo legendario?") para preparar psicológicamente al cliente.
-- ✅ **Fix de Accesibilidad**: Eliminación de textos ocultos (`sr-only`) por títulos reales impactantes con efectos neón.
+- ✅ **Campo de Observaciones**: Área de texto premium en la ficha de producto para indicar preferencias (punto de carne, tipo de pan, alérgicos).
+- ✅ **Lógica de Variaciones**: El carrito permite añadir el mismo producto múltiples veces con diferentes personalizaciones, tratándolos como ítems independientes.
+- ✅ **Integración en Cocina**: Las notas de personalización se muestran resaltadas en el panel de pedidos del administrador y en el KDS.
+- ✅ **Persistencia en Pedidos**: Las observaciones se guardan en el campo `customizations` de la base de datos de Supabase.
+
+### 16. **Reestructuración del Hero Flow** 🎨 ⭐ REFINADO
+**Ubicación:** Landing Page (Home)
+
+**Funcionalidades:**
+- ✅ **Jerarquía Visual Optimizada**: El título y la ubicación se mantienen al inicio para impacto inmediato.
+- ✅ **Narrativa de Producto**: La animación del burger (ScrollVideo) ahora precede a la llamada a la acción, generando deseo antes del botón.
+- ✅ **CTA de Alta Conversión**: El botón "¡HAZ TU PEDIDO!" y los textos persuasivos se sitúan debajo de la animación, equilibrando el peso visual de la página.
+- ✅ **Ajustes Tipográficos**: Reducción de escalas de fuente y espacios para una navegación más cómoda y profesional.
 
 ---
 

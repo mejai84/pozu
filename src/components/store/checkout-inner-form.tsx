@@ -98,7 +98,8 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                     unit_price: item.price,
                     customizations: {
                         name: item.name,
-                        mock_id: !isRealProduct ? item.id : null
+                        mock_id: !isRealProduct ? item.id : null,
+                        notes: item.options || null
                     }
                 }
             })

@@ -34,53 +34,32 @@ export default function Home() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="space-y-8 sm:space-y-12"
+              className="space-y-6 sm:space-y-8"
             >
               {/* Entradilla / Ubicación */}
               <div className="flex flex-col items-center gap-4">
-                <span className="text-primary font-black italic uppercase tracking-[0.4em] text-[10px] sm:text-xs bg-primary/10 px-6 py-2 rounded-full border border-primary/20 backdrop-blur-sm">
+                <span className="text-primary font-black italic uppercase tracking-[0.4em] text-[8px] sm:text-[10px] bg-primary/10 px-6 py-2 rounded-full border border-primary/20 backdrop-blur-sm">
                   Pola de Laviana • Asturias
                 </span>
-                <div className="h-16 w-[2px] bg-gradient-to-b from-primary/0 via-primary to-primary/0" />
+                <div className="h-10 w-[2px] bg-gradient-to-b from-primary/0 via-primary to-primary/0" />
               </div>
 
               {/* Título Principal Brutal */}
-              <div className="space-y-4 sm:space-y-6">
-                <h1 className="text-4xl sm:text-7xl lg:text-8xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.9] drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
+              <div className="space-y-2 sm:space-y-4">
+                <h1 className="text-3xl sm:text-6xl lg:text-7xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.9] drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
                   Sabor Brutal que <br />
                   <span className="text-primary italic neon-text-glow">Desafía la Gravedad</span>
                 </h1>
                 
-                <h2 className="text-xl sm:text-4xl lg:text-5xl font-black italic text-white/90 tracking-tighter uppercase leading-none">
+                <h2 className="text-lg sm:text-2xl lg:text-3xl font-black italic text-white/90 tracking-tighter uppercase leading-none">
                   Pozu <span className="text-primary">2.0</span>
                 </h2>
-              </div>
-
-              {/* Bajada persuasiva */}
-              <div className="space-y-6 max-w-3xl mx-auto">
-                <p className="text-base sm:text-2xl text-muted-foreground font-bold tracking-tight uppercase leading-tight">
-                  La técnica Smash definitiva. <br />
-                  <span className="text-white/40 font-black italic text-sm sm:text-lg">No es solo comida, es un vicio artesanal.</span>
-                </p>
-                <p className="text-[10px] sm:text-xs text-primary/60 font-black uppercase tracking-[0.3em]">
-                   Técnica Smash impecable. Espíritu Rock. Vicio Artesanal.
-                </p>
-              </div>
-
-              {/* Botón CTA Primario - Ahora más arriba para conversión rápida */}
-              <div className="pt-8 sm:pt-12">
-                <Link href="/menu">
-                  <button className="relative overflow-hidden font-black text-xl sm:text-2xl rounded-full border-4 border-primary text-primary px-12 sm:px-24 py-4 sm:py-6 hover:bg-primary hover:text-black hover:shadow-[0_0_100px_rgba(234,179,8,0.7)] transition-all active:scale-95 group uppercase tracking-[0.2em] bg-black/60 backdrop-blur-md">
-                    <span className="relative z-10">¡HAZ TU PEDIDO!</span>
-                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
-                  </button>
-                </Link>
               </div>
             </motion.div>
         </section>
 
-        {/* 2. CINEMATIC HERO ANIMATION - BAJADA DE POSICIÓN */}
-        <div className="flex flex-col items-center mt-0 sm:-mt-20 lg:-mt-32 relative w-full pt-0 bg-transparent mb-20 sm:mb-32">
+        {/* 2. CINEMATIC HERO ANIMATION */}
+        <div className="flex flex-col items-center mt-8 sm:mt-12 lg:mt-16 relative w-full pt-0 bg-transparent mb-12 sm:mb-20">
           
           <div className="relative w-full flex justify-center items-center z-10 px-0">
             <motion.div
@@ -96,12 +75,43 @@ export default function Home() {
             </motion.div>
           </div>
 
+          {/* 3. CONTENT MOVED BELOW ANIMATION (Bajada + CTA) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="relative z-30 w-full px-6 text-center max-w-4xl mx-auto space-y-8 sm:space-y-12"
+          >
+            {/* Bajada persuasiva */}
+            <div className="space-y-4">
+              <p className="text-lg sm:text-2xl text-muted-foreground font-bold tracking-tight uppercase leading-tight">
+                La técnica Smash definitiva. <br />
+                <span className="text-white/40 font-black italic text-sm sm:text-lg">No es solo comida, es un vicio artesanal.</span>
+              </p>
+              <p className="text-[10px] sm:text-xs text-primary/60 font-black uppercase tracking-[0.3em]">
+                 Técnica Smash impecable. Espíritu Rock. Vicio Artesanal.
+              </p>
+            </div>
+
+            {/* Botón CTA Primario */}
+            <div>
+              <Link href="/menu">
+                <button className="relative overflow-hidden font-black text-xl sm:text-2xl rounded-full border-4 border-primary text-primary px-12 sm:px-24 py-4 sm:py-6 hover:bg-primary hover:text-black hover:shadow-[0_0_100px_rgba(234,179,8,0.7)] transition-all active:scale-95 group uppercase tracking-[0.2em] bg-black/60 backdrop-blur-md">
+                  <span className="relative z-10">¡HAZ TU PEDIDO!</span>
+                  <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 skew-x-12" />
+                </button>
+              </Link>
+            </div>
+          </motion.div>
+
           {/* Social Proof metrics */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.5 }}
-            className="mt-8 flex flex-wrap justify-center gap-10 text-[#E8E0D5]/40 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] z-20"
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="mt-12 sm:mt-20 flex flex-wrap justify-center gap-10 text-[#E8E0D5]/40 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] z-20"
           >
             <div className="flex items-center gap-3">
               <span className="text-primary text-xl">★ ★ ★ ★ ★</span>
