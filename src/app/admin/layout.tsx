@@ -3,12 +3,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X, ExternalLink } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X, ExternalLink, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
+    { icon: Calendar, label: "Reservas", href: "/admin/reservations" },
     { icon: ShoppingBag, label: "Pedidos", href: "/admin/orders" },
     { icon: ChefHat, label: "Cocina (KDS)", href: "/admin/kitchen" },
     { icon: UtensilsCrossed, label: "Productos", href: "/admin/products" },

@@ -52,7 +52,8 @@ export default function AdminDashboard() {
         activeOrders: 0,
         totalOrdersToday: 0,
         yesterdayOrders: 0,
-        newCustomers: 0
+        newCustomers: 0,
+        todayReservations: 0
     })
     const [recentOrders, setRecentOrders] = useState<any[]>([])
     const [topProducts, setTopProducts] = useState<any[]>([])
@@ -172,6 +173,20 @@ export default function AdminDashboard() {
             setWeeklyRevenue(weekData)
         }
 
+        // 6. Fetch Today's Reservations
+        const { data: reservationsToday } = await supabase
+            .from('reservations')
+            .select('id')
+            .eq('reservation_date', todayISO.split('T')[0])
+            .not('status', 'eq', 'cancelled')
+
+        if (reservationsToday) {
+            setStats(prev => ({
+                ...prev,
+                todayReservations: reservationsToday.length
+            }))
+        }
+
         setLoading(false)
     }
 
@@ -269,16 +284,16 @@ export default function AdminDashboard() {
                     href="/admin/kitchen"
                     colorClass="from-orange-500/20 to-transparent"
                 />
-                {/* Nuevo: Módulo de Reservas (Mockeado o Listo para Conectar) */}
+                {/* Módulo de Reservas - AHORA FUNCIONAL */}
                 <StatsCard
                     title="Mesas / Reservas"
-                    value="12"
+                    value={stats.todayReservations}
                     subtitle="Reservas para hoy"
                     icon={Users}
-                    trend="+20%"
+                    trend="+100%"
                     trendUp={true}
-                    loading={false}
-                    href="/admin/reports"
+                    loading={loading}
+                    href="/admin/reservations"
                     colorClass="from-purple-500/20 to-transparent"
                 />
             </div>

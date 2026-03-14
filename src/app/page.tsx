@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/store/navbar";
 import { motion } from "framer-motion";
-import { Mic, Zap, Percent, Gift, MapPin, Clock, Phone } from "lucide-react";
+import { Mic, Zap, Percent, Gift, MapPin, Clock, Phone, Calendar, Users } from "lucide-react";
 import { Preloader } from "@/components/ui/preloader";
 import { ScrollVideo } from "@/components/ui/scroll-video";
 
@@ -117,6 +117,52 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
+
+        {/* --- SECTION: RESERVATIONS --- */}
+        <motion.section 
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="relative z-20 w-full max-w-5xl mx-auto px-6 py-12"
+        >
+          <div className="bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] border-2 border-primary/20 rounded-[3.5rem] p-10 sm:p-16 flex flex-col md:flex-row items-center gap-12 shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative overflow-hidden group">
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors" />
+            
+            <div className="flex-1 space-y-6 text-center md:text-left relative z-10">
+              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Libro Abierto</span>
+              </div>
+              <h2 className="text-4xl sm:text-6xl font-black italic uppercase tracking-tighter text-[#E8E0D5] leading-[0.9]">
+                Asegura tu <span className="text-primary italic neon-text-glow">Mesa</span>
+              </h2>
+              <p className="text-muted-foreground font-bold text-base sm:text-xl leading-relaxed max-w-md">
+                No te arriesgues a quedarte fuera. Reserva ahora y vive la auténtica experiencia Pozu 2.0 sin esperas.
+              </p>
+              <div className="pt-4">
+                <Link href="/reservar">
+                  <button className="h-16 px-12 rounded-2xl bg-primary text-black font-black uppercase italic tracking-tighter text-lg hover:scale-105 transition-all shadow-[0_15px_30px_rgba(234,179,8,0.2)]">
+                    Reservar Mesa Ahora
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="flex-shrink-0 relative w-full md:w-[300px] h-[300px] flex items-center justify-center">
+              <div className="absolute inset-0 bg-primary/10 rounded-full blur-[60px] animate-pulse" />
+              <div className="relative z-10 p-8 border-4 border-dashed border-primary/30 rounded-full group-hover:rotate-12 transition-transform duration-1000">
+                 <div className="w-40 h-40 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary shadow-[0_0_50px_rgba(234,179,8,0.3)]">
+                    <Users className="w-16 h-16 text-primary" />
+                 </div>
+              </div>
+              {/* Floating badges */}
+              <div className="absolute top-4 right-4 bg-white/5 backdrop-blur-md border border-white/10 p-3 rounded-2xl shadow-xl animate-bounce">
+                <span className="text-xl font-black italic text-primary">Top</span>
+              </div>
+            </div>
+          </div>
+        </motion.section>
 
         {/* --- SPACER FOR FLOW --- */}
         <div className="h-24 sm:h-32 lg:h-48" />

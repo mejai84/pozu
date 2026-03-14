@@ -94,6 +94,7 @@ export function Navbar() {
 
     const navLinks: { href: string; label: string; hasDropdown?: boolean }[] = [
         { href: "/menu", label: "La Carta" },
+        { href: "/reservar", label: "Reservas" },
         { href: "/#promos", label: "Chollos" },
         { href: "/#ubicacion", label: "Pozu Cerca" },
     ]
