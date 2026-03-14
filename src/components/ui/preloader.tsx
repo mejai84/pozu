@@ -21,11 +21,11 @@ export function Preloader() {
             }
             */
 
-            // Simulamos un tiempo mínimo de carga para que se vea la animación (5 segundos)
+            // Simulamos un tiempo mínimo de carga para que se vea la animación (3 segundos)
             const timer = setTimeout(() => {
                 setLoading(false)
                 sessionStorage.setItem('pozu_preloaded', 'true')
-            }, 5000)
+            }, 3000)
 
             return () => clearTimeout(timer)
         }
