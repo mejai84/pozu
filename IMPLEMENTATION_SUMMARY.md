@@ -473,4 +473,30 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 
 ---
 
-**Todo listo y desplegado! 🚀**
+### 21. **AI Omnichannel Chat v2 & Real-time Monitor v2** 🤖 ⭐ NUEVO (Marzo 2026)
+**Ubicación:** `/admin/realtime-monitor`, `/src/components/store/ai-chat-button.tsx` y n8n
+
+**Funcionalidades del Chat:**
+- ✅ **Sincronización Bidireccional**: Integración profunda con n8n para procesamiento de lenguaje natural y pedidos automáticos.
+- ✅ **Persistencia de Sesiones**: Uso de `session_id` para mantener el contexto de la conversación entre recargas de página.
+- ✅ **Premium UI/UX**: Componente flotante con soporte de arrastre (Draggable), animaciones fluidas y notificaciones visuales ("AI está cocinando...").
+- ✅ **Seguridad RLS Personalizada**: Protección de mensajes por `session_id` para garantizar la privacidad del cliente.
+
+**Funcionalidades del Monitor:**
+- ✅ **Notificaciones Auditivas Diferenciadas**:
+  - 🔔 **Nuevo Pedido**: Sonido de campana clásica al insertarse una orden.
+  - 💰 **Pago Confirmado**: Sonido de caja registradora (`cash-register.wav`) al actualizarse el estado a "pagado".
+- ✅ **Visualización de Estados de Pago**: Badges destacados de "PAGO CONFIRMADO" y fondos verdes para órdenes liquidadas en tiempo real.
+- ✅ **Indicadores de Seguridad IA**: El monitor ahora muestra alérgenos y stock para que el personal verifique las recomendaciones de la IA.
+
+### 22. **Gestión de Stock y Alérgenos para IA** 📊 ⭐ NUEVO
+**Ubicación:** `/admin/products` y Base de Datos
+
+**Funcionalidades:**
+- ✅ **Control de Stock en Tiempo Real**: Nuevos campos `stock_quantity` gestionables desde el admin para evitar ventas de productos agotados por la IA.
+- ✅ **Seguridad Alimentaria (Alérgenos)**: Campo `allergens` integrado para que la IA pueda informar y restringir pedidos basados en alergias del cliente.
+- ✅ **Visualización de Inventario**: Badges de stock (Bajo, Agotado, Disponible) con colores dinámicos en la lista de productos.
+
+---
+
+**Todo listo, sincronizado con n8n y desplegado! 🚀**
