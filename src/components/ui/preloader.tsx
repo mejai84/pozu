@@ -13,13 +13,11 @@ export function Preloader() {
             const hasPreloaded = sessionStorage.getItem('pozu_preloaded')
             const hasHash = window.location.hash.length > 0
 
-            // Comentamos el skip para que se vea siempre durante el ajuste de diseño
-            /*
-            if (hasPreloaded || hasHash) {
+            // Saltamos el preloader si el usuario va directo a una sección (#ubicacion, etc)
+            if (hasHash) {
                 setLoading(false)
                 return
             }
-            */
 
             // Simulamos un tiempo mínimo de carga para que se vea la animación (3 segundos)
             const timer = setTimeout(() => {
