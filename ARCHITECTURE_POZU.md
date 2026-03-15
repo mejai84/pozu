@@ -22,6 +22,14 @@ Componentes de UI, hooks globales y utilidades de Supabase que usan todos los m�
 - `src/core/hooks/` (useRealtime, useAuth)
 - `src/core/lib/` (supabase client)
 
+### 3. Integración Avanzada de Módulos Específicos
+#### Módulo de Reparto Avanzado & Tracking Cliente
+- **Tracking Cliente en Tiempo Real**: Rutas como `/pedidos/tracking` utilizan `supabase.channel` (`useRealtime`) para mostrar el estado del pedido, mapa en vivo interactivo e información de contacto del repartidor.
+- **Gestión de Evidencias y Firmas**: El módulo de reparto (`src/modules/delivery`) integra soporte offline/online nativo web con `SignatureCanvas` (HTML5) para firmar entregas.
+- **Supabase Storage**: 
+  - `incidents-photos`: Bucket público utilizado de forma dinámica para almacenar tanto **fotos de incidencias** en ruta, como **firmas digitales** de recepción del pedido.
+- **Estructura de Datos Extendida**: La tabla `orders` hace uso avanzado del tipo `JSONB` en la columna `incidents` para acoplar metadatos sin migraciones complejas, apoyada por las nuevas columnas `signature_url` y `delivered_at`.
+
 ### 3. `src/app/admin/` (Rutas Clean)
 Las páginas en el App Router serán solo "contenedores" delgados:
 ```tsx

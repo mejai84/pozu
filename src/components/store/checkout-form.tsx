@@ -59,37 +59,53 @@ export function CheckoutForm() {
     }
 
     return (
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-16">
             {/* Resumen */}
-            <div className="space-y-8">
-                <h2 className="text-3xl font-black uppercase tracking-tighter italic">Resumen del <span className="text-gradient">Pedido</span></h2>
-                <div className="space-y-6 bg-white/5 p-8 rounded-[32px] border border-white/10 backdrop-blur-md shadow-xl">
-                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+            <div className="space-y-10">
+                <div className="space-y-1">
+                    <h2 className="text-4xl font-black uppercase tracking-tighter italic text-white">Resumen del <span className="text-primary">Pedido</span></h2>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Revisa tu artillería antes de atacar</p>
+                </div>
+
+                <div className="space-y-8 bg-[#0E0E0E] p-10 rounded-[48px] border border-white/5 relative overflow-hidden group shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full group-hover:bg-primary/10 transition-colors" />
+                    
+                    <div className="space-y-6 max-h-[450px] overflow-y-auto pr-4 no-scrollbar relative z-10">
                         {items.map(item => (
-                            <div key={item.uniqueId} className="flex justify-between items-center group">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-black text-primary group-hover:scale-110 transition-transform">
-                                        {item.quantity}x
+                            <div key={item.uniqueId} className="flex justify-between items-center group/item">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center font-black text-primary text-lg group-hover/item:border-primary/30 transition-all">
+                                        {item.quantity}
                                     </div>
-                                    <span className="font-bold text-lg">{item.name}</span>
+                                    <div className="flex flex-col">
+                                        <span className="font-black italic uppercase text-lg text-white group-hover/item:text-primary transition-colors">{item.name}</span>
+                                        {item.options && (
+                                            <span className="text-[10px] font-bold uppercase tracking-tight text-primary/60 italic">{item.options}</span>
+                                        )}
+                                    </div>
                                 </div>
-                                <span className="font-bold text-muted-foreground">{(item.price * item.quantity).toFixed(2)}€</span>
+                                <span className="font-black text-xl italic text-white/40 group-hover/item:text-white transition-colors">{(item.price * item.quantity).toFixed(2)}€</span>
                             </div>
                         ))}
                     </div>
                     
-                    <div className="border-t border-white/10 pt-6 mt-6 space-y-4">
-                        <div className="flex justify-between text-muted-foreground font-medium">
+                    <div className="border-t border-white/5 pt-8 mt-4 space-y-4 relative z-10">
+                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-muted-foreground">
                             <span>Base del pedido</span>
-                            <span>{cartTotal.toFixed(2)}€</span>
+                            <span className="text-white italic">{cartTotal.toFixed(2)}€</span>
                         </div>
-                        <div className="flex justify-between text-muted-foreground font-medium">
+                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-muted-foreground">
                             <span>Gastos de envío</span>
-                            <span>2.50€</span>
+                            <span className="text-white italic">2.50€</span>
                         </div>
-                        <div className="flex justify-between text-3xl font-black pt-6 border-t border-white/10 text-primary uppercase italic tracking-tighter">
-                            <span>Total</span>
-                            <span>{(cartTotal + 2.50).toFixed(2)}€</span>
+                        <div className="flex justify-between items-center pt-8 mt-4 border-t-2 border-primary/20">
+                            <span className="text-xl font-black italic text-white uppercase tracking-tighter">TOTAL A PAGAR</span>
+                            <div className="flex flex-col items-end">
+                                <span className="text-5xl font-black italic text-primary tracking-tighter drop-shadow-[0_10px_20px_rgba(234,179,8,0.2)]">
+                                    {(cartTotal + 2.50).toFixed(2)}€
+                                </span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary/40">IVA INCLUIDO</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -114,13 +130,6 @@ export function CheckoutForm() {
                             appearance: appearance as any,
                             locale: 'es',
                             loader: 'auto',
-                            defaultValues: {
-                                billingDetails: {
-                                    address: {
-                                        country: 'ES',
-                                    },
-                                },
-                            },
                         }}
                     >
                         <CheckoutInnerForm user={user} />

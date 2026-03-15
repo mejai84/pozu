@@ -276,7 +276,38 @@ export function AIChatButton() {
                   <div className="mt-4 flex items-center justify-between px-2">
                     <div className="flex gap-4">
                       <button className="text-white/40 hover:text-primary transition-colors p-1" title="Adjuntar (Próximamente)"><Paperclip className="w-5 h-5" /></button>
-                      <button className={cn("transition-all p-1", isRecording ? "text-red-500 scale-125 animate-pulse" : "text-white/40 hover:text-primary")} title="Voz (Próximamente)">
+                      <button 
+                        onClick={() => {
+                          if (isRecording) {
+                            // Detener
+                            const recognition = (window as any).recognition
+                            if (recognition) recognition.stop()
+                            setIsRecording(false)
+                          } else {
+                            // Iniciar
+                            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+                            if (!SpeechRecognition) {
+                              alert("Tu navegador no soporta reconocimiento de voz.")
+                              return
+                            }
+                            const recognition = new SpeechRecognition()
+                            recognition.lang = 'es-ES'
+                            recognition.interimResults = false
+                            recognition.onstart = () => setIsRecording(true)
+                            recognition.onresult = (event: any) => {
+                              const transcript = event.results[0][0].transcript
+                              setInput(transcript)
+                              setIsRecording(false)
+                            }
+                            recognition.onerror = () => setIsRecording(false)
+                            recognition.onend = () => setIsRecording(false)
+                            ;(window as any).recognition = recognition
+                            recognition.start()
+                          }
+                        }}
+                        className={cn("transition-all p-1", isRecording ? "text-red-500 scale-125 animate-pulse" : "text-white/40 hover:text-primary")} 
+                        title={isRecording ? "Escuchando..." : "Dictar mensaje"}
+                      >
                         <Mic className="w-5 h-5" />
                       </button>
                     </div>

@@ -8,14 +8,14 @@ import { OperationalFeed } from "./components/OperationalFeed"
 import { DashboardHeader } from "./components/DashboardHeader"
 
 export const DashboardModule = () => {
-    const { 
-        stats, 
-        recentOrders, 
-        topProducts, 
-        weeklyRevenue, 
-        loading, 
-        userRole, 
-        refresh 
+    const {
+        stats,
+        recentOrders,
+        topProducts,
+        weeklyRevenue,
+        loading,
+        userRole,
+        refresh
     } = useDashboard()
 
     const calculateTrend = (today: number, yesterday: number) => {
@@ -78,12 +78,16 @@ export const DashboardModule = () => {
                 />
             </div>
 
-            <AnalyticalCharts weeklyRevenue={weeklyRevenue} userRole={userRole} />
+            <AnalyticalCharts
+                weeklyRevenue={weeklyRevenue}
+                topProducts={topProducts}
+                userRole={userRole}
+            />
 
-            <OperationalFeed 
-                recentOrders={recentOrders} 
-                topProducts={topProducts} 
-                loading={loading} 
+            <OperationalFeed
+                recentOrders={recentOrders}
+                topProducts={topProducts}
+                loading={loading}
             />
         </div>
     )

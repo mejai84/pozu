@@ -31,12 +31,13 @@ Sistema completo de pedidos online y gestión administrativa para restaurante de
 - 📱 Diseño completamente responsive
 - 📅 **Reservas Online** con confirmación automática
 - 📝 **Personalización de Productos** (notas sobre ingredientes, puntos de carne, etc.)
+- 📍 **Tracking de Pedidos en Tiempo Real** (tipo Uber Eats)
 - 🎨 UI moderna con animaciones de alto impacto
 
-### Para Administradores:
+### Para Administradores y Staff:
 - 📊 **Dashboard** con métricas en tiempo real
 - 🛒 **Gestión de Pedidos** con auto-envío a cocina para pagos web
-- 🚲 **Módulo de Reparto** con integración GPS y gestión de entregas
+- 🚲 **Módulo de Reparto PWA** con GPS, captura de firmas digitales y reporte fotográfico de incidencias
 - 👨‍🍳 **KDS (Kitchen Display System)** con notificaciones visuales y sonoras
 - 🍔 **Gestión de Productos** con control de stock y alérgenos
 - 👥 **Gestión de Clientes** con historial de consumo
@@ -346,6 +347,15 @@ WHERE email = 'tu_email@ejemplo.com';
 - [ ] Multi-idioma (i18n)
 - [ ] PWA (Progressive Web App)
 - [ ] Pagos online (Stripe/PayPal)
+
+---
+
+## 🧪 Aseguramiento de Calidad y Pruebas (QA)
+
+El proyecto cuenta con una hoja de ruta de pruebas (Testing Roadmap) exhaustiva diseñada para prevenir fallas financieras y alucinaciones en el sistema omnicanal.
+
+Para ver los casos de prueba End-to-End, Edge Cases y validaciones de la pasarela de Stripe, revisa el documento: 
+👉 [TESTING_ROADMAP_POZU_2.0.md](./TESTING_ROADMAP_POZU_2.0.md)
 
 ---
 

@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Exclude the locked/empty burger-landing folder from build scanning
+  outputFileTracingExcludes: {
+    '*': ['./src/app/burger-landing/**'],
+  },
 };
 
 export default nextConfig;

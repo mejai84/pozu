@@ -3,11 +3,12 @@
 import { useState } from "react"
 import { useCart } from "./cart-context"
 import { Button } from "@/components/ui/button"
-import { Loader2, CreditCard, Banknote } from "lucide-react"
+import { Loader2, CreditCard, Banknote, MapPin, Phone, User as UserIcon, ShieldCheck, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
-import Link from "next/link"
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 export function CheckoutInnerForm({ user }: { user: any }) {
     const { items, cartTotal, clearCart } = useCart()
@@ -39,30 +40,21 @@ export function CheckoutInnerForm({ user }: { user: any }) {
 
             let stripeDetails = {}
             if (paymentMethod === 'stripe') {
-                if (!stripe || !elements) {
-                    throw new Error("Stripe no está inicializado")
-                }
-                
+                if (!stripe || !elements) throw new Error("Stripe no está inicializado")
+
                 const { error: submitError } = await elements.submit()
-                if (submitError) {
-                     throw new Error(submitError.message)
-                }
+                if (submitError) throw new Error(submitError.message)
 
                 const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
                     elements,
                     redirect: 'if_required',
                 })
 
-                if (confirmError) {
-                    throw new Error(confirmError.message)
-                }
+                if (confirmError) throw new Error(confirmError.message)
 
                 if (paymentIntent) {
                     stripeDetails = {
                         stripe_payment_id: paymentIntent.id,
-                        // Nota: Algunos detalles de tarjeta están en payment_method_types 
-                        // pero la info detallada suele venir del servidor or via webhooks.
-                        // Intentamos capturar lo que venga disponible
                         payment_metadata: {
                             status: paymentIntent.status,
                             currency: paymentIntent.currency,
@@ -72,7 +64,6 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                 }
             }
 
-            // 2. Insert Order en Supabase
             const orderData = {
                 user_id: user?.id || null,
                 guest_info: user ? null : {
@@ -125,7 +116,7 @@ export function CheckoutInnerForm({ user }: { user: any }) {
             if (itemsError) throw new Error(itemsError.message)
 
             clearCart()
-            router.push('/checkout/success')
+            router.push(`/checkout/success?id=${order.id}`)
 
         } catch (error: any) {
             console.error(error)
@@ -136,73 +127,150 @@ export function CheckoutInnerForm({ user }: { user: any }) {
     }
 
     return (
-        <form onSubmit={handleCheckout} className="space-y-8 p-8 rounded-[32px] bg-white/5 border border-white/10 backdrop-blur-md">
-            <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Nombre</label>
-                    <input name="firstName" onChange={handleInputChange} placeholder="Rockstar" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
+        <form onSubmit={handleCheckout} className="space-y-12">
+            {/* Step 1: Delivery Details */}
+            <section className="space-y-6">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+                        <MapPin className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Detalles de Entrega</h2>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">¿A dónde enviamos la artillería?</p>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Apellidos</label>
-                    <input name="lastName" onChange={handleInputChange} placeholder="Pozu" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-                </div>
-            </div>
-            
-            <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Dirección de Entrega</label>
-                <input name="address" onChange={handleInputChange} placeholder="Calle Río Cares, 2..." className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-            </div>
 
-            <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Ciudad</label>
-                    <input name="city" onChange={handleInputChange} placeholder="Pola de Laviana" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 group-focus-within:text-primary transition-colors">Nombre</label>
+                        <div className="relative">
+                            <input name="firstName" onChange={handleInputChange} placeholder="Rockstar" className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 focus:border-primary/50 outline-none transition-all font-bold text-white placeholder:text-white/10" required />
+                            <UserIcon className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/10 group-focus-within:text-primary/40" />
+                        </div>
+                    </div>
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 group-focus-within:text-primary transition-colors">Apellidos</label>
+                        <div className="relative">
+                            <input name="lastName" onChange={handleInputChange} placeholder="Pozu" className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 focus:border-primary/50 outline-none transition-all font-bold text-white placeholder:text-white/10" required />
+                        </div>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Teléfono</label>
-                    <input name="phone" onChange={handleInputChange} placeholder="600 000 000" className="bg-white/5 border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 outline-none transition-all font-medium" required />
-                </div>
-            </div>
 
-            <div className="space-y-4">
-                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Método de Pago</label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2 group">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 group-focus-within:text-primary transition-colors">Dirección de Entrega</label>
+                    <div className="relative">
+                        <input name="address" onChange={handleInputChange} placeholder="Calle Río Cares, 2..." className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 focus:border-primary/50 outline-none transition-all font-bold text-white placeholder:text-white/10" required />
+                        <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/10 group-focus-within:text-primary/40" />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 group-focus-within:text-primary transition-colors">Ciudad</label>
+                        <input name="city" onChange={handleInputChange} placeholder="Pola de Laviana" className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 focus:border-primary/50 outline-none transition-all font-bold text-white placeholder:text-white/10" required />
+                    </div>
+                    <div className="space-y-2 group">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 group-focus-within:text-primary transition-colors">Teléfono</label>
+                        <div className="relative">
+                            <input name="phone" onChange={handleInputChange} placeholder="600 000 000" className="bg-white/[0.03] border border-white/10 rounded-2xl p-5 w-full focus:ring-2 focus:ring-primary/40 focus:bg-white/10 focus:border-primary/50 outline-none transition-all font-bold text-white placeholder:text-white/10" required />
+                            <Phone className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/10 group-focus-within:text-primary/40" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Step 2: Payment Method */}
+            <section className="space-y-8">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+                        <ShieldCheck className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black italic uppercase tracking-tighter text-white">Método de Pago</h2>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Pago 100% seguro y encriptado</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button
                         type="button"
                         onClick={() => setPaymentMethod('stripe')}
-                        className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'stripe' 
-                            ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(255,184,0,0.1)]' 
-                            : 'bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:border-white/10'}`}
+                        className={`group p-8 rounded-3xl border-2 flex flex-col items-start gap-4 transition-all relative overflow-hidden ${paymentMethod === 'stripe'
+                            ? 'bg-primary/10 border-primary text-primary shadow-[0_10px_30px_rgba(234,179,8,0.1)]'
+                            : 'bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:border-white/10'}`}
                     >
-                        <CreditCard className="w-8 h-8" />
-                        <span className="font-bold uppercase tracking-tighter">Tarjeta / Apple Pay</span>
+                        <CreditCard className={cn("w-10 h-10 transition-transform group-hover:scale-110", paymentMethod === 'stripe' ? 'text-primary' : 'text-white/20')} />
+                        <div className="text-left">
+                            <span className="block font-black italic uppercase tracking-tighter text-lg leading-none">Tarjeta / Apple Pay</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Checkout Instantáneo</span>
+                        </div>
+                        {paymentMethod === 'stripe' && (
+                            <motion.div layoutId="paymentGlow" className="absolute -inset-4 bg-primary/5 blur-3xl pointer-events-none" />
+                        )}
                     </button>
                     <button
                         type="button"
                         onClick={() => setPaymentMethod('cash')}
-                        className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${paymentMethod === 'cash' 
-                            ? 'bg-primary/10 border-primary text-primary shadow-[0_0_20px_rgba(255,184,0,0.1)]' 
-                            : 'bg-white/5 border-transparent text-muted-foreground hover:bg-white/10 hover:border-white/10'}`}
+                        className={`group p-8 rounded-3xl border-2 flex flex-col items-start gap-4 transition-all relative overflow-hidden ${paymentMethod === 'cash'
+                            ? 'bg-primary/10 border-primary text-primary shadow-[0_10px_30px_rgba(234,179,8,0.1)]'
+                            : 'bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:border-white/10'}`}
                     >
-                        <Banknote className="w-8 h-8" />
-                        <span className="font-bold uppercase tracking-tighter">Efectivo al Repartidor</span>
+                        <Banknote className={cn("w-10 h-10 transition-transform group-hover:scale-110", paymentMethod === 'cash' ? 'text-primary' : 'text-white/20')} />
+                        <div className="text-left">
+                            <span className="block font-black italic uppercase tracking-tighter text-lg leading-none">Efectivo al Repartidor</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Paga al recibir</span>
+                        </div>
+                        {paymentMethod === 'cash' && (
+                            <motion.div layoutId="paymentGlow" className="absolute -inset-4 bg-primary/5 blur-3xl pointer-events-none" />
+                        )}
                     </button>
                 </div>
-            </div>
 
-            {paymentMethod === 'stripe' && (
-                <div className="p-6 bg-white/5 border border-white/10 rounded-2xl text-white">
-                    <PaymentElement options={{ layout: 'tabs' }} />
+                <AnimatePresence mode="wait">
+                    {paymentMethod === 'stripe' && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="p-8 bg-white/[0.02] border border-white/10 rounded-[32px] overflow-hidden relative"
+                        >
+                            <PaymentElement options={{ layout: 'accordion' }} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </section>
+
+            {/* Total & Submit */}
+            <div className="pt-8 space-y-4">
+                <div className="p-8 rounded-[40px] bg-gradient-to-br from-primary to-yellow-600 shadow-[0_20px_60px_rgba(234,179,8,0.3)] relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-white/10 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+
+                    <button
+                        type="submit"
+                        className="w-full flex items-center justify-between group/btn disabled:opacity-50"
+                        disabled={loading || (paymentMethod === 'stripe' && !stripe)}
+                    >
+                        <div className="text-left">
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/60">Finalizar mi pedido</p>
+                            <h3 className="text-4xl font-black italic uppercase tracking-tighter text-black">
+                                {loading ? 'PROCESANDO...' : `PAGAR ${(cartTotal + 2.50).toFixed(2)}€`}
+                            </h3>
+                        </div>
+                        <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center shadow-2xl group-hover/btn:scale-110 transition-transform">
+                            {loading ? (
+                                <Loader2 className="animate-spin w-8 h-8 text-primary" />
+                            ) : (
+                                <ArrowRight className="w-8 h-8 text-primary group-hover/btn:translate-x-1 transition-transform" />
+                            )}
+                        </div>
+                    </button>
                 </div>
-            )}
 
-            <Button 
-                type="submit" 
-                className="w-full h-20 text-2xl font-black uppercase tracking-tighter italic shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:shadow-[0_0_50px_rgba(255,184,0,0.5)] transition-all rounded-2xl" 
-                disabled={loading || (paymentMethod === 'stripe' && !stripe)}
-            >
-                {loading ? <Loader2 className="animate-spin w-8 h-8" /> : `Pagar y Pedir ${(cartTotal + 2.50).toFixed(2)}€`}
-            </Button>
+                <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
+                    Al confirmar, aceptas nuestras condiciones de servicio y políticas de privacidad.
+                </p>
+            </div>
         </form>
     )
 }
+
