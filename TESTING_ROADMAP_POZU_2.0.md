@@ -91,5 +91,5 @@
 ### Optimización de IA (Costes)
 - **Oportunidad:** El Agente Langchain principal está utilizando `gpt-4o` para *todo*. Para el nodo inicial de clasificación de la intención del usuario ("Clasificar Tipo Contenido"), se podría usar un modelo mucho más barato y rápido (`gpt-4o-mini` o `Claude 3.5 Haiku`), ahorrando hasta un 80% en los triggers iniciales.
 
-### Escalabilidad (Preparación Jamali OS)
-- **Oportunidad:** Centralizar los placeholders de URLs (Evolution API) y API Keys (Stripe, Supabase, OpenAI) en variables de entorno globales de n8n o variables de proyecto (`$env`). Esto facilitará enormemente la clonación e instanciación del workflow para los futuros y nuevos restaurantes que utilicen el sistema Multi-Tenant de Jamali OS.
+### Escalabilidad
+- **Oportunidad:** Centralizar los placeholders de URLs (Evolution API) y API Keys (Stripe, Supabase, OpenAI) en variables de entorno globales de n8n o variables de proyecto (`$env`). Esto facilitará enormemente la clonación e instanciación del workflow para futuros despliegues.

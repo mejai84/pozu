@@ -1,7 +1,7 @@
 # Arquitectura Pozu 2.0: Core + Plugins
 
 ## 🚀 Filosofía de Diseño
-Pozu 2.0 evoluciona hacia una estructura modular para garantizar escalabilidad, mantenibilidad y archivos de código cortos (menos de 200 líneas por componente). Inspirado en la arquitectura de JAMALI OS, cada sección del panel de administración es un "Plugin" independiente.
+Pozu 2.0 evoluciona hacia una estructura modular para garantizar escalabilidad, mantenibilidad y archivos de código cortos (menos de 200 líneas por componente). Cada sección del panel de administración es un "Plugin" independiente.
 
 ## 📁 Estructura de Directorios
 

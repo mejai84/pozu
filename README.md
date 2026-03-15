@@ -236,9 +236,12 @@ WHERE email = 'tu_email@ejemplo.com';
 - id (UUID, PK)
 - user_id (UUID, FK → auth.users)
 - guest_info (JSONB)
+- subtotal (NUMERIC) -- ⭐ NUEVO
+- tax_amount (NUMERIC) -- ⭐ NUEVO
+- delivery_fee (NUMERIC) -- ⭐ NUEVO
 - total (NUMERIC)
 - status (TEXT) -- pending, confirmed, preparing, ready, out_for_delivery, delivered
-- payment_method (TEXT) -- cash, stripe
+- payment_method (TEXT) -- cash, stripe, card
 - payment_status (TEXT) -- pending, paid
 - stripe_payment_id (TEXT)
 - stripe_charge_id (TEXT)
@@ -264,6 +267,16 @@ WHERE email = 'tu_email@ejemplo.com';
 - key (TEXT, UNIQUE)
 - value (JSONB)
 - updated_at (TIMESTAMP)
+```
+
+#### `error_logs` ⭐ NUEVO
+```sql
+- id (UUID, PK)
+- node_name (TEXT)
+- error_message (TEXT)
+- workflow_id (TEXT)
+- item_data (JSONB)
+- created_at (TIMESTAMPTZ)
 ```
 
 ### Políticas RLS:
