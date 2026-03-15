@@ -5,7 +5,7 @@
 | Módulo | Archivo Principal | Líneas | Estado | Riesgo |
 | :--- | :--- | :--- | :--- | :--- |
 | **Dashboard** | `admin/page.tsx` | ~600 | Acoplado | Medio |
-| **KDS (Cocina)** | `admin/kitchen/page.tsx` | ~450 | Monolítico | Alto |
+| **KDS (Cocina)** | `admin/kitchen/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **Monitor** | `admin/realtime-monitor/page.tsx` | ~500 | Monolítico | Alto |
 | **Clientes/CRM** | `admin/customers/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **Productos** | `admin/products/page.tsx` | ~400 | Acoplado | Medio |
@@ -19,9 +19,11 @@
 - [x] Extraer `CustomerDetailsModal` a componente independiente.
 - [x] Orquestar en `src/modules/customers/index.tsx`.
 
-### 2. Migración KDS (Módulo Cocina) 👨‍🍳
-- [ ] Extraer `KDSCard` a un componente modular.
-- [ ] Mover lógica de sonido y suscripción a un hook `useKDS`.
+### 2. Migración KDS (Módulo Cocina) ✅
+- [x] Extraer `KDSCard` a un componente modular.
+- [x] Mover lógica de sonido y suscripción a un hook `useKDS`.
+- [x] Crear componentes `KDSHeader` y `KDSModal`.
+- [x] Orquestar en `src/modules/kitchen/index.tsx`.
 
 ### 3. Migración Monitor (Escudo Pozu) 🛡️
 - [ ] Separar la lógica del semáforo de riesgo (ShieldAlert, etc).
