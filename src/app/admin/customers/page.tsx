@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, Search, ShoppingBag, Phone, Loader2, Download, Filter, Star, Crown, History, ExternalLink, Calendar, DollarSign, ArrowRight, Mail, Pencil, Trash2, X, MessageCircle, AlertTriangle, Save } from "lucide-react"
+import { Users, Search, ShoppingBag, Phone, Loader2, Download, Filter, Star, Crown, History, ExternalLink, Calendar, DollarSign, ArrowRight, Mail, Pencil, Trash2, X, MessageCircle, AlertTriangle, Save, ShieldAlert } from "lucide-react"
 import { useEffect, useState, useMemo } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { motion, AnimatePresence } from "framer-motion"
@@ -16,6 +16,7 @@ interface Customer {
     orders: any[]
     points: number
     isRisk: boolean
+    riskLevel?: 'VERDE' | 'AMARILLO' | 'ROJO'
 }
 
 export default function CustomersPage() {
@@ -87,17 +88,22 @@ export default function CustomersPage() {
                     }
                 })
 
-                // Calcular puntos y riesgo
-                const finalCustomers = Array.from(customerMap.values()).map(c => {
+                // Calcular puntos y riesgo real
+                const finalCustomers = await Promise.all(Array.from(customerMap.values()).map(async (c) => {
                     const lastOrderDate = new Date(c.lastOrder)
                     const diffDays = Math.floor((now.getTime() - lastOrderDate.getTime()) / (1000 * 60 * 60 * 24))
                     
+                    // Consultar reputación real en Supabase
+                    const { data: riskData } = await supabase.rpc('check_order_risk', { p_phone: c.phone })
+                    const riskLevel = riskData?.[0]?.risk_level || 'AMARILLO'
+
                     return {
                         ...c,
-                        points: Math.floor(c.totalSpent / 10), // 1 punto cada 10€
-                        isRisk: diffDays > 30 && c.totalSpent > 50 // Riesgo si no pide hace 30 días y ha gastado > 50€
+                        points: Math.floor(c.totalSpent / 10),
+                        isRisk: riskLevel === 'ROJO',
+                        riskLevel: riskLevel
                     }
-                })
+                }))
 
                 setCustomers(finalCustomers)
             }
@@ -173,7 +179,8 @@ export default function CustomersPage() {
     }
 
     const getCustomerTag = (customer: Customer) => {
-        if (customer.isRisk) return { label: 'FUGA', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: AlertTriangle }
+        if (customer.riskLevel === 'ROJO') return { label: 'LISTA NEGRA', color: 'bg-red-600 text-white border-red-500 animate-pulse', icon: ShieldAlert }
+        if (customer.riskLevel === 'VERDE') return { label: 'VIP FIABLE', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: Crown }
         if (customer.totalSpent > 150) return { label: 'VIP', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', icon: Crown }
         if (customer.totalOrders >= 5) return { label: 'FIEL', color: 'bg-primary/10 text-primary border-primary/20', icon: Star }
         if (customer.totalOrders === 1) return { label: 'NUEVO', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', icon: Calendar }

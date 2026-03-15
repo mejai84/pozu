@@ -15,7 +15,10 @@ import {
   Phone, 
   Bike,
   Printer,
-  X
+  X,
+  ShieldAlert,
+  ShieldCheck,
+  ShieldQuestion
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -46,6 +49,7 @@ type Order = {
   is_paid: boolean
   source: string | null
   order_items: OrderItem[]
+  risk_level?: 'VERDE' | 'AMARILLO' | 'ROJO'
 }
 
 export default function AdminRealtimeMonitor() {
@@ -79,8 +83,21 @@ export default function AdminRealtimeMonitor() {
         .limit(20)
 
       if (error) throw error
-      const newOrders = data || []
-      setOrders(newOrders)
+      let newOrders = data || []
+      
+      // Enriquecer órdenes con el nivel de riesgo
+      const ordersWithRisk = await Promise.all(newOrders.map(async (order) => {
+        const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+        const phone = order.customer_phone || guestInfo?.phone;
+        
+        if (phone) {
+          const { data: riskData } = await supabase.rpc('check_order_risk', { p_phone: phone });
+          return { ...order, risk_level: riskData?.[0]?.risk_level || 'AMARILLO' };
+        }
+        return { ...order, risk_level: 'AMARILLO' };
+      }));
+
+      setOrders(ordersWithRisk as Order[])
       setLastUpdate(new Date())
 
       // Lógica de Impresión Inteligente
@@ -357,6 +374,20 @@ export default function AdminRealtimeMonitor() {
                     )}>
                       {getStatusIcon(order.status)}
                       {getStatusText(order.status)}
+                    </div>
+
+                    {/* Badge de Reputación / Anti-Fraude */}
+                    <div className={cn(
+                      "absolute top-6 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[8px] font-black flex items-center gap-1 shadow-lg border",
+                      order.risk_level === 'ROJO' ? "bg-red-600 text-white border-red-400 animate-pulse" :
+                      order.risk_level === 'VERDE' ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
+                      "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                    )}>
+                      {order.risk_level === 'ROJO' ? <ShieldAlert className="w-3 h-3" /> : 
+                       order.risk_level === 'VERDE' ? <ShieldCheck className="w-3 h-3" /> : 
+                       <ShieldQuestion className="w-3 h-3" />}
+                      {order.risk_level === 'ROJO' ? 'LISTA NEGRA / RIESGO' : 
+                       order.risk_level === 'VERDE' ? 'CLIENTE FIABLE' : 'CLIENTE NUEVO'}
                     </div>
                   </div>
 

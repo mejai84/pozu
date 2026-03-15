@@ -75,12 +75,11 @@ export default function KitchenPage() {
             .order('created_at', { ascending: true })
 
         if (!error && data) {
-            // Check for new pending orders
+            // Lógica de alerta por nuevos pedidos confirmados
             const currentIds = new Set(currentOrders.map(o => o.id))
-            const newOrders = data.filter(o => o.status === 'pending' && !currentIds.has(o.id))
+            const newConfirmedOrders = data.filter(o => !currentIds.has(o.id))
             
-            if (newOrders.length > 0 && currentOrders.length > 0) {
-                // Play sound if there's a newly inserted order
+            if (newConfirmedOrders.length > 0 && currentOrders.length > 0) {
                 playAlertSound()
             }
             
@@ -134,9 +133,9 @@ export default function KitchenPage() {
         return Math.floor((now - start) / 60000)
     }
 
-    const { preparing, pending } = useMemo(() => ({
+    const { preparing, confirmed } = useMemo(() => ({
         preparing: orders.filter(o => o.status === 'preparing'),
-        pending: orders.filter(o => o.status === 'pending')
+        confirmed: orders.filter(o => o.status === 'confirmed')
     }), [orders])
 
     return (
@@ -167,7 +166,7 @@ export default function KitchenPage() {
                         </div>
                         <div className="bg-white/5 border border-white/10 px-6 py-4 rounded-3xl text-center min-w-[120px]">
                             <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50 mb-1">En Cola</p>
-                            <p className="text-3xl font-black italic">{pending.length}</p>
+                            <p className="text-3xl font-black italic">{confirmed.length}</p>
                         </div>
                     </div>
 
@@ -342,7 +341,7 @@ function KDSCard({ order, onMarchar, onListo, onExpand, minutes, index }: any) {
                     <h3 className="text-2xl font-black italic tracking-tighter">#{order.id.split('-')[0].toUpperCase()}</h3>
                     <div className="flex items-center gap-2 mt-1">
                         <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${isPreparing ? 'bg-black/10' : 'bg-white/10'}`}>
-                            {isPreparing ? 'EN PLANCHA 🔥' : isUrgent ? 'DEMORADO ⚠️' : 'PENDIENTE'}
+                            {isPreparing ? 'EN PLANCHA 🔥' : isUrgent ? 'DEMORADO ⚠️' : 'EN COLA'}
                         </span>
                     </div>
                 </div>
