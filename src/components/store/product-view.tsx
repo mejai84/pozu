@@ -12,11 +12,15 @@ import { motion, AnimatePresence } from "framer-motion"
 import { AddToCartButton } from "@/components/store/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import { ProductImage } from "@/components/store/product-image"
+import { cn } from "@/lib/utils"
 
 
 export function ProductView({ product }: { product: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [observations, setObservations] = useState("")
+    const [meatType, setMeatType] = useState<"Vacuno" | "Pollo">("Vacuno")
+
+    const isBurger = product.category_id === "0bc02f87-623d-4b2a-9ee2-1f7a6e5fde1e" || product.name.toLowerCase().includes("hamburguesa") || product.name.toLowerCase().includes("pozu")
 
     // Mapeo de iconos para alérgenos comunes
     const getAllergenIcon = (name: string) => {
@@ -73,6 +77,8 @@ export function ProductView({ product }: { product: any }) {
         carbs: "45g"
     }
 
+    const finalPrice = meatType === "Pollo" ? product.price + 2.00 : product.price
+
     return (
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center relative">
             {/* Luces Ambientales de Fondo */}
@@ -94,8 +100,6 @@ export function ProductView({ product }: { product: any }) {
                         const videoSrc = product.options?.video_url || (product.image_url?.toLowerCase().endsWith('.webm') ? product.image_url : null);
                         const isVideo = !!videoSrc;
                         const mainSrc = isVideo ? videoSrc : (product.image_url || product.image || null);
-                        const hasImage = !!mainSrc
-
                         const thumbSrc = product.options?.video_url 
                             ? (product.image_url || null)
                             : (isVideo && typeof mainSrc === 'string'
@@ -157,8 +161,8 @@ export function ProductView({ product }: { product: any }) {
             {/* Detalles del Producto */}
             <div className="space-y-8">
                 <div className="space-y-4">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">{product.name}</h1>
-                    <div className="text-2xl sm:text-3xl font-bold text-primary">{product.price.toFixed(2)}€</div>
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">{product.name}</h1>
+                    <div className="text-2xl sm:text-3xl font-bold text-primary">{finalPrice.toFixed(2)}€</div>
                     <p className="text-xl text-muted-foreground leading-relaxed">
                         {product.description || "Deliciosa combinación de ingredientes frescos y carne de primera calidad."}
                     </p>
@@ -220,28 +224,75 @@ export function ProductView({ product }: { product: any }) {
                     </div>
                 </div>
 
+                {/* Selección de Carne (Solo para hamburguesas) */}
+                {isBurger && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-700">
+                        <h3 className="font-bold flex items-center gap-2 text-[#E8E0D5]">
+                            <Beef className="w-4 h-4 text-primary" />
+                            Selecciona tu proteína
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                onClick={() => setMeatType("Vacuno")}
+                                className={cn(
+                                    "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
+                                    meatType === "Vacuno" 
+                                        ? "bg-primary/10 border-primary text-primary" 
+                                        : "bg-white/5 border-transparent text-muted-foreground hover:bg-white/10"
+                                )}
+                            >
+                                <Beef className="w-6 h-6" />
+                                <span className="font-bold uppercase tracking-tighter text-sm">Ternera Asturiana</span>
+                            </button>
+                            <button
+                                onClick={() => setMeatType("Pollo")}
+                                className={cn(
+                                    "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 relative",
+                                    meatType === "Pollo" 
+                                        ? "bg-primary/10 border-primary text-primary" 
+                                        : "bg-white/5 border-transparent text-muted-foreground hover:bg-white/10"
+                                )}
+                            >
+                                <motion.span 
+                                    initial={{ scale: 0 }} 
+                                    animate={{ scale: 1 }} 
+                                    className="absolute -top-2 -right-2 bg-primary text-black text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg"
+                                >
+                                    +2€
+                                </motion.span>
+                                <ChefHat className="w-6 h-6" />
+                                <span className="font-bold uppercase tracking-tighter text-sm">Pollo Crujiente</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Observaciones / Personalización */}
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <h3 className="font-bold flex items-center gap-2 text-[#E8E0D5]">
                         <ChefHat className="w-4 h-4 text-primary" />
-                        ¿Quieres personalizar tu pedido?
+                        ¿Alguna observación?
                     </h3>
                     <div className="relative group">
                         <textarea
                             value={observations}
                             onChange={(e) => setObservations(e.target.value)}
-                            placeholder="Ej: Sin cebolla, pan sin gluten, carne muy hecha..."
-                            className="w-full h-24 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all resize-none placeholder:text-muted-foreground/50"
+                            placeholder="Ej: Sin cebolla, poco hecha, sin tomate..."
+                            className="w-full h-28 bg-white/5 border border-white/20 rounded-2xl p-4 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-muted-foreground/40 font-medium"
                         />
-                        <div className="absolute bottom-3 right-3 text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest pointer-events-none group-focus-within:text-primary/50 transition-colors">
-                            Opcional
+                        <div className="absolute bottom-3 right-3 text-[9px] font-black uppercase tracking-[0.3em] text-primary/30 pointer-events-none group-focus-within:text-primary transition-colors">
+                            Personalización
                         </div>
                     </div>
                 </div>
 
                 {/* Add to Cart */}
                 <div className="pt-6 border-t border-white/10">
-                    <AddToCartButton product={product} options={observations} />
+                    <AddToCartButton 
+                        product={product} 
+                        price={finalPrice}
+                        options={isBurger ? `CARNE: ${meatType}${observations ? ' | NOTAS: ' + observations : ''}` : observations} 
+                    />
                 </div>
             </div>
 

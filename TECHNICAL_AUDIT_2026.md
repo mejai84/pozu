@@ -9,13 +9,13 @@
 | **Monitor** | `admin/realtime-monitor/page.tsx` | 5 | ✅ Optimizado | Bajo |
 | **Clientes/CRM** | `admin/customers/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **Productos** | `admin/products/page.tsx` | 6 | ✅ Optimizado | Bajo |
-| **Reportes** | `admin/reports/page.tsx` | 8 | ✅ Optimizado | Bajo |
-| **Configuración** | `admin/settings/page.tsx` | 5 | ✅ Optimizado | Bajo |
-| **Reparto** | `admin/delivery/page.tsx` | 5 | ✅ Optimizado | Bajo |
-| **Comandas** | `admin/orders/page.tsx` | 5 | ✅ Optimizado | Bajo |
-| **Cupones** | `admin/coupons/page.tsx` | 5 | ✅ Optimizado | Bajo |
-| **Personal** | `admin/employees/page.tsx` | 5 | ✅ Optimizado | Bajo |
-| **Reservas** | `admin/reservations/page.tsx` | 5 | ✅ Optimizado | Bajo |
+| **Reportes** | `admin/reports/page.tsx" | 8 | ✅ Optimizado | Bajo |
+| **Configuración** | `admin/settings/page.tsx" | 5 | ✅ Optimizado | Bajo |
+| **Reparto** | `admin/delivery/page.tsx" | 5 | ✅ Optimizado | Bajo |
+| **Comandas** | `admin/orders/page.tsx" | 5 | ✅ Optimizado | Bajo |
+| **Cupones** | `admin/coupons/page.tsx" | 5 | ✅ Optimizado | Bajo |
+| **Personal** | `admin/employees/page.tsx" | 5 | ✅ Optimizado | Bajo |
+| **Reservas** | `admin/reservations/page.tsx" | 5 | ✅ Optimizado | Bajo |
 
 ## 🏗️ Hoja de Ruta de Refactorización
 
@@ -65,10 +65,18 @@
 - [x] Migración SQL de tabla `orders`: añade `signature_url`, `delivered_at` e `incidents` (JSONB).
 - [x] **Solución Error de Build Next.js (EPERM scandir)**: Implementado `outputFileTracingExcludes` en `next.config.ts` para ignorar directorios bloqueados por Windows (`src/app/burger-landing`).
 
+### 7. Optimización de Menú y Personalización (Fase Profesional) ✅
+- [x] **Sincronización de Carta Profesional**: Importación de 22 productos desde carta física (Burgers, Sandwiches, Patatas, Picoteo).
+- [x] **Pricing Engine Dinámico**: Implementación de lógica de recargo automático (+2€) para opción de "Pollo Crujiente" en hamburguesas.
+- [x] **Validación de Checkout**: Integración de checkbox obligatorio de aceptación de Términos y Condiciones.
+- [x] **Sección Legal**: Creación y despliegue de la página `/terminos` para cumplimiento normativo.
+- [x] **Stripe Audit**: Confirmación y configuración de `STRIPE_SECRET_KEY` para pagos seguros en Vercel.
+
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
 - Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.
 - **Supabase** seguirá siendo el cerebro central (Store + Realtime).
+- **Consistencia de Datos**: Sync manual realizado entre `src/lib/data.ts` y tabla `products` en Supabase.
 
 ---
-*Última actualización: 15 Marzo 2026*
+*Última actualización: 15 Marzo 2026 - 22:00h*

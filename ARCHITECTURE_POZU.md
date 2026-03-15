@@ -28,7 +28,11 @@ Componentes de UI, hooks globales y utilidades de Supabase que usan todos los m�
 - **Gestión de Evidencias y Firmas**: El módulo de reparto (`src/modules/delivery`) integra soporte offline/online nativo web con `SignatureCanvas` (HTML5) para firmar entregas.
 - **Supabase Storage**: 
   - `incidents-photos`: Bucket público utilizado de forma dinámica para almacenar tanto **fotos de incidencias** en ruta, como **firmas digitales** de recepción del pedido.
-- **Estructura de Datos Extendida**: La tabla `orders` hace uso avanzado del tipo `JSONB` en la columna `incidents` para acoplar metadatos sin migraciones complejas, apoyada por las nuevas columnas `signature_url` y `delivered_at`.
+- **Estructura de Datos Extendida**: La tabla `products` utiliza `options` (JSONB) para metadatos de personalización, mientras que `orders` hace uso avanzado del tipo `JSONB` en la columna `incidents` para acoplar metadatos sin migraciones complejas, apoyada por las nuevas columnas `signature_url` y `delivered_at`.
+
+### 4. Motor de Personalización (Storefront)
+- **Lógica de Precios Pro**: El componente `ProductView` y `AddToCartButton` se han desacoplado para permitir precios calculados al vuelo (ej: Pollo +2€) sin depender exclusivamente del valor estático de la DB.
+- **Flujo Legal**: El checkout valida el estado `acceptedTerms` antes de permitir el POST a Stripe, garantizando seguridad jurídica.
 
 ### 3. `src/app/admin/` (Rutas Clean)
 Las páginas en el App Router serán solo "contenedores" delgados:

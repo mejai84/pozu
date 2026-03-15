@@ -137,7 +137,6 @@ export function Navbar() {
         const { data: productsData } = await supabase
             .from('products')
             .select('id, name, category_id, image_url, price')
-            .is('deleted_at', null)
             .eq('is_available', true)
             .limit(8)
 

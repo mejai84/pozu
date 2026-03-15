@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useCart } from "./cart-context"
 import { Button } from "@/components/ui/button"
 import { Loader2, CreditCard, Banknote, MapPin, Phone, User as UserIcon, ShieldCheck, ArrowRight } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
@@ -16,6 +17,7 @@ export function CheckoutInnerForm({ user }: { user: any }) {
     const elements = useElements()
     const [loading, setLoading] = useState(false)
     const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe')
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
     const router = useRouter()
 
     const [formData, setFormData] = useState({
@@ -248,7 +250,7 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                     <button
                         type="submit"
                         className="w-full flex items-center justify-between group/btn disabled:opacity-50"
-                        disabled={loading || (paymentMethod === 'stripe' && !stripe)}
+                        disabled={loading || (paymentMethod === 'stripe' && !stripe) || !acceptedTerms}
                     >
                         <div className="text-left">
                             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/60">Finalizar mi pedido</p>
@@ -266,9 +268,17 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                     </button>
                 </div>
 
-                <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-                    Al confirmar, aceptas nuestras condiciones de servicio y políticas de privacidad.
-                </p>
+                <div className="flex items-center justify-center gap-3 py-2 cursor-pointer group/terms" onClick={() => setAcceptedTerms(!acceptedTerms)}>
+                    <div className={cn(
+                        "w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center",
+                        acceptedTerms ? "bg-primary border-primary" : "border-white/20 bg-white/5 group-hover/terms:border-primary/50"
+                    )}>
+                        {acceptedTerms && <ShieldCheck className="w-3 h-3 text-black" />}
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground select-none">
+                        Acepto las <Link href="/terminos" className="text-primary hover:underline" onClick={(e: React.MouseEvent) => e.stopPropagation()}>Condiciones de Servicio</Link> y <Link href="/privacidad" className="text-primary hover:underline" onClick={(e: React.MouseEvent) => e.stopPropagation()}>Política de Privacidad</Link>.
+                    </p>
+                </div>
             </div>
         </form>
     )

@@ -7,14 +7,18 @@ import { Button } from "@/components/ui/button"
 import { type Product } from "@/lib/data"
 import { Minus, Plus, ShoppingBag } from "lucide-react"
 
-export function AddToCartButton({ product, options }: { product: Product, options?: string }) {
+export function AddToCartButton({ product, options, price }: { product: Product, options?: string, price?: number }) {
     const [quantity, setQuantity] = useState(1)
     const { addItem } = useCart()
 
+    const currentPrice = price ?? product.price
+
     const handleAdd = () => {
         // Añadimos el item con sus opciones al carrito
+        // Creamos una copia del producto con el precio actualizado si es necesario
+        const updatedProduct = { ...product, price: currentPrice }
         for (let i = 0; i < quantity; i++) {
-            addItem(product, options)
+            addItem(updatedProduct, options)
         }
     }
 
@@ -49,7 +53,7 @@ export function AddToCartButton({ product, options }: { product: Product, option
                 className="flex-1 h-14 rounded-full text-lg font-bold shadow-xl shadow-primary/20"
             >
                 <ShoppingBag className="mr-2 w-5 h-5" />
-                Añadir al Pedido - {(product.price * quantity).toFixed(2)}€
+                Añadir al Pedido - {(currentPrice * quantity).toFixed(2)}€
             </Button>
         </div>
     )
