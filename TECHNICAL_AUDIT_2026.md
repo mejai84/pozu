@@ -6,7 +6,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Dashboard** | `admin/page.tsx` | ~600 | Acoplado | Medio |
 | **KDS (Cocina)** | `admin/kitchen/page.tsx` | 6 | ✅ Optimizado | Bajo |
-| **Monitor** | `admin/realtime-monitor/page.tsx` | ~500 | Monolítico | Alto |
+| **Monitor** | `admin/realtime-monitor/page.tsx` | 5 | ✅ Optimizado | Bajo |
 | **Clientes/CRM** | `admin/customers/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **Productos** | `admin/products/page.tsx` | ~400 | Acoplado | Medio |
 
@@ -25,9 +25,11 @@
 - [x] Crear componentes `KDSHeader` y `KDSModal`.
 - [x] Orquestar en `src/modules/kitchen/index.tsx`.
 
-### 3. Migración Monitor (Escudo Pozu) 🛡️
-- [ ] Separar la lógica del semáforo de riesgo (ShieldAlert, etc).
-- [ ] Implementar el sistema de badges modulares.
+### 3. Migración Monitor (Escudo Pozu) ✅
+- [x] Separar la lógica del semáforo de riesgo (ShieldAlert, etc).
+- [x] Implementar el sistema de badges modulares (`RiskBadge`).
+- [x] Extraer lógica de impresión y realtime a `useRealtimeOrders`.
+- [x] Orquestar en `src/modules/realtime-monitor/index.tsx`.
 
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
