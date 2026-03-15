@@ -29,7 +29,11 @@ CREATE TABLE IF NOT EXISTS public.error_logs (
 
 -- Habilitar RLS si es necesario (asumiendo que n8n usa service_role o key admin, pero por seguridad)
 ALTER TABLE public.error_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Servicio puede insertar logs" ON public.error_logs;
 CREATE POLICY "Servicio puede insertar logs" ON public.error_logs FOR INSERT TO anon, authenticated, service_role WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Admin puede ver logs" ON public.error_logs;
 CREATE POLICY "Admin puede ver logs" ON public.error_logs FOR SELECT TO authenticated USING (auth.jwt() ->> 'email' IN (SELECT email FROM profiles WHERE role = 'admin'));
 
 -- 3. Actualizar función de Riesgo del Cliente para devolver el semáforo (VERDE, AMARILLO, ROJO)
