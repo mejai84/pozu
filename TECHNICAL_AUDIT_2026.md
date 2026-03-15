@@ -8,7 +8,7 @@
 | **KDS (Cocina)** | `admin/kitchen/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **Monitor** | `admin/realtime-monitor/page.tsx` | 5 | ✅ Optimizado | Bajo |
 | **Clientes/CRM** | `admin/customers/page.tsx` | 6 | ✅ Optimizado | Bajo |
-| **Productos** | `admin/products/page.tsx` | ~400 | Acoplado | Medio |
+| **Productos** | `admin/products/page.tsx` | 6 | ✅ Optimizado | Bajo |
 
 ## 🏗️ Hoja de Ruta de Refactorización
 
@@ -35,6 +35,12 @@
 - [x] Implementar el sistema de badges modulares (`RiskBadge`).
 - [x] Extraer lógica de impresión y realtime a `useRealtimeOrders`.
 - [x] Orquestar en `src/modules/realtime-monitor/index.tsx`.
+
+### 4. Migración Catálogo (Módulo Productos) ✅
+- [x] Separar gestión de multimedia a `useMediaLibrary`.
+- [x] Extraer lógica CRUD a `useProducts`.
+- [x] Crear componentes `ProductCard`, `ProductsTable` y `ProductFormModal`.
+- [x] Orquestar en `src/modules/products/index.tsx`.
 
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
