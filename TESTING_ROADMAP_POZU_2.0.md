@@ -76,3 +76,20 @@
 - [ ] **Timeout Handling:** Nodos HTTP hacia OpenAI y BD tienen Timeout seguro por si hay alta latencia.
 - [ ] **Source of Truth de Precios:** Stripe **siempre** calcula su link consumiendo el precio fresco desde la BD local/Supabase en el momento último antes de crearse la sesión, **nunca** de la respuesta del LLM.
 - [ ] **Sistemas de Monitoreo Analítico:** Errores no capturados en n8n mandan evento a tu canal de alertas de sistema.
+
+---
+
+## 🚀 Áreas de Mejora Futura (Estrategia n8n & Supabase)
+
+### Seguridad: Lógica de Semáforo de Riesgo (Implementado)
+- **Implementación Actual:** El nodo JavaScript evalúa el historial del cliente cruzándolo con el importe del pedido. Protege márgenes requiriendo tarjeta para pedidos altos sin historial, o bloqueando si hay incidencias.
+- **Siguiente Paso:** Añadir validación de dirección vía Google Maps API para asegurar que la calle existe en Asturias antes de despachar.
+
+### Pagos
+- **Oportunidad:** Implementar Webhooks de Fallo Profundos. Si Stripe falla o la tarjeta es rechazada, notificar al cliente inmediatamente dentro de ese mismo chat antes de que abandone la conversación (actualmente n8n procesa el success, faltaría optimizar el webhook para eventos `charge.failed`).
+
+### Optimización de IA (Costes)
+- **Oportunidad:** El Agente Langchain principal está utilizando `gpt-4o` para *todo*. Para el nodo inicial de clasificación de la intención del usuario ("Clasificar Tipo Contenido"), se podría usar un modelo mucho más barato y rápido (`gpt-4o-mini` o `Claude 3.5 Haiku`), ahorrando hasta un 80% en los triggers iniciales.
+
+### Escalabilidad (Preparación Jamali OS)
+- **Oportunidad:** Centralizar los placeholders de URLs (Evolution API) y API Keys (Stripe, Supabase, OpenAI) en variables de entorno globales de n8n o variables de proyecto (`$env`). Esto facilitará enormemente la clonación e instanciación del workflow para los futuros y nuevos restaurantes que utilicen el sistema Multi-Tenant de Jamali OS.
