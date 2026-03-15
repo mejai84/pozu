@@ -42,7 +42,7 @@ async function fixAndTest() {
   const phoneTrol = '666000000';
 
   console.log('📝 Insertando historial de prueba...');
-  
+
   // Limpiamos rastros previos si existen
   await supabase.from('orders').delete().or(`guest_info->>phone.eq.${phoneVip},guest_info->>phone.eq.${phoneTrol}`);
 
