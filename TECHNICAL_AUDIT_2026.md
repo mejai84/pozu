@@ -74,6 +74,12 @@
 - [x] **Panel de Control de Funcionalidades (Master Switches)**: Implementación de sistema centralizado para habilitar/deshabilitar pagos online, efectivo, reservas, tracking, delivery, takeaway y modo mantenimiento.
 - [x] **Sincronización de Automatización (n8n)**: Actualización del workflow n8n para leer dinámicamente impuestos, costos de envío y estados de interruptores maestros.
 
+### 8. Inteligencia de Ventas Omnicanal (v3.0 Dynamic) ✅
+- [x] **Gestión Dinámica de Finanzas**: Integración de columnas `subtotal`, `tax_amount` (IVA) y `delivery_fee` en la tabla `orders`.
+- [x] **Auditoría de IA**: Creación de la tabla `error_logs` para monitorear fallos en el orquestador n8n.
+- [x] **Shield 2.0 (Customer Risk)**: Implementación de función RPC `get_customer_risk_profile` para análisis preventivo de clientes basado en historial de incidencias y cancelaciones.
+- [x] **Automatización Multicanal**: Sincronización del flujo n8n v3.0 con soporte para Telegram, WhatsApp, Vapi y Web Chat, consumiendo `feature_flags` en tiempo real.
+
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
 - Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.
@@ -81,4 +87,4 @@
 - **Consistencia de Datos**: Sync manual realizado entre `src/lib/data.ts` y tabla `products` en Supabase.
 
 ---
-*Última actualización: 15 Marzo 2026 - 22:00h*
+*Última actualización: 15 Marzo 2026 - 22:55h*
