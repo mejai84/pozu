@@ -18,7 +18,37 @@ export function CheckoutInnerForm({ user }: { user: any }) {
     const [loading, setLoading] = useState(false)
     const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe')
     const [acceptedTerms, setAcceptedTerms] = useState(false)
+    const [enabledPayments, setEnabledPayments] = useState({ online: true, cash: true })
+    const [finances, setFinances] = useState({ delivery_fee: 2.50, taxes_enabled: false, tax_percentage: 10 })
     const router = useRouter()
+
+    // Cargar configuraciones desde la DB
+    useState(() => {
+        const fetchSettings = async () => {
+            // Flags de funcionalidades
+            const { data: flags } = await supabase.from('settings').select('*').eq('key', 'feature_flags').single()
+            if (flags?.value) {
+                const { online_payments_enabled, cash_payments_enabled } = flags.value
+                setEnabledPayments({ 
+                    online: online_payments_enabled ?? true, 
+                    cash: cash_payments_enabled ?? true 
+                })
+                if (online_payments_enabled === false) setPaymentMethod('cash')
+                else if (cash_payments_enabled === false) setPaymentMethod('stripe')
+            }
+
+            // Finanzas y Delivery
+            const { data: delivery } = await supabase.from('settings').select('*').eq('key', 'delivery_settings').single()
+            if (delivery?.value) {
+                setFinances({
+                    delivery_fee: delivery.value.delivery_fee ?? 2.50,
+                    taxes_enabled: delivery.value.taxes_enabled ?? false,
+                    tax_percentage: delivery.value.tax_percentage ?? 10
+                })
+            }
+        }
+        fetchSettings()
+    })
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -37,8 +67,9 @@ export function CheckoutInnerForm({ user }: { user: any }) {
         setLoading(true)
 
         try {
-            const deliveryFee = 2.50
-            const total = cartTotal + deliveryFee
+            const deliveryFee = finances.delivery_fee
+            const taxAmount = finances.taxes_enabled ? (cartTotal * (finances.tax_percentage / 100)) : 0
+            const total = cartTotal + deliveryFee + taxAmount
 
             let stripeDetails = {}
             if (paymentMethod === 'stripe') {
@@ -81,6 +112,7 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                 },
                 subtotal: cartTotal,
                 delivery_fee: deliveryFee,
+                tax_amount: taxAmount,
                 total: total,
                 payment_method: paymentMethod,
                 payment_status: paymentMethod === 'stripe' ? 'paid' : 'pending',
@@ -194,38 +226,49 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button
-                        type="button"
-                        onClick={() => setPaymentMethod('stripe')}
-                        className={`group p-8 rounded-3xl border-2 flex flex-col items-start gap-4 transition-all relative overflow-hidden ${paymentMethod === 'stripe'
-                            ? 'bg-primary/10 border-primary text-primary shadow-[0_10px_30px_rgba(234,179,8,0.1)]'
-                            : 'bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:border-white/10'}`}
-                    >
-                        <CreditCard className={cn("w-10 h-10 transition-transform group-hover:scale-110", paymentMethod === 'stripe' ? 'text-primary' : 'text-white/20')} />
-                        <div className="text-left">
-                            <span className="block font-black italic uppercase tracking-tighter text-lg leading-none">Tarjeta / Apple Pay</span>
-                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Checkout Instantáneo</span>
+                    {enabledPayments.online && (
+                        <button
+                            type="button"
+                            onClick={() => setPaymentMethod('stripe')}
+                            className={`group p-8 rounded-3xl border-2 flex flex-col items-start gap-4 transition-all relative overflow-hidden ${paymentMethod === 'stripe'
+                                ? 'bg-primary/10 border-primary text-primary shadow-[0_10px_30px_rgba(234,179,8,0.1)]'
+                                : 'bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:border-white/10'}`}
+                        >
+                            <CreditCard className={cn("w-10 h-10 transition-transform group-hover:scale-110", paymentMethod === 'stripe' ? 'text-primary' : 'text-white/20')} />
+                            <div className="text-left">
+                                <span className="block font-black italic uppercase tracking-tighter text-lg leading-none">Tarjeta / Apple Pay</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Checkout Instantáneo</span>
+                            </div>
+                            {paymentMethod === 'stripe' && (
+                                <motion.div layoutId="paymentGlow" className="absolute -inset-4 bg-primary/5 blur-3xl pointer-events-none" />
+                            )}
+                        </button>
+                    )}
+                    
+                    {enabledPayments.cash && (
+                        <button
+                            type="button"
+                            onClick={() => setPaymentMethod('cash')}
+                            className={`group p-8 rounded-3xl border-2 flex flex-col items-start gap-4 transition-all relative overflow-hidden ${paymentMethod === 'cash'
+                                ? 'bg-primary/10 border-primary text-primary shadow-[0_10px_30px_rgba(234,179,8,0.1)]'
+                                : 'bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:border-white/10'}`}
+                        >
+                            <Banknote className={cn("w-10 h-10 transition-transform group-hover:scale-110", paymentMethod === 'cash' ? 'text-primary' : 'text-white/20')} />
+                            <div className="text-left">
+                                <span className="block font-black italic uppercase tracking-tighter text-lg leading-none">Efectivo al Repartidor</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Paga al recibir</span>
+                            </div>
+                            {paymentMethod === 'cash' && (
+                                <motion.div layoutId="paymentGlow" className="absolute -inset-4 bg-primary/5 blur-3xl pointer-events-none" />
+                            )}
+                        </button>
+                    )}
+
+                    {!enabledPayments.online && !enabledPayments.cash && (
+                        <div className="col-span-full p-8 bg-red-500/10 border border-red-500/20 rounded-3xl text-center">
+                            <p className="font-bold text-red-500">Lo sentimos, no hay métodos de pago disponibles en este momento.</p>
                         </div>
-                        {paymentMethod === 'stripe' && (
-                            <motion.div layoutId="paymentGlow" className="absolute -inset-4 bg-primary/5 blur-3xl pointer-events-none" />
-                        )}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setPaymentMethod('cash')}
-                        className={`group p-8 rounded-3xl border-2 flex flex-col items-start gap-4 transition-all relative overflow-hidden ${paymentMethod === 'cash'
-                            ? 'bg-primary/10 border-primary text-primary shadow-[0_10px_30px_rgba(234,179,8,0.1)]'
-                            : 'bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:border-white/10'}`}
-                    >
-                        <Banknote className={cn("w-10 h-10 transition-transform group-hover:scale-110", paymentMethod === 'cash' ? 'text-primary' : 'text-white/20')} />
-                        <div className="text-left">
-                            <span className="block font-black italic uppercase tracking-tighter text-lg leading-none">Efectivo al Repartidor</span>
-                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Paga al recibir</span>
-                        </div>
-                        {paymentMethod === 'cash' && (
-                            <motion.div layoutId="paymentGlow" className="absolute -inset-4 bg-primary/5 blur-3xl pointer-events-none" />
-                        )}
-                    </button>
+                    )}
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -252,11 +295,14 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                         className="w-full flex items-center justify-between group/btn disabled:opacity-50"
                         disabled={loading || (paymentMethod === 'stripe' && !stripe) || !acceptedTerms}
                     >
-                        <div className="text-left">
+                        <div className="text-left text-black">
                             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/60">Finalizar mi pedido</p>
-                            <h3 className="text-4xl font-black italic uppercase tracking-tighter text-black">
-                                {loading ? 'PROCESANDO...' : `PAGAR ${(cartTotal + 2.50).toFixed(2)}€`}
+                            <h3 className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+                                {loading ? 'PROCESANDO...' : `PAGAR ${(cartTotal + finances.delivery_fee + (finances.taxes_enabled ? cartTotal * (finances.tax_percentage / 100) : 0)).toFixed(2)}€`}
                             </h3>
+                            {finances.taxes_enabled && (
+                                <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mt-2">Incluye {finances.tax_percentage}% IVA ({(cartTotal * (finances.tax_percentage / 100)).toFixed(2)}€)</p>
+                            )}
                         </div>
                         <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center shadow-2xl group-hover/btn:scale-110 transition-transform">
                             {loading ? (
@@ -283,4 +329,3 @@ export function CheckoutInnerForm({ user }: { user: any }) {
         </form>
     )
 }
-

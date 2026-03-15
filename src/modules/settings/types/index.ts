@@ -17,6 +17,14 @@ export interface Settings {
     is_open: boolean
     enable_combos: boolean
     reservations_enabled: boolean
+    online_payments_enabled: boolean
+    cash_payments_enabled: boolean
+    tracking_enabled: boolean
+    takeaway_enabled: boolean
+    delivery_enabled: boolean
+    maintenance_mode: boolean
+    taxes_enabled: boolean
+    tax_percentage: number
     printers: PrinterConfig[]
 }
 

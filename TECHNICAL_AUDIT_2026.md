@@ -71,6 +71,8 @@
 - [x] **Validación de Checkout**: Integración de checkbox obligatorio de aceptación de Términos y Condiciones.
 - [x] **Sección Legal**: Creación y despliegue de la página `/terminos` para cumplimiento normativo.
 - [x] **Stripe Audit**: Confirmación y configuración de `STRIPE_SECRET_KEY` para pagos seguros en Vercel.
+- [x] **Panel de Control de Funcionalidades (Master Switches)**: Implementación de sistema centralizado para habilitar/deshabilitar pagos online, efectivo, reservas, tracking, delivery, takeaway y modo mantenimiento.
+- [x] **Sincronización de Automatización (n8n)**: Actualización del workflow n8n para leer dinámicamente impuestos, costos de envío y estados de interruptores maestros.
 
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.

@@ -43,6 +43,84 @@ export const FeaturesTab = ({ settings, setSettings, onSave, loading }: Props) =
                         <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.reservations_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
                     </button>
                 </div>
+
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                    <div>
+                        <div className="font-bold">Pagos con Tarjeta (Stripe)</div>
+                        <div className="text-sm text-muted-foreground">Permitir pagos online con tarjeta y Apple/Google Pay</div>
+                    </div>
+                    <button
+                        onClick={() => setSettings({ ...settings, online_payments_enabled: !settings.online_payments_enabled })}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.online_payments_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.online_payments_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                    <div>
+                        <div className="font-bold">Pago en Efectivo</div>
+                        <div className="text-sm text-muted-foreground">Permitir a los clientes pagar en efectivo al repartidor</div>
+                    </div>
+                    <button
+                        onClick={() => setSettings({ ...settings, cash_payments_enabled: !settings.cash_payments_enabled })}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.cash_payments_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.cash_payments_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                    <div>
+                        <div className="font-bold">Tracking en Tiempo Real</div>
+                        <div className="text-sm text-muted-foreground">Permitir a los clientes ver el estado de su pedido en vivo</div>
+                    </div>
+                    <button
+                        onClick={() => setSettings({ ...settings, tracking_enabled: !settings.tracking_enabled })}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.tracking_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.tracking_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                    <div>
+                        <div className="font-bold">Recogida en Local (Takeaway)</div>
+                        <div className="text-sm text-muted-foreground">Permitir a los clientes recoger su pedido en el restaurante</div>
+                    </div>
+                    <button
+                        onClick={() => setSettings({ ...settings, takeaway_enabled: !settings.takeaway_enabled })}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.takeaway_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.takeaway_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                    <div>
+                        <div className="font-bold">Servicio a Domicilio (Delivery)</div>
+                        <div className="text-sm text-muted-foreground">Habilitar el reparto a domicilio</div>
+                    </div>
+                    <button
+                        onClick={() => setSettings({ ...settings, delivery_enabled: !settings.delivery_enabled })}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.delivery_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.delivery_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+                    <div>
+                        <div className="font-bold text-red-500">Modo Mantenimiento</div>
+                        <div className="text-sm text-red-400/70">Desactivar pedidos y mostrar mensaje de mantenimiento</div>
+                    </div>
+                    <button
+                        onClick={() => setSettings({ ...settings, maintenance_mode: !settings.maintenance_mode })}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.maintenance_mode ? 'bg-red-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.maintenance_mode ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                </div>
             </div>
 
             <Button

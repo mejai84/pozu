@@ -12,6 +12,14 @@ const defaultSettings: Settings = {
     is_open: true,
     enable_combos: false,
     reservations_enabled: true,
+    online_payments_enabled: true,
+    cash_payments_enabled: true,
+    tracking_enabled: true,
+    takeaway_enabled: true,
+    delivery_enabled: true,
+    maintenance_mode: false,
+    taxes_enabled: true,
+    tax_percentage: 10,
     printers: []
 }
 
@@ -103,12 +111,20 @@ export const useSettings = () => {
 
     const handleSaveDelivery = () => saveByKey('delivery_settings', {
         delivery_fee: settings.delivery_fee,
-        min_order_amount: settings.min_order_amount
-    }, "✓ Delivery configurado")
+        min_order_amount: settings.min_order_amount,
+        taxes_enabled: settings.taxes_enabled,
+        tax_percentage: settings.tax_percentage
+    }, "✓ Delivery y Finanzas configurados")
 
     const handleSaveFeatures = () => saveByKey('feature_flags', {
         enable_combos: settings.enable_combos,
-        reservations_enabled: settings.reservations_enabled
+        reservations_enabled: settings.reservations_enabled,
+        online_payments_enabled: settings.online_payments_enabled,
+        cash_payments_enabled: settings.cash_payments_enabled,
+        tracking_enabled: settings.tracking_enabled,
+        takeaway_enabled: settings.takeaway_enabled,
+        delivery_enabled: settings.delivery_enabled,
+        maintenance_mode: settings.maintenance_mode
     }, "✓ Funcionalidades actualizadas")
 
     const handleSavePrinters = () => saveByKey('printers_config', settings.printers, "✓ Hardware vinculado")
