@@ -4,12 +4,19 @@ import { jsPDF } from "jspdf"
 export const printOrderTicket = async (order: any, businessInfo: any) => {
     const doc = new jsPDF({
         unit: 'mm',
-        format: [80, 200] // Formato impresora térmica 80mm
+        format: [80, 250] // Formato impresora térmica 80mm (largo ajustable)
     })
 
     const margin = 5
     const width = 70
     let y = 10
+
+    // Extraer info de cliente (soporta varios formatos de la DB)
+    const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+    const customerName = guestInfo?.name || guestInfo?.full_name || order.customer_name || "Cliente Final";
+    const customerPhone = order.customer_phone || guestInfo?.phone || "Sin teléfono";
+    const paymentMethod = order.payment_method === 'stripe' ? 'TARJETA/ONLINE' : 'EFECTIVO';
+    const source = (order.source || 'web').toUpperCase();
 
     // Load Logo
     try {
@@ -21,13 +28,11 @@ export const printOrderTicket = async (order: any, businessInfo: any) => {
             img.onerror = reject
         })
         
-        // Add logo (centered, approx 30mm width)
         const logoWidth = 30
         const logoHeight = (img.height * logoWidth) / img.width
         doc.addImage(img, 'PNG', 40 - (logoWidth / 2), y, logoWidth, logoHeight)
         y += logoHeight + 5
     } catch (e) {
-        console.warn("Could not load logo for ticket, falling back to text", e)
         doc.setFontSize(14)
         doc.setFont("helvetica", "bold")
         doc.text("POZU 2.0", 40, y, { align: "center" })
@@ -36,24 +41,60 @@ export const printOrderTicket = async (order: any, businessInfo: any) => {
 
     doc.setFontSize(8)
     doc.setFont("helvetica", "normal")
-    doc.text(businessInfo.address || "Pozu 2.0 Rest.", 40, y, { align: "center" })
+    doc.text(businessInfo.address || "Pola de Laviana", 40, y, { align: "center" })
     y += 4
-    doc.text(`Tel: ${businessInfo.phone || ""}`, 40, y, { align: "center" })
+    doc.text(`Tel: ${businessInfo.phone || "600 000 000"}`, 40, y, { align: "center" })
     y += 8
+
+    // Separador
+    doc.setLineDashPattern([1, 1], 0)
+    doc.line(margin, y, margin + width, y)
+    y += 5
+    doc.setLineDashPattern([], 0)
 
     // Order Info
     doc.setFont("helvetica", "bold")
-    doc.text(`TICKET #${order.id.split('-')[0].toUpperCase()}`, margin, y)
-    y += 4
+    doc.setFontSize(10)
+    doc.text(`PEDIDO #${order.id.split('-')[0].toUpperCase()}`, margin, y)
+    y += 5
+    
+    doc.setFontSize(8)
     doc.setFont("helvetica", "normal")
-    doc.text(`Fecha: ${new Date(order.created_at).toLocaleString()}`, margin, y)
+    doc.text(`Fecha: ${new Date(order.created_at).toLocaleString('es-ES')}`, margin, y)
     y += 4
-    doc.text(`Canal: ${order.order_type.toUpperCase()}`, margin, y)
+    doc.text(`Origen: ${source}`, margin, y)
     y += 4
-    doc.text(`Cliente: ${order.guest_info?.name || "Cliente Final"}`, margin, y)
+    doc.text(`Pago: ${paymentMethod}`, margin, y)
     y += 6
 
+    // Customer / Delivery Info
+    doc.setFont("helvetica", "bold")
+    doc.text("DATOS DEL CLIENTE", margin, y)
+    y += 4
+    doc.setFont("helvetica", "normal")
+    doc.text(`Nombre: ${customerName}`, margin, y)
+    y += 4
+    doc.text(`Tel: ${customerPhone}`, margin, y)
+    y += 4
+
+    if (order.order_type === 'delivery' && order.delivery_address) {
+        const addr = order.delivery_address;
+        const street = typeof addr === 'string' ? addr : (addr.street || addr.address || "Dirección no especificada");
+        const city = addr.city || "";
+        
+        doc.setFont("helvetica", "bold")
+        y += 2
+        doc.text("DIRECCIÓN DE ENTREGA:", margin, y)
+        y += 4
+        doc.setFont("helvetica", "normal")
+        const splitAddress = doc.splitTextToSize(street + (city ? `, ${city}` : ""), width);
+        doc.text(splitAddress, margin, y)
+        y += (splitAddress.length * 4) + 2
+    }
+    y += 2
+
     // Items Header
+    doc.setDrawColor(0)
     doc.line(margin, y, margin + width, y)
     y += 4
     doc.setFont("helvetica", "bold")
@@ -68,21 +109,29 @@ export const printOrderTicket = async (order: any, businessInfo: any) => {
     doc.setFont("helvetica", "normal")
     order.order_items.forEach((item: any) => {
         const name = item.products?.name || item.customizations?.name || "Producto"
-        const lineTotal = (item.unit_price * item.quantity).toFixed(2)
+        const price = item.unit_price || item.price || 0;
+        const lineTotal = (price * item.quantity).toFixed(2)
         
         doc.text(item.quantity.toString(), margin, y)
-        doc.text(name.substring(0, 22), margin + 10, y)
+        
+        // Wrap text if product name is long
+        const splitName = doc.splitTextToSize(name, 45);
+        doc.text(splitName, margin + 10, y)
         doc.text(`${lineTotal}€`, margin + width, y, { align: "right" })
-        y += 4
+        
+        y += (splitName.length * 4)
 
-        if (item.customizations?.notes) {
+        const notes = item.notes || item.customizations?.notes;
+        if (notes) {
             doc.setFontSize(7)
             doc.setFont("helvetica", "italic")
-            doc.text(`* ${item.customizations.notes}`, margin + 10, y)
-            y += 4
+            const splitNotes = doc.splitTextToSize(`* ${notes}`, 50);
+            doc.text(splitNotes, margin + 12, y)
+            y += (splitNotes.length * 3) + 1
             doc.setFontSize(8)
             doc.setFont("helvetica", "normal")
         }
+        y += 1
     })
 
     y += 2
@@ -90,20 +139,20 @@ export const printOrderTicket = async (order: any, businessInfo: any) => {
     y += 6
 
     // Totals
-    doc.setFontSize(10)
+    doc.setFontSize(12)
     doc.setFont("helvetica", "bold")
-    doc.text("TOTAL:", margin + 20, y)
-    doc.text(`${order.total.toFixed(2)}€`, margin + width, y, { align: "right" })
+    doc.text("TOTAL:", margin, y)
+    doc.text(`${Number(order.total).toFixed(2)}€`, margin + width, y, { align: "right" })
     
     // Footer
     y += 15
-    doc.setFontSize(7)
+    doc.setFontSize(8)
     doc.setFont("helvetica", "italic")
     doc.text("¡Gracias por elegir Pozu 2.0!", 40, y, { align: "center" })
     y += 4
-    doc.text("Síguenos en @pozu.rest", 40, y, { align: "center" })
+    doc.text("Ruge ese motor!", 40, y, { align: "center" })
 
-    // Open Print Dialog indirectly by opening the blob or downloading
+    // Open Print Dialog
     const blob = doc.output('blob')
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')

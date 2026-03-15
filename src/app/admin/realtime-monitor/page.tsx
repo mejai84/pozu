@@ -20,6 +20,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { printOrderTicket } from '@/lib/utils/print-ticket'
+import { settingsService, BusinessInfo } from '@/lib/supabase/settings'
 
 // Types for our orders
 type OrderItem = {
@@ -42,6 +44,7 @@ type Order = {
   estimated_arrival: string | null
   guest_info: any
   is_paid: boolean
+  source: string | null
   order_items: OrderItem[]
 }
 
@@ -50,6 +53,10 @@ export default function AdminRealtimeMonitor() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true)
+  const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null)
+  const [isPrinting, setIsPrinting] = useState<string | null>(null)
+  const printedOrdersRef = useRef<Set<string>>(new Set())
+  const isFirstLoad = useRef(true)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const cashAudioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -72,8 +79,30 @@ export default function AdminRealtimeMonitor() {
         .limit(20)
 
       if (error) throw error
-      setOrders(data || [])
+      const newOrders = data || []
+      setOrders(newOrders)
       setLastUpdate(new Date())
+
+      // Lógica de Impresión Inteligente
+      if (isFirstLoad.current) {
+        // En la primera carga, marcamos todos los confirmados actuales como "ya impresos"
+        // así evitamos que al entrar al monitor se imprima todo el historial de golpe.
+        newOrders.forEach(o => {
+          if (o.status === 'confirmed') printedOrdersRef.current.add(o.id)
+        })
+        isFirstLoad.current = false
+      } else {
+        // Solo auto-imprimimos si es una actualización posterior (un pedido nuevo o aceptado)
+        const mostRecentOrder = newOrders[0]
+        if (mostRecentOrder && 
+            mostRecentOrder.status === 'confirmed' && 
+            !printedOrdersRef.current.has(mostRecentOrder.id)) {
+          
+          console.log("Auto-printing new confirmed order:", mostRecentOrder.id)
+          handlePrint(mostRecentOrder)
+          printedOrdersRef.current.add(mostRecentOrder.id)
+        }
+      }
     } catch (err) {
       console.error('Error fetching orders:', err)
     } finally {
@@ -83,6 +112,9 @@ export default function AdminRealtimeMonitor() {
 
   useEffect(() => {
     fetchOrders()
+    
+    // Cargar info del negocio para los tickets
+    settingsService.getBusinessInfo().then(setBusinessInfo)
 
     // Subscribe to Realtime changes
     const channel = supabase
@@ -98,14 +130,24 @@ export default function AdminRealtimeMonitor() {
           console.log('Realtime change received!', payload)
           
           if (isNotificationsEnabled) {
-            // Caso 1: Nuevo pedido (INSERT)
+            const newOrder = payload.new as Order
+            
+            // Lógica de Impresión Inteligente Omnicanal
+            const isConfirmedNow = newOrder.status === 'confirmed'
+            const wasConfirmedBefore = (payload.old as Order)?.status === 'confirmed'
+
+            if (isConfirmedNow && !wasConfirmedBefore && !printedOrdersRef.current.has(newOrder.id)) {
+              console.log("Omnichannel Auto-Print Triggered:", newOrder.id)
+              // Necesitamos los items para imprimir, así que fetchOrders los traerá 
+              // En el próximo render, el useEffect de auto-impresión lo cogera 
+              // o podemos forzarlo aquí si queremos más velocidad.
+            }
+
+            // Sonidos
             if (payload.eventType === 'INSERT') {
               audioRef.current?.play().catch(e => console.warn('Audio play failed', e))
-            }
-            // Caso 2: Pedido pagado (UPDATE -> status = 'paid' o is_paid = true)
-            else if (payload.eventType === 'UPDATE') {
+            } else if (payload.eventType === 'UPDATE') {
               const oldOrder = payload.old as Order
-              const newOrder = payload.new as Order
               const wasPaid = oldOrder.status === 'paid' || (oldOrder as any).is_paid
               const isPaidNow = newOrder.status === 'paid' || (newOrder as any).is_paid
               
@@ -115,7 +157,7 @@ export default function AdminRealtimeMonitor() {
             }
           }
           
-          fetchOrders() // Re-fetch to get updated items and relations
+          fetchOrders()
         }
       )
       .subscribe()
@@ -133,14 +175,19 @@ export default function AdminRealtimeMonitor() {
         .eq('id', orderId)
 
       if (error) throw error
+      
+      // Actualización inmediata para feedback rápido
+      fetchOrders()
     } catch (err) {
       console.error('Error updating status:', err)
+      alert("Error al actualizar el pedido. ¿Has aplicado las políticas SQL?")
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+      case 'confirmed': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
       case 'preparing': return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
       case 'ready': return 'bg-green-500/10 text-green-500 border-green-500/20'
       case 'out_for_delivery': return 'bg-purple-500/10 text-purple-500 border-purple-500/20'
@@ -150,9 +197,23 @@ export default function AdminRealtimeMonitor() {
     }
   }
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'PENDIENTE'
+      case 'confirmed': return 'EN COCINA'
+      case 'preparing': return 'PREPARANDO'
+      case 'ready': return 'LISTO / PARA REPARTO'
+      case 'out_for_delivery': return 'EN REPARTO'
+      case 'delivered': return 'ENTREGADO'
+      case 'paid': return 'PAGADO'
+      default: return status.toUpperCase()
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-3.5 h-3.5" />
+      case 'confirmed': return <Package className="w-3.5 h-3.5 animate-bounce" />
       case 'preparing': return <Zap className="w-3.5 h-3.5 animate-pulse" />
       case 'ready': return <CheckCircle2 className="w-3.5 h-3.5" />
       case 'paid': return <Zap className="w-3.5 h-3.5" />
@@ -164,6 +225,23 @@ export default function AdminRealtimeMonitor() {
     const elapsed = Math.floor((new Date().getTime() - new Date(createdAt).getTime()) / 60000)
     if (elapsed < 1) return 'Recién llegado'
     return `Hace ${elapsed} min`
+  }
+  
+  const handlePrint = async (order: Order) => {
+    try {
+      setIsPrinting(order.id)
+      await printOrderTicket(order, businessInfo || {
+        business_name: "Pozu 2.0",
+        address: "Pola de Laviana",
+        phone: "600000000",
+        email: "pozu@example.com",
+        is_open: true
+      })
+    } catch (error) {
+      console.error("Error al imprimir:", error)
+    } finally {
+      setIsPrinting(null)
+    }
   }
 
   return (
@@ -258,6 +336,14 @@ export default function AdminRealtimeMonitor() {
                       <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
                         <Clock className="w-4 h-4" />
                         {getTimeElapsed(order.created_at)}
+                        <span className={cn(
+                          "ml-2 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest",
+                          order.source === 'whatsapp' ? "bg-green-500/20 text-green-400 border border-green-500/30" :
+                          order.source === 'instagram' ? "bg-pink-500/20 text-pink-400 border border-pink-500/30" :
+                          "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                        )}>
+                          {order.source || 'web'}
+                        </span>
                         {isPaid && (
                           <span className="ml-2 flex items-center gap-1 text-[8px] font-black uppercase text-green-500 tracking-widest bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 animate-pulse">
                             PAGADO 💰
@@ -270,7 +356,7 @@ export default function AdminRealtimeMonitor() {
                       getStatusColor(order.status)
                     )}>
                       {getStatusIcon(order.status)}
-                      {order.status}
+                      {getStatusText(order.status)}
                     </div>
                   </div>
 
@@ -333,18 +419,35 @@ export default function AdminRealtimeMonitor() {
                           )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="rounded-xl border border-white/5 hover:bg-white/10">
-                        <Printer className="w-5 h-5" />
-                      </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={cn(
+                            "rounded-xl border border-white/5 hover:bg-white/10",
+                            isPrinting === order.id && "animate-pulse origin-center"
+                          )}
+                          onClick={() => handlePrint(order)}
+                          disabled={isPrinting === order.id}
+                        >
+                          <Printer className="w-5 h-5" />
+                        </Button>
                     </div>
 
                     <div className="flex gap-2">
                       {order.status === 'pending' && (
                         <Button 
-                          onClick={() => updateOrderStatus(order.id, 'preparing')}
-                          className="flex-1 h-12 rounded-xl bg-primary text-black font-black uppercase italic tracking-tighter hover:bg-primary/80 transition-all"
+                          onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                          className="flex-1 h-12 rounded-xl bg-amber-500 text-black font-black uppercase italic tracking-tighter hover:bg-amber-400 transition-all"
                         >
-                          Preparar
+                          Aceptar Pedido
+                        </Button>
+                      )}
+                      {order.status === 'confirmed' && (
+                        <Button 
+                          onClick={() => updateOrderStatus(order.id, 'preparing')}
+                          className="flex-1 h-12 rounded-xl bg-emerald-500 text-black font-black uppercase italic tracking-tighter hover:bg-emerald-400 transition-all border-none"
+                        >
+                          Marchar Pedido
                         </Button>
                       )}
                       {order.status === 'preparing' && (
@@ -352,7 +455,7 @@ export default function AdminRealtimeMonitor() {
                           onClick={() => updateOrderStatus(order.id, 'ready')}
                           className="flex-1 h-12 rounded-xl bg-blue-500 text-white font-black uppercase italic tracking-tighter hover:bg-blue-600 transition-all border-none"
                         >
-                          Listo
+                          Listo / Reparto
                         </Button>
                       )}
                       {(order.status === 'ready' || order.status === 'out_for_delivery' || order.status === 'pending') && (

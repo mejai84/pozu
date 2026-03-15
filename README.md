@@ -35,16 +35,16 @@ Sistema completo de pedidos online y gestión administrativa para restaurante de
 
 ### Para Administradores:
 - 📊 **Dashboard** con métricas en tiempo real
-- 🛒 **Gestión de Pedidos** completa con visualización de personalizaciones
-- 📅 **Libro de Reservas Pro** para gestión de mesas y aforo
-- 👨‍🍳 **KDS (Kitchen Display System)** con notas de cocina en tiempo real
-- 🍔 **Gestión de Productos** (CRUD completo)
-- 👥 **Gestión de Clientes** con historial
-- 👨‍💼 **Gestión de Empleados** y roles
-- 📈 **Reportes** con exportación CSV/PDF
-- ⚙️ **Configuración** del negocio
-- 🔔 **Notificaciones** en tiempo real
-- 🌐 **Integración Instagram** (UI preparada)
+- 🛒 **Gestión de Pedidos** con auto-envío a cocina para pagos web
+- 🚲 **Módulo de Reparto** con integración GPS y gestión de entregas
+- 👨‍🍳 **KDS (Kitchen Display System)** con notificaciones visuales y sonoras
+- 🍔 **Gestión de Productos** con control de stock y alérgenos
+- 👥 **Gestión de Clientes** con historial de consumo
+- 👨‍💼 **Gestión de Empleados** con roles granulares (7 roles específicos)
+- 💳 **Auditoría de Pagos Stripe** (ID de cargo, marca de tarjeta, recibos)
+- 📈 **Reportes** con exportación a múltiples formatos
+- ⚙️ **Configuración Business** (Horarios, Delivery fee, Estado local)
+- 🔔 **Notificaciones Pro** en tiempo real (Suscripción Supabase)
 
 ---
 
@@ -235,9 +235,16 @@ WHERE email = 'tu_email@ejemplo.com';
 - id (UUID, PK)
 - user_id (UUID, FK → auth.users)
 - guest_info (JSONB)
-- items (JSONB[])
 - total (NUMERIC)
-- status (TEXT)
+- status (TEXT) -- pending, confirmed, preparing, ready, out_for_delivery, delivered
+- payment_method (TEXT) -- cash, stripe
+- payment_status (TEXT) -- pending, paid
+- stripe_payment_id (TEXT)
+- stripe_charge_id (TEXT)
+- stripe_receipt_url (TEXT)
+- card_brand (TEXT)
+- card_last4 (TEXT)
+- source (TEXT) -- web, whatsapp, telegram, phone
 - created_at (TIMESTAMP)
 ```
 
@@ -391,9 +398,9 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 - [x] **Ubicación Satelital 3D** (Precision Pointing)
 - [x] **Gestión CRUD de Auth** (Editar/Eliminar empleados)
 
-**Versión:** 2.6
-**Última actualización:** 2026-03-14  
-**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Design Elite SPA - Granular RBAC Ready - Full Menu Sync
+**Versión:** 2.8
+**Última actualización:** 2026-03-15  
+**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Full Spanish Localization - Delivery Module - Stripe Audit Ready - n8n Verified
 
 
 ---

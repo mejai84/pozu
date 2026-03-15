@@ -12,6 +12,7 @@ export function CheckoutForm() {
     const { items, cartTotal } = useCart()
     const [user, setUser] = useState<any>(null)
     const [clientSecret, setClientSecret] = useState<string | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,9 +30,14 @@ export function CheckoutForm() {
             .then(data => {
                 if (data.clientSecret) {
                     setClientSecret(data.clientSecret)
+                } else if (data.error) {
+                    setError(data.error)
                 }
             })
-            .catch(err => console.error("Error cargando Stripe:", err))
+            .catch(err => {
+                console.error("Error cargando Stripe:", err)
+                setError("No se pudo conectar con la pasarela de pago.")
+            })
         }
     }, [items, cartTotal])
 
@@ -105,11 +111,28 @@ export function CheckoutForm() {
                         stripe={stripePromise} 
                         options={{ 
                             clientSecret, 
-                            appearance: appearance as any 
+                            appearance: appearance as any,
+                            locale: 'es',
+                            loader: 'auto',
+                            defaultValues: {
+                                billingDetails: {
+                                    address: {
+                                        country: 'ES',
+                                    },
+                                },
+                            },
                         }}
                     >
                         <CheckoutInnerForm user={user} />
                     </Elements>
+                ) : error ? (
+                    <div className="p-8 rounded-[32px] bg-red-500/10 border border-red-500/20 backdrop-blur-md text-center py-10">
+                        <p className="text-red-500 font-bold mb-2">Error de Configuración</p>
+                        <p className="text-sm text-red-500/80">{error}</p>
+                        <p className="text-xs text-muted-foreground mt-4 italic">
+                            Asegúrate de configurar las claves de Stripe en el panel de control.
+                        </p>
+                    </div>
                 ) : (
                     <div className="p-8 rounded-[32px] bg-white/5 border border-white/10 backdrop-blur-md text-center py-20 text-muted-foreground animate-pulse">
                         Cargando entorno seguro de pago...

@@ -499,4 +499,57 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 
 ---
 
-**Todo listo, sincronizado con n8n y desplegado! 🚀**
+## 🛠️ Actualizaciones Recientes (15 de Marzo de 2026) ⭐ RECIENTE
+
+### 23. **Localización Total al Español** 🇪🇸 ⭐ NUEVO
+**Ubicación:** Todo el Panel de Administración (Monitor, Cocina, Empleados, Configuración)
+
+**Funcionalidades:**
+- ✅ **Traducción Integradora**: Todas las etiquetas de UI, botones y mensajes de estado han sido traducidos al español para una operativa más fluida.
+- ✅ **Mapeo de Estados Traducidos**:
+  - `PENDING` → **PENDIENTE**
+  - `CONFIRMED` → **EN COCINA (COLA)**
+  - `PREPARING` → **PREPARANDO**
+  - `READY` → **LISTO / PARA REPARTO**
+  - `OUT_FOR_DELIVERY` → **EN REPARTO**
+  - `DELIVERED` → **ENTREGADO**
+  - `PAID` → **PAGADO**
+
+### 24. **Módulo de Reparto Especializado (Delivery)** 🚲 ⭐ NUEVO
+**Ubicación:** `/admin/delivery`
+
+**Funcionalidades:**
+- ✅ **Monitor de Repartidores**: Nueva vista exclusiva para el personal de reparto.
+- ✅ **Gestión de Entregas**: Lista automática de pedidos "LISTOS" filtrados por tipo Delivery.
+- ✅ **Información Crítica de Cobro**: Indicadores claros de "COBRAR EN EFECTIVO" (con monto total) o "PAGO CONFIRMADO ONLINE".
+- ✅ **Integración con Google Maps**: Enlaces directos desde la dirección del cliente a Google Maps para navegación GPS.
+- ✅ **Control de Flujo de Reparto**: Botones para iniciar reparto y marcar como entregado con un solo toque.
+
+### 25. **Expansión de Roles Operativos** 👥 ⭐ MEJORADO
+**Ubicación:** `/admin/employees`
+
+**Funcionalidades:**
+- ✅ **Nuevos Roles Específicos**: Inclusión de roles para **Gerente**, **Camarero**, **Cocina**, **Cajero** y **Reparto**.
+- ✅ **UI Adaptada**: Etiquetas visuales claras en la gestión de empleados para identificar rápidamente la función de cada miembro del equipo.
+
+### 26. **Auditoría de Pagos Stripe "Pro"** 🛡️ ⭐ NUEVO
+**Ubicación:** Base de Datos (Orders) y Checkout
+
+**Funcionalidades:**
+- ✅ **Nuevas Columnas de Auditoría**: La tabla `orders` ahora almacena datos vitales de seguridad:
+  - `card_brand`: Marca de la tarjeta usada.
+  - `card_last4`: Últimos 4 dígitos para validación física.
+  - `stripe_charge_id`: ID del cargo para conciliación bancaria.
+  - `stripe_receipt_url`: Enlace al recibo oficial generado por Stripe.
+- ✅ **Captura en Checkout**: El flujo de pago captura automáticamente estos datos al finalizar la transacción exitosamente.
+
+### 27. **Flujo Omnicanal Automatizado (Web + n8n)** 🤖 ⭐ MEJORADO
+**Ubicación:** `/admin/realtime-monitor` y n8n
+
+**Funcionalidades:**
+- ✅ **Auto-envío a Cocina**: Los pedidos pagados por la web ahora entran directamente en estado `confirmed`, apareciendo al instante en la pantalla de los cocineros sin intervención humana.
+- ✅ **Sincronización n8n v3**: Actualización del flujo de n8n para soportar los nuevos estados y guardar la info de auditoría de Stripe automáticamente en pedidos de voz o chat.
+
+---
+
+**Todo listo, localizado y sincronizado! 🚀**

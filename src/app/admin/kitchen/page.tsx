@@ -71,7 +71,7 @@ export default function KitchenPage() {
                     )
                 )
             `)
-            .in('status', ['pending', 'preparing'])
+            .in('status', ['confirmed', 'preparing'])
             .order('created_at', { ascending: true })
 
         if (!error && data) {
@@ -342,7 +342,7 @@ function KDSCard({ order, onMarchar, onListo, onExpand, minutes, index }: any) {
                     <h3 className="text-2xl font-black italic tracking-tighter">#{order.id.split('-')[0].toUpperCase()}</h3>
                     <div className="flex items-center gap-2 mt-1">
                         <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${isPreparing ? 'bg-black/10' : 'bg-white/10'}`}>
-                            {isPreparing ? 'EN PLANCHA 🔥' : isUrgent ? 'DEMORADO ⚠️' : 'EN COLA'}
+                            {isPreparing ? 'EN PLANCHA 🔥' : isUrgent ? 'DEMORADO ⚠️' : 'PENDIENTE'}
                         </span>
                     </div>
                 </div>

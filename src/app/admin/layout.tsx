@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X, ExternalLink, Calendar } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X, ExternalLink, Calendar, Bike, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -13,14 +13,13 @@ const sidebarItems = [
     { icon: Calendar, label: "Reservas", href: "/admin/reservations", roles: ['admin', 'manager', 'cashier', 'waiter'] },
     { icon: ShoppingBag, label: "Pedidos", href: "/admin/orders", roles: ['admin', 'manager', 'cashier', 'waiter', 'delivery'] },
     { icon: ChefHat, label: "Cocina (KDS)", href: "/admin/kitchen", roles: ['admin', 'manager', 'kitchen'] },
+    { icon: Bike, label: "Reparto", href: "/admin/delivery", roles: ['admin', 'manager', 'delivery'] },
     { icon: UtensilsCrossed, label: "Productos", href: "/admin/products", roles: ['admin', 'manager'] },
     { icon: Users, label: "Clientes", href: "/admin/customers", roles: ['admin', 'manager', 'cashier'] },
     { icon: Users, label: "Empleados", href: "/admin/employees", roles: ['admin'] },
     { icon: BarChart3, label: "Reportes", href: "/admin/reports", roles: ['admin'] },
     { icon: Settings, label: "Configuración", href: "/admin/settings", roles: ['admin'] },
 ]
-
-import { Zap } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"

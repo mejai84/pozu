@@ -23,7 +23,7 @@ interface Employee {
     email: string
     full_name: string | null
     phone: string | null
-    role: 'admin' | 'staff' | 'customer'
+    role: 'admin' | 'manager' | 'staff' | 'waiter' | 'kitchen' | 'cashier' | 'delivery' | 'customer'
     created_at: string
 }
 
@@ -57,7 +57,7 @@ export default function EmployeesPage() {
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
-                .in('role', ['admin', 'staff'])
+                .in('role', ['admin', 'manager', 'staff', 'waiter', 'kitchen', 'cashier', 'delivery'])
                 .order('created_at', { ascending: false })
 
             if (error) throw error
@@ -74,7 +74,7 @@ export default function EmployeesPage() {
         emp.email.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
-    const updateRole = async (id: string, newRole: 'admin' | 'staff') => {
+    const updateRole = async (id: string, newRole: Employee['role']) => {
         try {
             const { error } = await supabase
                 .from('profiles')
@@ -256,12 +256,17 @@ export default function EmployeesPage() {
                                             <td className="px-6 py-4">
                                                 <div className={cn(
                                                     "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ring-1 ring-inset",
-                                                    employee.role === 'admin'
+                                                    employee.role === 'admin' || employee.role === 'manager'
                                                         ? "bg-primary/10 text-primary ring-primary/20"
                                                         : "bg-emerald-500/10 text-emerald-500 ring-emerald-500/20"
                                                 )}>
                                                     {employee.role === 'admin' ? <ShieldCheck className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
-                                                    {employee.role.toUpperCase()}
+                                                    {employee.role === 'waiter' ? 'CAMARERO' : 
+                                                     employee.role === 'kitchen' ? 'COCINA' :
+                                                     employee.role === 'cashier' ? 'CAJERO' :
+                                                     employee.role === 'delivery' ? 'REPARTO' :
+                                                     employee.role === 'manager' ? 'GERENTE' :
+                                                     employee.role.toUpperCase()}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -315,12 +320,12 @@ export default function EmployeesPage() {
                         </div>
                         <div className="space-y-4 text-sm">
                             <div className="space-y-1">
-                                <div className="font-bold text-primary uppercase text-[10px] tracking-wider">Admin</div>
-                                <p className="text-muted-foreground">Control total: productos, pedidos, configuración y gestión de empleados.</p>
+                                <div className="font-bold text-primary uppercase text-[10px] tracking-wider">Admin / Gerente</div>
+                                <p className="text-muted-foreground">Control total o avanzado del sistema.</p>
                             </div>
                             <div className="space-y-1">
-                                <div className="font-bold text-emerald-500 uppercase text-[10px] tracking-wider">Staff</div>
-                                <p className="text-muted-foreground">Acceso a pedidos y cocina (KDS). No puede editar productos ni configuración.</p>
+                                <div className="font-bold text-emerald-500 uppercase text-[10px] tracking-wider">Cocina / Reparto / Camarero</div>
+                                <p className="text-muted-foreground">Acceso limitado a sus módulos operativos específicos.</p>
                             </div>
                         </div>
                     </div>
@@ -390,8 +395,13 @@ export default function EmployeesPage() {
                                     value={newEmployee.role}
                                     onChange={e => setNewEmployee({ ...newEmployee, role: e.target.value })}
                                 >
-                                    <option value="staff" className="bg-[#1A1A1A]">Staff (Cocina y Pedidos)</option>
-                                    <option value="admin" className="bg-[#1A1A1A]">Administrador (Acceso Total)</option>
+                                    <option value="staff" className="bg-[#1A1A1A]">Staff General</option>
+                                    <option value="admin" className="bg-[#1A1A1A]">Administrador</option>
+                                    <option value="manager" className="bg-[#1A1A1A]">Gerente</option>
+                                    <option value="waiter" className="bg-[#1A1A1A]">Camarero</option>
+                                    <option value="kitchen" className="bg-[#1A1A1A]">Cocina</option>
+                                    <option value="cashier" className="bg-[#1A1A1A]">Cajero</option>
+                                    <option value="delivery" className="bg-[#1A1A1A]">Reparto</option>
                                 </select>
                             </div>
 

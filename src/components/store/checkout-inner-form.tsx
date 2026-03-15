@@ -37,14 +37,12 @@ export function CheckoutInnerForm({ user }: { user: any }) {
             const deliveryFee = 2.50
             const total = cartTotal + deliveryFee
 
-            // 1. Guardar o preparar pago Stripe
+            let stripeDetails = {}
             if (paymentMethod === 'stripe') {
                 if (!stripe || !elements) {
                     throw new Error("Stripe no está inicializado")
                 }
                 
-                // Confirmar pago con Stripe primero (redirigirá o devolverá error)
-                // Usamos redirect: "if_required" para no redirigir si no fue 3D secure u otro método asíncrono.
                 const { error: submitError } = await elements.submit()
                 if (submitError) {
                      throw new Error(submitError.message)
@@ -58,6 +56,20 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                 if (confirmError) {
                     throw new Error(confirmError.message)
                 }
+
+                if (paymentIntent) {
+                    stripeDetails = {
+                        stripe_payment_id: paymentIntent.id,
+                        // Nota: Algunos detalles de tarjeta están en payment_method_types 
+                        // pero la info detallada suele venir del servidor or via webhooks.
+                        // Intentamos capturar lo que venga disponible
+                        payment_metadata: {
+                            status: paymentIntent.status,
+                            currency: paymentIntent.currency,
+                            amount: paymentIntent.amount
+                        }
+                    }
+                }
             }
 
             // 2. Insert Order en Supabase
@@ -67,7 +79,7 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                     name: `${formData.firstName} ${formData.lastName}`,
                     phone: formData.phone
                 },
-                status: 'pending',
+                status: paymentMethod === 'stripe' ? 'confirmed' : 'pending',
                 order_type: 'delivery',
                 delivery_address: {
                     street: formData.address,
@@ -79,6 +91,8 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                 total: total,
                 payment_method: paymentMethod,
                 payment_status: paymentMethod === 'stripe' ? 'paid' : 'pending',
+                source: 'web',
+                ...stripeDetails
             }
 
             const { data: order, error: orderError } = await supabase
