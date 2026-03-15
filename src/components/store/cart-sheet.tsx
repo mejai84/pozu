@@ -3,7 +3,7 @@
 
 import { useCart } from "./cart-context"
 import { Button } from "@/components/ui/button"
-import { X, Plus, Minus, ShoppingBag, AlertTriangle, Trash2, ArrowRight, Clock } from "lucide-react"
+import { X, Plus, Minus, ShoppingBag, AlertTriangle, Trash2, ArrowRight, Clock, PenLine } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -144,11 +144,20 @@ export function CartSheet() {
                                                         </span>
                                                     </div>
                                                     {item.options && (
-                                                        <div className="flex items-center gap-1.5 p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                                                            <div className="w-1 h-1 bg-primary rounded-full" />
-                                                            <p className="text-[10px] text-primary/80 font-bold uppercase tracking-tight italic line-clamp-1">
-                                                                {item.options}
-                                                            </p>
+                                                        <div className="flex flex-col gap-1.5 mt-2">
+                                                            <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-xl border border-primary/20">
+                                                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                                                                <p className="text-[11px] text-primary/90 font-black uppercase tracking-tight italic">
+                                                                    {item.options}
+                                                                </p>
+                                                            </div>
+                                                            <Link 
+                                                                href={`/producto/${item.id}`} 
+                                                                onClick={toggleCart}
+                                                                className="text-[10px] font-black uppercase text-muted-foreground hover:text-white transition-colors flex items-center gap-1.5 px-2"
+                                                            >
+                                                                <PenLine className="w-3 h-3" /> Modificar personalización
+                                                            </Link>
                                                         </div>
                                                     )}
                                                 </div>

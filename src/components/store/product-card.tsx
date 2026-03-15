@@ -73,15 +73,24 @@ export function ProductCard({ product }: { product: Product }) {
                     )}
                 </Link>
 
-                <Button
-                    className="w-full mt-4 group-hover:bg-primary group-hover:text-white transition-all bg-card border border-white/10 hover:border-primary z-20 relative"
-                    onClick={(e) => {
-                        e.preventDefault(); 
-                        addItem(product);
-                    }}
-                >
-                    Añadir al carrito
-                </Button>
+                {/* Botón de acción inteligente */}
+                {(product.category_id === "0bc02f87-623d-4b2a-9ee2-1f7a6e5fde1e" || product.name.toLowerCase().includes("hamburguesa") || product.name.toLowerCase().includes("pozu") || product.name.toLowerCase().includes("cesta")) ? (
+                    <Link href={`/producto/${product.id}`} className="w-full mt-4">
+                        <Button className="w-full bg-primary/10 text-primary hover:bg-primary hover:text-black border border-primary/20 font-black uppercase italic tracking-tighter">
+                            Personalizar
+                        </Button>
+                    </Link>
+                ) : (
+                    <Button
+                        className="w-full mt-4 group-hover:bg-primary group-hover:text-white transition-all bg-card border border-white/10 hover:border-primary z-20 relative font-black uppercase italic tracking-tighter text-xs"
+                        onClick={(e) => {
+                            e.preventDefault(); 
+                            addItem(product);
+                        }}
+                    >
+                        Añadir al carrito
+                    </Button>
+                )}
             </div>
         </div>
     )

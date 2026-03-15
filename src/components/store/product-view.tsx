@@ -18,13 +18,13 @@ export function ProductView({ product }: { product: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [observations, setObservations] = useState("")
     const [meatType, setMeatType] = useState<"Vacuno" | "Pollo">("Vacuno")
-    const [selectedSauce, setSelectedSauce] = useState<string>("Básica")
+    const [selectedSauce, setSelectedSauce] = useState<string>("Pozu Special")
 
-    const isBurger = product.category_id === "0bc02f87-623d-4b2a-9ee2-1f7a6e5fde1e" || product.name.toLowerCase().includes("hamburguesa") || product.name.toLowerCase().includes("pozu")
+    const isBurger = product.category_id === "0bc02f87-623d-4b2a-9ee2-1f7a6e5fde1e" || product.name.toLowerCase().includes("hamburguesa") || product.name.toLowerCase().includes("pozu") || product.name.toLowerCase().includes("gourmet")
     const isCesta = product.name.toLowerCase().includes("cesta")
-    const needsSauce = isCesta || product.name.toLowerCase().includes("crujiente") || product.name.toLowerCase().includes("kentucky")
+    const needsSauce = isCesta || product.name.toLowerCase().includes("crujiente") || product.name.toLowerCase().includes("kentucky") || product.name.toLowerCase().includes("dedos")
 
-    const sauceOptions = ["Alioli", "Brava", "Miel y Mostaza", "Ketchup"]
+    const sauceOptions = ["Pozu Special", "Alioli Casero", "Brava Picante", "Miel y Mostaza", "Ketchup", "Mayonesa", "Barbacoa"]
 
     // Mapeo de iconos para alérgenos comunes
     const getAllergenIcon = (name: string) => {
@@ -230,9 +230,9 @@ export function ProductView({ product }: { product: any }) {
                     {/* Selección de Salsa (Cesta) */}
                     {needsSauce && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-700">
-                            <h3 className="font-bold flex items-center gap-2 text-[#E8E0D5]">
-                                <Droplets className="w-4 h-4 text-primary" />
-                                Selecciona tu salsa
+                            <h3 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 text-white">
+                                <Droplets className="w-5 h-5 text-primary" />
+                                2. Elige tu salsa
                             </h3>
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                 {sauceOptions.map((sauce) => (
@@ -257,9 +257,9 @@ export function ProductView({ product }: { product: any }) {
                     {/* Selección de Carne (Hamburguesas) */}
                     {isBurger && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-700">
-                            <h3 className="font-bold flex items-center gap-2 text-[#E8E0D5]">
-                                <Beef className="w-4 h-4 text-primary" />
-                                Selecciona tu proteína
+                            <h3 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 text-white">
+                                <Beef className="w-5 h-5 text-primary" />
+                                1. Selecciona tu proteína
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <button
@@ -299,9 +299,9 @@ export function ProductView({ product }: { product: any }) {
 
                     {/* Observaciones */}
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <h3 className="font-bold flex items-center gap-2 text-[#E8E0D5]">
-                            <ChefHat className="w-4 h-4 text-primary" />
-                            ¿Alguna observación?
+                        <h3 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 text-white">
+                            <ChefHat className="w-5 h-5 text-primary" />
+                            3. ¿Alguna nota especial?
                         </h3>
                         <div className="relative group">
                             <textarea
