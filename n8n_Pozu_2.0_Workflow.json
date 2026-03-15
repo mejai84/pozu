@@ -1198,16 +1198,30 @@
     },
     {
       "parameters": {
-        "resource": "__CUSTOM_API_CALL__"
+        "method": "POST",
+        "url": "https://vvlowhdimjjmsrpovurw.supabase.co/rest/v1/rpc/get_customer_risk_profile",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{\n  \"p_phone\": \"{{ $('Extraer Datos Estructurados').item.json.output.telefono_cliente }}\"\n}",
+        "options": {}
       },
       "id": "d808d7e1-3c45-4382-9f30-a98201ab00b7",
       "name": "Verificar Riesgo Cliente",
-      "type": "n8n-nodes-base.supabase",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "position": [
         1840,
         760
-      ]
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
     },
     {
       "parameters": {
