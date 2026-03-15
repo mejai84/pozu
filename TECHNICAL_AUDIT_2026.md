@@ -4,13 +4,18 @@
 
 | Módulo | Archivo Principal | Líneas | Estado | Riesgo |
 | :--- | :--- | :--- | :--- | :--- |
-| **Dashboard** | `admin/page.tsx` | ~600 | Acoplado | Medio |
+| **Dashboard** | `admin/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **KDS (Cocina)** | `admin/kitchen/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **Monitor** | `admin/realtime-monitor/page.tsx` | 5 | ✅ Optimizado | Bajo |
 | **Clientes/CRM** | `admin/customers/page.tsx` | 6 | ✅ Optimizado | Bajo |
 | **Productos** | `admin/products/page.tsx` | ~400 | Acoplado | Medio |
 
 ## 🏗️ Hoja de Ruta de Refactorización
+
+### 0. Migración Dashboard (Panel Principal) ✅
+- [x] Separar lógica de fetch en `src/modules/dashboard/hooks/useDashboard.ts`.
+- [x] Crear componentes `StatsCard`, `AnalyticalCharts` y `OperationalFeed`.
+- [x] Orquestar en `src/modules/dashboard/index.tsx`.
 
 ### 1. Migración CRM (Módulo Clientes) ✅
 - [x] Separar tipos en `src/modules/customers/types/index.ts`
