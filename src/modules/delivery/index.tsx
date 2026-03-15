@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 type Tab = 'active' | 'history'
 
 export const DeliveryModule = () => {
-    const { orders, loading, updateStatus, reportIncident } = useDelivery()
+    const { orders, loading, signatureEnabled, updateStatus, reportIncident } = useDelivery()
     const [activeTab, setActiveTab] = useState<Tab>('active')
     const [search, setSearch] = useState("")
 
@@ -103,6 +103,7 @@ export const DeliveryModule = () => {
                                 key={order.id} 
                                 order={order} 
                                 index={idx} 
+                                signatureEnabled={signatureEnabled}
                                 onUpdateStatus={updateStatus} 
                                 onReportIncident={reportIncident}
                             />

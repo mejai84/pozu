@@ -22,6 +22,7 @@ export interface Settings {
     tracking_enabled: boolean
     takeaway_enabled: boolean
     delivery_enabled: boolean
+    delivery_signature_enabled: boolean
     maintenance_mode: boolean
     taxes_enabled: boolean
     tax_percentage: number

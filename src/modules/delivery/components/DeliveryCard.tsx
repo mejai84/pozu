@@ -10,11 +10,12 @@ import { DeliverySignatureModal } from "./DeliverySignatureModal"
 interface Props {
     order: DeliveryOrder
     index: number
+    signatureEnabled: boolean
     onUpdateStatus: (id: string, status: string, extra?: { signature_url?: string }) => void
     onReportIncident: (id: string, incident: DeliveryIncident) => void
 }
 
-export const DeliveryCard = ({ order, index, onUpdateStatus, onReportIncident }: Props) => {
+export const DeliveryCard = ({ order, index, signatureEnabled, onUpdateStatus, onReportIncident }: Props) => {
     const [isIncidentOpen, setIsIncidentOpen] = useState(false)
     const [isSignatureOpen, setIsSignatureOpen] = useState(false)
     const [showFullItems, setShowFullItems] = useState(false)
@@ -193,10 +194,14 @@ export const DeliveryCard = ({ order, index, onUpdateStatus, onReportIncident }:
                             
                             {isOut && (
                                 <Button 
-                                    onClick={() => setIsSignatureOpen(true)}
+                                    onClick={() => signatureEnabled ? setIsSignatureOpen(true) : onUpdateStatus(order.id, 'delivered')}
                                     className="w-full h-16 rounded-2xl bg-emerald-600 text-white font-black uppercase italic tracking-tighter hover:bg-emerald-700 shadow-lg shadow-emerald-500/10 text-sm gap-2"
                                 >
-                                    <PenLine className="w-5 h-5" /> Firma y Confirmar Entrega
+                                    {signatureEnabled ? (
+                                        <><PenLine className="w-5 h-5" /> Firma y Confirmar Entrega</>
+                                    ) : (
+                                        <><CheckCircle2 className="w-5 h-5" /> Confirmar Entrega</>
+                                    )}
                                 </Button>
                             )}
 

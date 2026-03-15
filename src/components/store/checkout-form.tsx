@@ -14,17 +14,36 @@ export function CheckoutForm() {
     const [clientSecret, setClientSecret] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
 
+    const [finances, setFinances] = useState({ delivery_fee: 2.50, taxes_enabled: false, tax_percentage: 10 })
+
     useEffect(() => {
+        const fetchSettings = async () => {
+            const { data: delivery } = await supabase.from('settings').select('*').eq('key', 'delivery_settings').single()
+            if (delivery?.value) {
+                setFinances({
+                    delivery_fee: delivery.value.delivery_fee ?? 2.50,
+                    taxes_enabled: delivery.value.taxes_enabled ?? false,
+                    tax_percentage: delivery.value.tax_percentage ?? 10
+                })
+            }
+        }
+        fetchSettings()
+
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUser(session?.user || null)
         })
+    }, [])
 
+    useEffect(() => {
         // Crear PaymentIntent al montar si hay items
         if (items.length > 0) {
+            const taxAmount = finances.taxes_enabled ? (cartTotal * (finances.tax_percentage / 100)) : 0
+            const intentAmount = cartTotal + finances.delivery_fee + taxAmount
+
             fetch('/api/checkout/create-intent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: cartTotal + 2.50 }), // base + envio
+                body: JSON.stringify({ amount: intentAmount }), 
             })
             .then(res => res.json())
             .then(data => {
@@ -39,7 +58,7 @@ export function CheckoutForm() {
                 setError("No se pudo conectar con la pasarela de pago.")
             })
         }
-    }, [items, cartTotal])
+    }, [items, cartTotal, finances])
 
     if (items.length === 0) {
         return <div className="text-center py-20 text-muted-foreground">Tu carrito está vacío.</div>
@@ -96,13 +115,19 @@ export function CheckoutForm() {
                         </div>
                         <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-muted-foreground">
                             <span>Gastos de envío</span>
-                            <span className="text-white italic">2.50€</span>
+                            <span className="text-white italic">{finances.delivery_fee.toFixed(2)}€</span>
                         </div>
+                        {finances.taxes_enabled && (
+                            <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                                <span>IVA ({finances.tax_percentage}%)</span>
+                                <span className="text-white italic">{(cartTotal * (finances.tax_percentage / 100)).toFixed(2)}€</span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center pt-8 mt-4 border-t-2 border-primary/20">
                             <span className="text-xl font-black italic text-white uppercase tracking-tighter">TOTAL A PAGAR</span>
                             <div className="flex flex-col items-end">
                                 <span className="text-5xl font-black italic text-primary tracking-tighter drop-shadow-[0_10px_20px_rgba(234,179,8,0.2)]">
-                                    {(cartTotal + 2.50).toFixed(2)}€
+                                    {(cartTotal + finances.delivery_fee + (finances.taxes_enabled ? (cartTotal * (finances.tax_percentage / 100)) : 0)).toFixed(2)}€
                                 </span>
                                 <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary/40">IVA INCLUIDO</span>
                             </div>

@@ -17,6 +17,7 @@ const defaultSettings: Settings = {
     tracking_enabled: true,
     takeaway_enabled: true,
     delivery_enabled: true,
+    delivery_signature_enabled: true,
     maintenance_mode: false,
     taxes_enabled: true,
     tax_percentage: 10,
@@ -124,6 +125,7 @@ export const useSettings = () => {
         tracking_enabled: settings.tracking_enabled,
         takeaway_enabled: settings.takeaway_enabled,
         delivery_enabled: settings.delivery_enabled,
+        delivery_signature_enabled: settings.delivery_signature_enabled,
         maintenance_mode: settings.maintenance_mode
     }, "✓ Funcionalidades actualizadas")
 

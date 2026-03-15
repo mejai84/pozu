@@ -5,6 +5,18 @@ import { DeliveryOrder, DeliveryIncident } from '../types'
 export const useDelivery = () => {
     const [orders, setOrders] = useState<DeliveryOrder[]>([])
     const [loading, setLoading] = useState(true)
+    const [signatureEnabled, setSignatureEnabled] = useState(true)
+
+    const fetchSettings = async () => {
+        const { data } = await supabase
+            .from('settings')
+            .select('*')
+            .eq('key', 'feature_flags')
+            .single()
+        if (data?.value) {
+            setSignatureEnabled(data.value.delivery_signature_enabled !== false)
+        }
+    }
 
     const fetchDeliveryOrders = async () => {
         try {
@@ -33,13 +45,17 @@ export const useDelivery = () => {
 
     useEffect(() => {
         fetchDeliveryOrders()
+        fetchSettings()
         
         const channel = supabase
             .channel('delivery_monitor')
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'orders' },
-                () => fetchDeliveryOrders()
+                () => {
+                    fetchDeliveryOrders()
+                    fetchSettings()
+                }
             )
             .subscribe()
 
@@ -97,6 +113,7 @@ export const useDelivery = () => {
     return {
         orders,
         loading,
+        signatureEnabled,
         updateStatus,
         reportIncident,
         refresh: fetchDeliveryOrders

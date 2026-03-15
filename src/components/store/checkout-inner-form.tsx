@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase/client"
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useEffect } from "react"
 
 export function CheckoutInnerForm({ user }: { user: any }) {
     const { items, cartTotal, clearCart } = useCart()
@@ -23,32 +24,36 @@ export function CheckoutInnerForm({ user }: { user: any }) {
     const router = useRouter()
 
     // Cargar configuraciones desde la DB
-    useState(() => {
+    useEffect(() => {
         const fetchSettings = async () => {
-            // Flags de funcionalidades
-            const { data: flags } = await supabase.from('settings').select('*').eq('key', 'feature_flags').single()
-            if (flags?.value) {
-                const { online_payments_enabled, cash_payments_enabled } = flags.value
-                setEnabledPayments({ 
-                    online: online_payments_enabled ?? true, 
-                    cash: cash_payments_enabled ?? true 
-                })
-                if (online_payments_enabled === false) setPaymentMethod('cash')
-                else if (cash_payments_enabled === false) setPaymentMethod('stripe')
-            }
+            try {
+                // Flags de funcionalidades
+                const { data: flags } = await supabase.from('settings').select('*').eq('key', 'feature_flags').single()
+                if (flags?.value) {
+                    const { online_payments_enabled, cash_payments_enabled } = flags.value
+                    setEnabledPayments({ 
+                        online: online_payments_enabled ?? true, 
+                        cash: cash_payments_enabled ?? true 
+                    })
+                    if (online_payments_enabled === false) setPaymentMethod('cash')
+                    else if (cash_payments_enabled === false) setPaymentMethod('stripe')
+                }
 
-            // Finanzas y Delivery
-            const { data: delivery } = await supabase.from('settings').select('*').eq('key', 'delivery_settings').single()
-            if (delivery?.value) {
-                setFinances({
-                    delivery_fee: delivery.value.delivery_fee ?? 2.50,
-                    taxes_enabled: delivery.value.taxes_enabled ?? false,
-                    tax_percentage: delivery.value.tax_percentage ?? 10
-                })
+                // Finanzas y Delivery
+                const { data: delivery } = await supabase.from('settings').select('*').eq('key', 'delivery_settings').single()
+                if (delivery?.value) {
+                    setFinances({
+                        delivery_fee: delivery.value.delivery_fee ?? 2.50,
+                        taxes_enabled: delivery.value.taxes_enabled ?? false,
+                        tax_percentage: delivery.value.tax_percentage ?? 10
+                    })
+                }
+            } catch (err) {
+                console.error("Error loading settings:", err)
             }
         }
         fetchSettings()
-    })
+    }, [])
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -293,7 +298,13 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                     <button
                         type="submit"
                         className="w-full flex items-center justify-between group/btn disabled:opacity-50"
-                        disabled={loading || (paymentMethod === 'stripe' && !stripe) || !acceptedTerms}
+                        disabled={loading || (paymentMethod === 'stripe' && !stripe)}
+                        onClick={(e) => {
+                            if (!acceptedTerms) {
+                                e.preventDefault();
+                                alert("Por favor, acepta las Condiciones de Servicio y la Política de Privacidad para continuar.");
+                            }
+                        }}
                     >
                         <div className="text-left text-black">
                             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/60">Finalizar mi pedido</p>
@@ -314,15 +325,21 @@ export function CheckoutInnerForm({ user }: { user: any }) {
                     </button>
                 </div>
 
-                <div className="flex items-center justify-center gap-3 py-2 cursor-pointer group/terms" onClick={() => setAcceptedTerms(!acceptedTerms)}>
+                <div 
+                    className={cn(
+                        "flex items-center justify-center gap-4 py-4 px-6 rounded-2xl border transition-all cursor-pointer group/terms",
+                        acceptedTerms ? "bg-primary/5 border-primary/30" : "bg-white/[0.02] border-white/5 hover:border-white/10"
+                    )}
+                    onClick={() => setAcceptedTerms(!acceptedTerms)}
+                >
                     <div className={cn(
-                        "w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center",
+                        "w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center shrink-0",
                         acceptedTerms ? "bg-primary border-primary" : "border-white/20 bg-white/5 group-hover/terms:border-primary/50"
                     )}>
-                        {acceptedTerms && <ShieldCheck className="w-3 h-3 text-black" />}
+                        {acceptedTerms && <ShieldCheck className="w-4 h-4 text-black" />}
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground select-none">
-                        Acepto las <Link href="/terminos" className="text-primary hover:underline" onClick={(e: React.MouseEvent) => e.stopPropagation()}>Condiciones de Servicio</Link> y <Link href="/privacidad" className="text-primary hover:underline" onClick={(e: React.MouseEvent) => e.stopPropagation()}>Política de Privacidad</Link>.
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground select-none leading-relaxed">
+                        He leído y acepto expresamente las <Link href="/terminos" target="_blank" className="text-primary hover:underline" onClick={(e: React.MouseEvent) => e.stopPropagation()}>Condiciones de Servicio</Link> y la <Link href="/privacidad" target="_blank" className="text-primary hover:underline" onClick={(e: React.MouseEvent) => e.stopPropagation()}>Política de Privacidad</Link>.
                     </p>
                 </div>
             </div>

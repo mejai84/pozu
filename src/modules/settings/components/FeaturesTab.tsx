@@ -105,7 +105,20 @@ export const FeaturesTab = ({ settings, setSettings, onSave, loading }: Props) =
                         onClick={() => setSettings({ ...settings, delivery_enabled: !settings.delivery_enabled })}
                         className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.delivery_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
                     >
-                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.delivery_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.delivery_enabled ? 'translate-x-7' : 'translate-x-1'}`} boat-id="signature-toggle-circle" />
+                    </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-primary/10">
+                    <div>
+                        <div className="font-bold">Solicitar Firma en Entrega</div>
+                        <div className="text-sm text-muted-foreground">Obligar al cliente a firmar en el móvil del repartidor</div>
+                    </div>
+                    <button
+                        onClick={() => setSettings({ ...settings, delivery_signature_enabled: !settings.delivery_signature_enabled })}
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.delivery_signature_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                    >
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.delivery_signature_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
                     </button>
                 </div>
 

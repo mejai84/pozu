@@ -88,35 +88,33 @@ export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }:
             <span className="text-[10px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">PEDIDO</span>
             <h2 className="text-xl font-black italic tracking-tighter uppercase text-primary">#{order.id.split('-')[0]}</h2>
           </div>
-          <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground flex-wrap">
             <Clock className="w-4 h-4" />
             {getTimeElapsed(order.created_at)}
             <span className={cn(
-              "ml-2 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest",
+              "ml-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest",
               order.source === 'whatsapp' ? "bg-green-500/20 text-green-400 border border-green-500/30" :
               order.source === 'instagram' ? "bg-pink-500/20 text-pink-400 border border-pink-500/30" :
               "bg-blue-500/10 text-blue-400 border border-blue-500/20"
             )}>
               {order.source || 'web'}
             </span>
+            
+            <RiskBadge level={order.risk_level} />
+
             {isPaid && (
-              <span className="ml-2 flex items-center gap-1 text-[8px] font-black uppercase text-green-500 tracking-widest bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 animate-pulse">
+              <span className="flex items-center gap-1 text-[8px] font-black uppercase text-green-500 tracking-widest bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 animate-pulse">
                 PAGADO 💰
               </span>
             )}
           </div>
         </div>
         <div className={cn(
-          "px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center gap-2",
+          "px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shrink-0",
           getStatusColor(order.status)
         )}>
           {getStatusIcon(order.status)}
           {getStatusText(order.status)}
-        </div>
-
-        {/* Badge de Reputación / Anti-Fraude */}
-        <div className="absolute top-6 left-1/2 -track-x-1/2 -translate-x-1/2">
-            <RiskBadge level={order.risk_level} />
         </div>
       </div>
 

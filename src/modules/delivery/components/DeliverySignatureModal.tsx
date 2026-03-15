@@ -47,17 +47,17 @@ export const DeliverySignatureModal = ({ order, onClose, onConfirmDelivery }: Pr
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-[#111111] border border-white/10 rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl"
+                className="bg-[#111111] border border-white/10 rounded-[2.5rem] w-full max-w-lg overflow-y-auto max-h-[95vh] shadow-2xl no-scrollbar"
             >
                 {/* Header */}
-                <div className="p-8 border-b border-emerald-500/20 flex items-center justify-between bg-emerald-500/5">
+                <div className="p-6 border-b border-emerald-500/20 flex items-center justify-between bg-emerald-500/5 sticky top-0 z-20 backdrop-blur-md">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                            <PenLine className="w-6 h-6 text-white" />
+                        <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                            <PenLine className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black italic uppercase tracking-tighter">Confirmar Entrega</h2>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                            <h2 className="text-xl font-black italic uppercase tracking-tighter">Confirmar Entrega</h2>
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">
                                 Pedido #{order.id.split('-')[0].toUpperCase()} · Total: {order.total.toFixed(2)}€
                             </p>
                         </div>
@@ -80,10 +80,13 @@ export const DeliverySignatureModal = ({ order, onClose, onConfirmDelivery }: Pr
 
                     {/* Firma */}
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                            <PenLine className="w-3.5 h-3.5 text-primary" />
-                            Firma del Receptor <span className="text-primary/50">(obligatorio para completar)</span>
-                        </label>
+                        <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                <PenLine className="w-3.5 h-3.5 text-primary" />
+                                Firma del Receptor
+                            </label>
+                            <span className="text-white/20 text-[9px] font-bold uppercase tracking-widest italic">Opcional</span>
+                        </div>
                         <SignatureCanvas 
                             onSignatureChange={setSignatureDataUrl}
                             width={500}
@@ -109,7 +112,7 @@ export const DeliverySignatureModal = ({ order, onClose, onConfirmDelivery }: Pr
                     </Button>
                     <Button
                         onClick={handleConfirm}
-                        disabled={uploading || !signatureDataUrl}
+                        disabled={uploading}
                         className="flex-[2] rounded-2xl bg-emerald-600 text-white font-black uppercase italic tracking-tighter h-14 hover:bg-emerald-700 shadow-xl shadow-emerald-500/10 disabled:opacity-40"
                     >
                         {uploading ? (
