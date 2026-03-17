@@ -156,7 +156,7 @@ export function AIChatButton() {
     try {
       const n8nWebhookUrl = process.env.NEXT_PUBLIC_N8N_CHAT_WEBHOOK_URL || 'https://n8n.example.com/webhook/chat-web'
       
-      await fetch(n8nWebhookUrl, {
+      const res = await fetch(n8nWebhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -167,8 +167,21 @@ export function AIChatButton() {
           timestamp: userMsgData.timestamp
         }),
       })
+      
+      const resData = await res.json()
+      
+      // Registrar la respuesta en la base de datos para que quede en el historial
+      if (resData && (resData.message || resData.text)) {
+        await supabase.from('chat_messages').insert({
+          session_id: sessionId,
+          sender: 'assistant',
+          message: resData.message || resData.text
+        })
+      }
+      
     } catch (error) {
       console.error('n8n notification error:', error)
+      setIsLoading(false)
     }
   }
 

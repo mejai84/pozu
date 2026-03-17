@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X, ExternalLink, Calendar, Bike, Zap } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, UtensilsCrossed, Settings, LogOut, Users, Menu, ChefHat, BarChart3, X, ExternalLink, Calendar, Bike, Zap, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -19,6 +19,7 @@ const sidebarItems = [
     { icon: Users, label: "Empleados", href: "/admin/employees", roles: ['admin'] },
     { icon: BarChart3, label: "Reportes", href: "/admin/reports", roles: ['admin'] },
     { icon: Settings, label: "Configuración", href: "/admin/settings", roles: ['admin'] },
+    { icon: ShieldAlert, label: "Monitor Errores", href: "/admin/error-logs", roles: ['admin'] },
 ]
 import Image from "next/image"
 import { useEffect, useState } from "react"

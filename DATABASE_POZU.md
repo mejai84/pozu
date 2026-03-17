@@ -1,4 +1,4 @@
-# Documentación de Base de Datos - Pozu 2.0 (v3.0)
+# Documentación de Base de Datos - Pozu 2.0 (v3.0 Dynamic)
 
 ## 🗄️ Resumen del Esquema
 La base de datos utiliza **Supabase (PostgreSQL)** con políticas de seguridad **RLS** para proteger la integridad de los datos.
@@ -10,28 +10,52 @@ Almacena todos los pedidos omnicanal (Web, WhatsApp, Telegram, Vapi).
 - `id` (UUID, PK)
 - `guest_info` (JSONB): Información del cliente (`full_name`, `phone`).
 - `delivery_address` (JSONB): Datos de entrega (`street`, `city`).
-- `subtotal` (NUMERIC): ⭐ **NUEVO** Precio base sin impuestos ni envío.
-- `tax_amount` (NUMERIC): ⭐ **NUEVO** Impuesto calculado (IVA).
-- `delivery_fee` (NUMERIC): ⭐ **NUEVO** Costo de envío dinámico.
+- `subtotal` (NUMERIC): Precio base sin impuestos ni envío.
+- `tax_amount` (NUMERIC): Impuesto calculado (IVA).
+- `delivery_fee` (NUMERIC): Costo de envío dinámico.
 - `total` (NUMERIC): Total final a pagar.
 - `status` (TEXT): `pending`, `confirmed`, `preparing`, `ready`, `out_for_delivery`, `delivered`, `cancelled`.
 - `payment_method` (TEXT): `cash`, `card`, `pending`.
+- `payment_status` (TEXT): ⭐ **NUEVO** `pending` → `paid`. Actualizado por Stripe Webhook en Next.js.
+- `payment_link` (TEXT): ⭐ **NUEVO** Link de pago generado por Stripe vía n8n (para pedidos con tarjeta).
+- `source` (TEXT): ⭐ **NUEVO** Canal de origen: `telegram`, `whatsapp`, `vapi`, `website_chat`, `web`.
 - `incidents` (JSONB): Historial de problemas en la entrega.
-- `signature_url` (TEXT): URL de la firma digital.
+- `signature_url` (TEXT): URL de la firma digital de entrega.
+- `delivered_at` (TIMESTAMPTZ): Timestamp de entrega confirmada.
 
-### `error_logs` (Logs de IA/Automation) ⭐ **NUEVA**
-Captura errores de ejecución del flujo n8n para auditoría técnica.
+### `products` (Catálogo)
+- `id` (UUID, PK)
+- `name` (TEXT): Nombre del producto.
+- `price` (NUMERIC): Precio base.
+- `description` (TEXT): Descripción gastronómica.
+- `ingredients` (TEXT[]): Lista de ingredientes.
+- `allergens` (TEXT): ⭐ **NUEVO** Texto de alérgenos (Gluten, lácteos, etc.). Usado por la IA para responder consultas de clientes.
+- `options` (JSONB): Extras (pollo crujiente, salsas, etc.).
+- `stock_quantity` (INT): Stock disponible. Si llega a 0, la IA no lo vende.
+- `is_available` (BOOL): Disponibilidad en carta.
+- `category_id` (UUID, FK): Referencia a la categoría.
+
+### `error_logs` (Logs de IA/Automation)
+Captura errores de ejecución del flujo n8n para auditoría técnica. Visible en `/admin/error-logs`.
 - `id` (UUID, PK)
 - `node_name` (TEXT): Nombre del nodo que falló.
 - `error_message` (TEXT): Descripción del error.
-- `workflow_id` (TEXT)
-- `item_data` (JSONB)
-- `created_at` (TIMESTAMPTZ)
+- `alert_message` (TEXT): ⭐ **NUEVO** Mensaje formateado de alerta enviado al Telegram del admin.
+- `canal` (TEXT): ⭐ **NUEVO** Canal de origen del error (`whatsapp`, `telegram`, `vapi`, `website_chat`).
+- `workflow_id` (TEXT): ID del workflow n8n.
+- `item_data` (JSONB): Datos del item que causó el error.
+- `created_at` (TIMESTAMPTZ): Timestamp del fallo.
 
 ### `settings` (Configuración Dinámica)
 Configuración centralizada que n8n consume al vuelo.
-- `key`: `feature_flags`, `delivery_settings`.
-- `value` (JSONB): Contiene `% IVA`, `Costo Envío`, `Master Switches`.
+
+| key | Campos JSONB relevantes |
+|-----|-------------------------|
+| `feature_flags` | `online_payments_enabled`, `cash_payments_enabled`, `maintenance_mode`, `delivery_enabled`, `takeaway_enabled`, `reservations_enabled`, `tracking_enabled` |
+| `delivery_settings` | `delivery_fee`, `min_order_amount`, `taxes_enabled`, `tax_percentage` |
+| `business_info` | `business_name`, `phone`, `email`, `address`, `is_open` |
+| `business_hours` | Horarios por día de la semana |
+| `printers_config` | Array de impresoras vinculadas |
 
 ---
 
@@ -43,10 +67,14 @@ Analiza el historial del cliente para seguridad en ventas.
   - **VERDE**: 0 incidencias.
   - **AMARILLO**: 1 incidencia.
   - **ROJO**: 2+ incidencias.
-- **Uso**: Llamada desde la IA para decidir si permite pago en efectivo.
+- **Uso**: Llamada desde n8n antes de confirmar un pedido.
 
 ---
 
 ## 🔐 Seguridad (RLS)
 - **Roles**: `admin`, `manager`, `kitchen`, `cashier`, `delivery`, `waiter`, `customer`.
 - **Acceso**: Los logs de error y ajustes de settings solo son editables por el rol `admin`.
+
+---
+*Última actualización: 17 Marzo 2026*
+

@@ -80,11 +80,24 @@
 - [x] **Shield 2.0 (Customer Risk)**: Implementación de función RPC `get_customer_risk_profile` para análisis preventivo de clientes basado en historial de incidencias y cancelaciones.
 - [x] **Automatización Multicanal**: Sincronización del flujo n8n v3.0 con soporte para Telegram, WhatsApp, Vapi y Web Chat, consumiendo `feature_flags` en tiempo real.
 
+### 9. Integración Completa n8n v3.0 Dynamic (17 Marzo 2026) ✅
+- [x] **Migración DB `20260317_n8n_v3_gaps.sql`**: Añadidas columnas `payment_link` (TEXT), `payment_status` (TEXT DEFAULT 'pending') y `source` (TEXT) a la tabla `orders`.
+- [x] **Migración DB**: Añadida columna `allergens` (TEXT) a la tabla `products`. Ahora la herramienta IA del agente n8n puede leerla y responder consultas de alérgenos.
+- [x] **Migración DB**: Añadidas columnas `canal` (TEXT) y `alert_message` (TEXT) a la tabla `error_logs` para trazabilidad multicanal.
+- [x] **Migración DB Seed**: Garantizado el upsert de `delivery_settings` con `taxes_enabled` y `tax_percentage` correctos para que el agente IA calcule el IVA correctamente.
+- [x] **Stripe Webhook API**: Creado endpoint `src/app/api/checkout/webhook/route.ts` que escucha `payment_intent.succeeded` y `checkout.session.completed` para actualizar `status → confirmed` y `payment_status → paid` en Supabase.
+- [x] **Módulo Admin Error Logs**: Creado `src/modules/error-logs/index.tsx` con visualización por canal, contador de errores y detalle expandible. Ruta en `/admin/error-logs`.
+- [x] **Sidebar Admin**: Añadido link "Monitor Errores" con icono `ShieldAlert` (solo rol `admin`).
+- [x] **Env Example**: Actualizado `.env.local.example` con `STRIPE_WEBHOOK_SECRET` y `NEXT_PUBLIC_N8N_CHAT_WEBHOOK_URL`.
+- [x] **Documentación**: `DATABASE_POZU.md` actualizado con schema completo de `orders`, `products`, `error_logs` y `settings`.
+
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
 - Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.
 - **Supabase** seguirá siendo el cerebro central (Store + Realtime).
 - **Consistencia de Datos**: Sync manual realizado entre `src/lib/data.ts` y tabla `products` en Supabase.
+- **Stripe Webhook Secret**: Para producción, configurar `STRIPE_WEBHOOK_SECRET` en Vercel y registrar el endpoint `https://pozu.es/api/checkout/webhook` en el dashboard de Stripe.
 
 ---
-*Última actualización: 15 Marzo 2026 - 22:55h*
+*Última actualización: 17 Marzo 2026 - 13:45h*
+

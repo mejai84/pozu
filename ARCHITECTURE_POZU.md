@@ -34,10 +34,16 @@ Componentes de UI, hooks globales y utilidades de Supabase que usan todos los m�
 - **Lógica de Precios Pro**: El componente `ProductView` y `AddToCartButton` se han desacoplado para permitir precios calculados al vuelo (ej: Pollo +2€) sin depender exclusivamente del valor estático de la DB.
 - **Flujo Legal**: El checkout valida el estado `acceptedTerms` antes de permitir el POST a Stripe, garantizando seguridad jurídica.
 
-### 5. Configuración Centralizada y Automatización (v3.0)
+### 5. Configuración Centralizada, IA y Automatización (v3.0 Dynamic)
 - **Interruptores Maestros (Master Switches)**: El panel de ajustes (`src/modules/settings`) permite el control granular en caliente de funcionalidades críticas (pagos online, efectivo, delivery, takeaway, modo mantenimiento) persistidas en la tabla `settings`.
-- **Automatización Omnicanal (n8n)**: El sistema está sincronizado con un orquestador n8n que consume dinámicamente las configuraciones de `settings`. Esto permite que la IA de ventas (WhatsApp/Telegram/Vapi) conozca en tiempo real si el local está en mantenimiento, el porcentaje de IVA actual o si se han deshabilitado temporalmente los pagos con tarjeta.
-- **Lógica de Salsas y Extras**: Se ha implementado un motor de validación en el storefront y en la IA que obliga a la selección de opciones (salsas para fritos, pollo crujiente para hamburguesas) antes de permitir la inserción del pedido, asegurando que la data en Supabase esté siempre completa para cocina.
+- **IA Omnicanal (n8n v3.0)**: El sistema cuenta con un orquestador n8n que procesa pedidos a través de **4 canales concurrentes**:
+  - 📞 **Vapi**: Agente de voz telefónico.
+  - 💬 **Telegram**: Bot de mensajería interactivo.
+  - 📱 **WhatsApp**: A través de Evolution API.
+  - 🌐 **Web Chat**: Widget integrado en el storefront de Next.js.
+- **Contexto Dinámico**: La IA (GPT-4o) consume dinámicamente las configuraciones de `settings`. Esto permite que la IA de ventas conozca en tiempo real si el local está en mantenimiento, el porcentaje de IVA, costo de envío o si se han deshabilitado temporalmente canales de pago.
+- **Validación Estricta**: Se ha implementado un motor de validación en el storefront y en la IA que obliga a la selección de opciones obligatorias (salsas para fritos, pollo crujiente para hamburguesas, gestión de alérgenos) antes de permitir la inserción del pedido (`orders`), asegurando que la data en Supabase esté 100% limpia para cocina.
+- **Monitor de Salud**: Integración de trazas de errores directamente desde n8n hacia la tabla `error_logs`, expuesto en un dashboard dedicado en `/admin/error-logs` para visibilidad de los administradores.
 
 ### 3. `src/app/admin/` (Rutas Clean)
 Las páginas en el App Router serán solo "contenedores" delgados:
