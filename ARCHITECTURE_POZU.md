@@ -56,12 +56,32 @@ export default function Page() {
 }
 ```
 
+## 🐳 6. Estrategia de Despliegue (Docker & VPS)
+Pozu 2.0 ha sido optimizado para despliegues profesionales en servidores VPS (ej: Hostinger KVM) utilizando **Dokploy**.
+
+### Optimización Standalone
+- Se ha configurado `output: 'standalone'` en `next.config.ts`. Esto permite que Next.js genere un servidor Node.js mínimo que contiene solo los archivos necesarios para producción, reduciendo el tamaño de la imagen Docker de GBs a MBs.
+
+### Pipeline de Docker (Dockerfile Multietapa)
+1. **Etapa `deps`**: Instalación limpia de dependencias de producción.
+2. **Etapa `builder`**:
+   - Ejecución de `scripts/build-frames-manifest.mjs` para pre-generar los catálogos multimedia.
+   - Compilación nativa de Next.js con soporte para variables de entorno de construcción.
+3. **Etapa `runner`**: Imagen final basada en Alpine Linux para máxima seguridad y ligereza, exponiendo el puerto 3000.
+
+### Integración con Dokploy
+- **Create Environment File**: Dokploy genera automáticamente el archivo `.env` necesario para que la IA y las pasarelas de pago funcionen sin configurar argumentos manuales en el Dockerfile.
+- **Reverse Proxy**: Traefik gestiona la terminación SSL y el enrutamiento hacia el contenedor de Pozu.
+
+---
+
 ## 🛠️ Plan de Acción (Sprint 2026)
 
 1. **Fase 1: Cimientos**: Crear carpetas `src/modules` y `src/core`.
 2. **Fase 2: Refactorización Piloto**: Migrar el módulo de `customers` (CRM).
 3. **Fase 3: Refactorización Crítica**: Migrar `kitchen` (KDS) y `realtime-monitor`.
-4. **Fase 4: Documentación Completa**: Sincronización de `README.md`, `ARCHITECTURE_POZU.md` y `TECHNICAL_AUDIT_2026.md` con las nuevas capacidades v3.0.
+4. **Fase 4: Dockerización y VPS**: Implementación de Dockerfile multietapa y despliegue en Dokploy (Completado ✅).
+5. **Fase 5: Documentación Completa**: Sincronización de `README.md`, `ARCHITECTURE_POZU.md` y `TECHNICAL_AUDIT_2026.md` con las nuevas capacidades v3.0.
 
 ## 📈 Beneficios
 - **Carga Diferida**: Mejor rendimiento al separar lógica pesada.
@@ -69,3 +89,4 @@ export default function Page() {
 - **Trabajo en Paralelo**: Varios desarrolladores pueden tocar distintos módulos sin conflictos.
 - **Micro-Componentes**: Obliga a que cada parte del UI sea pequeña y testeable.
 - **Control en Tiempo Real**: Capacidad de apagar/encender el negocio digitalmente sin desplegar código.
+- **Independencia de Platform-as-a-Service**: Al usar Docker, Pozu ya no depende de Vercel y puede correr en cualquier VPS con costes fijos.

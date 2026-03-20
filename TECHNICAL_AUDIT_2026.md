@@ -91,13 +91,22 @@
 - [x] **Env Example**: Actualizado `.env.local.example` con `STRIPE_WEBHOOK_SECRET` y `NEXT_PUBLIC_N8N_CHAT_WEBHOOK_URL`.
 - [x] **Documentación**: `DATABASE_POZU.md` actualizado con schema completo de `orders`, `products`, `error_logs` y `settings`.
 
+### 10. Despliegue Profesional en VPS (Marzo 2026) ✅
+- [x] **Dockerización Multietapa**: Creación de `Dockerfile` optimizado utilizando `node:20-alpine` y `npm ci`.
+- [x] **Optimización de Build**: Configuración de `output: 'standalone'` en `next.config.ts`.
+- [x] **Script de Pre-build**: Integración de `node scripts/build-frames-manifest.mjs` en el ciclo de construcción de Docker.
+- [x] **Configuración Dokploy**: Enlace exitoso con el repositorio de GitHub y gestión automatizada de archivos `.env`.
+- [x] **DNS Management**: Propagación de registros Tipo A en Hostinger apuntando al VPS `187.124.45.122`.
+- [x] **Dominio `pozu2.com`**: Configuración de Traefik para enrutamiento al puerto 3000 con soporte para subdominios.
+
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
 - Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.
 - **Supabase** seguirá siendo el cerebro central (Store + Realtime).
 - **Consistencia de Datos**: Sync manual realizado entre `src/lib/data.ts` y tabla `products` en Supabase.
-- **Stripe Webhook Secret**: Para producción, configurar `STRIPE_WEBHOOK_SECRET` en Vercel y registrar el endpoint `https://pozu.es/api/checkout/webhook` en el dashboard de Stripe.
+- **Stripe Webhook Secret**: Para producción, configurar `STRIPE_WEBHOOK_SECRET` en Vercel/Dokploy y registrar el endpoint `https://pozu2.com/api/checkout/webhook` en el dashboard de Stripe.
+- **Docker Standalone**: El archivo `server.js` generado tras el build es ahora el punto de entrada oficial de la app.
 
 ---
-*Última actualización: 17 Marzo 2026 - 13:45h*
+*Última actualización: 20 Marzo 2026 - 21:55h*
 

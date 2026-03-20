@@ -63,8 +63,9 @@ Sistema completo de pedidos online y gestión administrativa para restaurante de
 - **Row Level Security (RLS)**
 
 ### Deployment:
-- **Vercel** (recomendado)
-- **Supabase Cloud**
+- **Dokploy / VPS (Recomendado)**: Utilizando el `Dockerfile` optimizado y modo `standalone`.
+- **Vercel**: Despliegue serverless tradicional.
+- **Supabase Cloud**: Backend e infraestructura de datos.
 
 ---
 
@@ -290,7 +291,15 @@ WHERE email = 'tu_email@ejemplo.com';
 
 ## 🚀 Deployment
 
-### Vercel (Recomendado):
+### Dokploy / VPS (Recomendado):
+
+1. **Conectar repositorio** en Dokploy.
+2. **Configurar Build Type** como `Dockerfile`.
+3. **Activar "Create Environment File"** en la configuración de Dokploy.
+4. **Configurar variables de entorno** (`NEXT_PUBLIC_SUPABASE_URL`, etc.).
+5. **Añadir Dominio** apuntando al puerto `3000`.
+
+### Vercel:
 
 1. **Conectar repositorio** en Vercel
 2. **Configurar variables de entorno:**
@@ -421,9 +430,9 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 - [x] **Ubicación Satelital 3D** (Precision Pointing)
 - [x] **Gestión CRUD de Auth** (Editar/Eliminar empleados)
 
-**Versión:** 3.0
-**Última actualización:** 2026-03-15  
-**Estado:** ✅ Producción Live (Rama `main`) 🚀 - Build Stable - Master Switches Control Panel - Professional Menu Sync - Custom Pricing Engine - Terms & Conditions Enforcement - Stripe Verified
+**Versión:** 3.1 (Professional Deployment)
+**Última actualización:** 20 Marzo 2026 - 21:55  
+**Estado:** ✅ Producción Live (VPS / Dokploy) 🚀 - Build Stable - Master Switches Control Panel - Professional Menu Sync - Custom Pricing Engine - Terms & Conditions Enforcement - Stripe Verified - Docker Optimized
 
 
 ---

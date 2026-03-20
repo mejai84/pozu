@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.vscode
+.env.local
+.env
+README.md
+ARCHITECTURE_POZU.md
+DATABASE_POZU.md
+TECHNICAL_AUDIT_2026.md
+npm-debug.log
+Dockerfile
+.dockerignore
