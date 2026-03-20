@@ -98,6 +98,7 @@
 - [x] **Configuración Dokploy**: Enlace exitoso con el repositorio de GitHub y gestión automatizada de archivos `.env`.
 - [x] **DNS Management**: Propagación de registros Tipo A en Hostinger apuntando al VPS `187.124.45.122`.
 - [x] **Dominio `pozu2.com`**: Configuración de Traefik para enrutamiento al puerto 3000 con soporte para subdominios.
+- [x] **Build Fix**: Integración de `ARG` en Dockerfile para inyectar variables de Supabase durante la compilación (`next build`), solucionando el error `supabaseUrl is required`.
 
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
