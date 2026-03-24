@@ -106,6 +106,12 @@
 - [x] **Gestión de Dependencias (Hooks)**: Uso de `useCallback` en `useReports.ts` y refactorización de dependencias en `useRealtimeOrders.ts`.
 - [x] **Validación de Build de Producción**: El compilador de TypeScript finalizó con *Exit code 0* tras suprimir errores residuales ("any") e ignorar triggers en un entorno de producción local estable.
 
+### 12. Integración de Alérgenos y Disclaimer Legal (Marzo 2026) ✅
+- [x] **Aviso Legal Incorporado**: Renderización estricta del marco legal sobre contaminación cruzada en el frontend (`product-view.tsx`).
+- [x] **Clasificación 14 Alérgenos EU**: Implementación de mapeo con iconos nativos (Lucide) abarcando la normativa completa.
+- [x] **Inyección Segura en Base de Datos**: Script automatizado (`update_allergens.mjs`) que procesó los 22 productos e inyectó los alérgenos deducidos permanentemente en Supabase.
+- [x] **Protección Frontend Arrays**: Conversión segura en `product-view` y `product-card` para eludir React TypeErrors al procesar las respuestas de Supabase.
+
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
 - Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.

@@ -26,18 +26,20 @@ export function ProductView({ product }: { product: any }) {
 
     const sauceOptions = ["Pozu Special", "Alioli Casero", "Brava Picante", "Miel y Mostaza", "Ketchup", "Mayonesa", "Barbacoa"]
 
-    // Mapeo de iconos para alérgenos comunes
+    // Mapeo de iconos para alérgenos comunes (14 alérgenos europeos)
     const getAllergenIcon = (name: string) => {
         const n = name.toLowerCase()
         if (n.includes('gluten') || n.includes('trigo') || n.includes('pan')) return <Wheat className="w-3 h-3" />
         if (n.includes('lácteo') || n.includes('leche') || n.includes('queso')) return <Milk className="w-3 h-3" />
         if (n.includes('huevo')) return <Egg className="w-3 h-3" />
         if (n.includes('pescado')) return <Fish className="w-3 h-3" />
-        if (n.includes('fruto') || n.includes('nuez') || n.includes('cacahuete')) return <Nut className="w-3 h-3" />
+        if (n.includes('fruto') || n.includes('nuez') || n.includes('cacahuete') || n.includes('cáscara')) return <Nut className="w-3 h-3" />
         if (n.includes('soja')) return <Soup className="w-3 h-3" />
         if (n.includes('mostaza')) return <Droplets className="w-3 h-3" />
         if (n.includes('sésamo')) return <Cookie className="w-3 h-3" />
-        if (n.includes('crustáceo')) return <CircleAlert className="w-3 h-3" />
+        if (n.includes('crustáceo') || n.includes('molusco')) return <CircleAlert className="w-3 h-3" />
+        if (n.includes('apio') || n.includes('altramuces') || n.includes('altramuz')) return <Leaf className="w-3 h-3" />
+        if (n.includes('sulfito') || n.includes('azufre')) return <Flame className="w-3 h-3" />
         return <CircleAlert className="w-3 h-3" />
     }
 
@@ -57,8 +59,8 @@ export function ProductView({ product }: { product: any }) {
         return Array.from(inferred)
     }
 
-    const allergensList = product.allergens && product.allergens.length > 0 
-        ? product.allergens 
+    const allergensList = product.allergens
+        ? (Array.isArray(product.allergens) ? product.allergens : product.allergens.split(',').map((s: string) => s.trim()).filter(Boolean))
         : getInferredAllergens(product.ingredients)
 
     // Mapeo de iconos para ingredientes comunes
@@ -188,19 +190,28 @@ export function ProductView({ product }: { product: any }) {
                 )}
 
                 {/* Alérgenos */}
-                {allergensList.length > 0 && (
+                {(allergensList.length > 0 || true) && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-500">
-                        <h3 className="font-bold flex items-center gap-2 text-red-400">
-                            <CircleAlert className="w-4 h-4" />
-                            Información sobre Alérgenos
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                            {allergensList.map((all: string, i: number) => (
-                                <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full text-xs text-red-400 font-medium uppercase tracking-wider hover:bg-red-500/20 transition-colors">
-                                    {getAllergenIcon(all)}
-                                    {all}
-                                </span>
-                            ))}
+                        {allergensList.length > 0 && (
+                            <>
+                                <h3 className="font-bold flex items-center gap-2 text-red-500">
+                                    <CircleAlert className="w-4 h-4" />
+                                    Información sobre Alérgenos
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {allergensList.map((all: string, i: number) => (
+                                        <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full text-xs text-red-500 font-medium uppercase tracking-wider hover:bg-red-500/20 transition-colors">
+                                            {getAllergenIcon(all)}
+                                            {all}
+                                        </span>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                        <div className="mt-4 p-3 border-l-2 border-red-500/50 bg-red-500/5 rounded-r-xl">
+                            <p className="text-[10px] sm:text-xs text-muted-foreground italic leading-relaxed">
+                                &quot;El equipamiento y la gestión actual de nuestra cocina no permite garantizar que no puedan encontrarse trazas de otros alérgicos o intolerancias no descritas&quot;
+                            </p>
                         </div>
                     </div>
                 )}

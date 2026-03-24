@@ -367,7 +367,10 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 **Ubicación:** Página de detalle de producto y Footer
 
 **Funcionalidades:**
-- ✅ **Gestión de Alérgenos**: Visualización clara de alérgenos (Gluten, Lácteos, etc.) en la ficha de producto con diseño de alerta suave.
+- ✅ **Gestión de Alérgenos Base**: Visualización clara de alérgenos (Gluten, Lácteos, etc.) en la ficha de producto.
+- ✅ **Mapeo Avanzado de 14 Alérgenos (EU)**: Categorización precisa (crustáceos, moluscos, sulfitos, altramuces, etc.) con iconografía Lucide.
+- ✅ **Disclaimer de Responsabilidad Cruzada**: Nota legal fija alertando de la presencia de trazas inevitables en cocina.
+- ✅ **Sincronización Inteligente en Base de Datos**: Mapeo y autoguardado permanente mediante script JS directamente en la columna `allergens` de Supabase para enriquecimiento del Bot conversacional.
 - ✅ **Redes Sociales**: Inclusión de accesos oficiales a **TikTok**, **Instagram**, **YouTube** y **Facebook** con iconos animados y efectos neon.
 
 ---
