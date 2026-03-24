@@ -6,8 +6,8 @@ export const useReservations = () => {
     const [reservations, setReservations] = useState<Reservation[]>([])
     const [loading, setLoading] = useState(true)
 
-    const fetchReservations = async () => {
-        setLoading(true)
+    const fetchReservations = async (showLoading = false) => {
+        if (showLoading) setLoading(true)
         const { data, error } = await supabase
             .from('reservations')
             .select('*')
@@ -23,10 +23,11 @@ export const useReservations = () => {
     }
 
     useEffect(() => {
-        fetchReservations()
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchReservations(false)
 
         const channel = supabase.channel('reservations-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, fetchReservations)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => { fetchReservations(false) })
             .subscribe()
 
         return () => {

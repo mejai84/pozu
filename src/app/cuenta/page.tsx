@@ -52,20 +52,16 @@ export default function CuentaPage() {
                 return
             }
 
-            const { data, error } = await supabase
+            // Attempt to get profile
+            let { data, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
                 .single()
 
-            if (data) {
-                setProfile(data)
-                setEditData({
-                    full_name: data.full_name || "",
-                    phone: data.phone || ""
-                })
-            } else {
-                const initialData: UserProfile = {
+            // If profile doesn't exist (trigger might have failed or not yet run), create it
+            if (error && error.code === 'PGRST116') {
+                const newProfile = {
                     id: session.user.id,
                     email: session.user.email || "",
                     full_name: session.user.user_metadata?.full_name || "Usuario Pozu",
@@ -73,10 +69,20 @@ export default function CuentaPage() {
                     role: 'customer',
                     loyalty_points: 0
                 }
-                setProfile(initialData)
+                const { data: inserted, error: insertError } = await supabase
+                    .from('profiles')
+                    .insert([newProfile])
+                    .select()
+                    .single()
+                
+                if (!insertError) data = inserted
+            }
+
+            if (data) {
+                setProfile(data)
                 setEditData({
-                    full_name: initialData.full_name || "",
-                    phone: initialData.phone || ""
+                    full_name: data.full_name || "",
+                    phone: data.phone || ""
                 })
             }
             setLoading(false)
@@ -270,17 +276,17 @@ export default function CuentaPage() {
                                     <div className="space-y-4">
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Nombre Completo</label>
-                                            <p className="text-xl font-bold">{profile?.full_name || 'No proporcionado'}</p>
+                                            <p className="text-xl font-bold italic">{profile?.full_name || 'No proporcionado'}</p>
                                         </div>
                                         
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Correo Electrónico</label>
-                                            <p className="text-xl font-bold opacity-60">{profile?.email}</p>
+                                            <p className="text-xl font-bold opacity-60 italic">{profile?.email}</p>
                                         </div>
 
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Teléfono</label>
-                                            <p className="text-xl font-bold">{profile?.phone || 'No configurado'}</p>
+                                            <p className="text-xl font-bold italic">{profile?.phone || 'No configurado'}</p>
                                         </div>
                                     </div>
                                 )}

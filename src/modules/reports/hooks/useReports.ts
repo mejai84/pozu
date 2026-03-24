@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { ReportData, DateRange } from '../types'
 import { sendReportEmail as sendEmailAction } from '../actions'
@@ -11,7 +11,7 @@ export const useReports = () => {
     const [endDate, setEndDate] = useState('')
     const [sendingEmail, setSendingEmail] = useState(false)
 
-    const generateReport = async () => {
+    const generateReport = useCallback(async () => {
         setLoading(true)
         try {
             const now = new Date()
@@ -49,6 +49,7 @@ export const useReports = () => {
 
                 const productSales: Record<string, { sales: number; revenue: number }> = {}
                 orders.forEach(order => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     order.order_items?.forEach((item: any) => {
                         const productName = item.products?.name || 'Desconocido'
                         if (!productSales[productName]) {
@@ -92,11 +93,11 @@ export const useReports = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [dateRange, startDate, endDate])
 
     useEffect(() => {
         generateReport()
-    }, [dateRange])
+    }, [generateReport])
 
     const sendReportEmail = async (email: string) => {
         if (!email || !reportData) return

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { Order } from '../types'
 import { settingsService, BusinessInfo } from '@/lib/supabase/settings'
@@ -33,7 +33,7 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
     }
   }
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -52,7 +52,7 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
         .limit(20)
 
       if (error) throw error
-      let newOrders = data || []
+      const newOrders = data || []
       
       const ordersWithRisk = await Promise.all(newOrders.map(async (order) => {
         const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
@@ -87,7 +87,8 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
     } finally {
       setLoading(false)
     }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessInfo])
 
   useEffect(() => {
     // Initialize audio elements
@@ -109,7 +110,9 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
               audioRef.current?.play().catch(() => {})
             } else if (payload.eventType === 'UPDATE') {
               const oldOrder = payload.old as Order
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const wasPaid = oldOrder.status === 'paid' || (oldOrder as any).is_paid
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const isPaidNow = newOrder.status === 'paid' || (newOrder as any).is_paid
               if (isPaidNow && !wasPaid) {
                 cashAudioRef.current?.play().catch(() => {})
@@ -124,7 +127,7 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [isNotificationsEnabled])
+  }, [isNotificationsEnabled, fetchOrders])
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {

@@ -76,5 +76,5 @@ Analiza el historial del cliente para seguridad en ventas.
 - **Acceso**: Los logs de error y ajustes de settings solo son editables por el rol `admin`.
 
 ---
-*Última actualización: 17 Marzo 2026*
-
+*Última actualización: 21 Marzo 2026*
+*Nota: Base de datos migrada exitosamente a infraestructura propia en Dokploy (api.pozu2.com) con esquema v3.0 y seed inicial de 22 productos.*

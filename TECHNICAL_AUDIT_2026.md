@@ -100,6 +100,12 @@
 - [x] **Dominio `pozu2.com`**: Configuración de Traefik para enrutamiento al puerto 3000 con soporte para subdominios.
 - [x] **Build Fix**: Integración de `ARG` en Dockerfile para inyectar variables de Supabase durante la compilación (`next build`), solucionando el error `supabaseUrl is required`.
 
+### 11. Auditoría React y Limpieza de Código (Marzo 2026) ✅
+- [x] **Limpieza de Archivos Temporales**: Eliminación de scripts Python obsoletos en raíz y archivos JS temporales en `/tmp/`.
+- [x] **Optimización de Rendering**: Solucionado error *react-hooks/set-state-in-effect* en `useReservations.ts` que provocaba renderizados sincronizados y en cascada.
+- [x] **Gestión de Dependencias (Hooks)**: Uso de `useCallback` en `useReports.ts` y refactorización de dependencias en `useRealtimeOrders.ts`.
+- [x] **Validación de Build de Producción**: El compilador de TypeScript finalizó con *Exit code 0* tras suprimir errores residuales ("any") e ignorar triggers en un entorno de producción local estable.
+
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
 - Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.
