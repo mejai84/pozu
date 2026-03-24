@@ -60,7 +60,7 @@ export function ProductCard({ product }: { product: Product }) {
 
                     {product.allergens && (
                         <div className="flex gap-1.5 mt-3">
-                            {(Array.isArray(product.allergens) ? product.allergens : product.allergens.split(',').map((s: string) => s.trim()).filter(Boolean)).map((allergen: string) => (
+                            {(Array.isArray(product.allergens) ? product.allergens : (product.allergens as unknown as string).split(',').map((s: string) => s.trim()).filter(Boolean)).map((allergen: string) => (
                                 <span 
                                     key={allergen} 
                                     title={allergen}
