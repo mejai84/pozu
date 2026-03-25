@@ -1,0 +1,152 @@
+{
+  "name": "Pozu 2.0 - Multichannel Sales AI (v3.0 FIXED)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-web",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "trigger-web-chat",
+      "name": "Chat Web Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2864,
+        1328
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.source === 'website_chat' || $json.body?.source === 'website_chat') ? 'si' : '' }}",
+                    "rightValue": "si",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Website Chat"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.message?.voice || $json.message?.audio) ? 'audio' : '' }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.message?.text || $json.body?.text || $json.text) ? 'texto' : '' }}",
+                    "rightValue": "texto",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            }
+          ]
+        }
+      },
+      "id": "classifier-node",
+      "name": "Clasificar Tipo Contenido",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2416,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 3
+      },
+      "id": "unify-node",
+      "name": "Unificar Contenido",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1840,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"={{ $json.message || $json.output || $json.text }}\"\n}",
+        "options": {}
+      },
+      "id": "responder-web-corregido",
+      "name": "Responder a Chat Web",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2128,
+        1632
+      ]
+    }
+  ],
+  "connections": {
+    "Chat Web Webhook": {
+      "main": [
+        [
+          {
+            "node": "Clasificar Tipo Contenido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar Tipo Contenido": {
+      "main": [
+        [
+          {
+            "node": "Unificar Contenido",
+            "type": "main",
+            "index": 2
+          }
+        ],
+        [
+          {
+            "node": "Unificar Contenido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unificar Contenido",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -36,15 +36,15 @@ Componentes de UI, hooks globales y utilidades de Supabase que usan todos los m�
 
 ### 5. Configuración Centralizada, IA y Automatización (v3.0 Dynamic)
 - **Interruptores Maestros (Master Switches)**: El panel de ajustes (`src/modules/settings`) permite el control granular en caliente de funcionalidades críticas (pagos online, efectivo, delivery, takeaway, modo mantenimiento) persistidas en la tabla `settings`.
-- **IA Omnicanal Multimodal (n8n v3.0)**: El sistema cuenta con un orquestador n8n que procesa pedidos a través de **4 canales concurrentes** con capacidades de visión y audio:
-  - 📞 **Vapi**: Agente de voz telefónico.
-  - 💬 **Telegram**: Bot de mensajería interactivo con soporte para imágenes (análisis de platos) y audio (Whisper).
-  - 📱 **WhatsApp**: A través de Evolution API.
-  - 🌐 **Web Chat**: Widget integrado en el storefront con **persistencia en Postgres** (n8n_chat_histories).
+- **IA Omnicanal Multimodal (n8n v3.1 Stable)**: El sistema cuenta con un orquestador n8n que procesa pedidos a través de **4 canales concurrentes** con capacidades de visión y audio. La versión 3.1 introduce:
+  - 🌐 **Web Chat de Alta Disponibilidad**: Enrutamiento directo (bypass de nodos Merge bloqueantes) para garantizar respuesta determinista.
+  - 🛡️ **Blindaje de Webhook**: Implementación de `session_id` persistente y estandarización de payloads JSON para evitar errores de parseo en el cliente.
+  - ⚡ **Resiliencia Frontend**: Integración de `AbortController` (timeout 10s) y guards anti-doble-envío para una experiencia de usuario fluida y segura.
 - **Contexto Dinámico e Inteligencia de Riesgo**: La IA (GPT-4o/Llama-3.2) consume dinámicamente las configuraciones de `settings` y el perfil de riesgo del cliente mediante la función `get_customer_risk_profile`. Esto permite que el asistente tome decisiones de seguridad (ej: bloquear pagos en efectivo a clientes con muchas cancelaciones) en tiempo real.
 - **Resiliencia de Build**: El cliente de Supabase incluye lógica de fallback para permitir compilaciones exitosas en Docker aunque las variables de entorno se inyecten post-build.
 - **Validación Estricta**: Se ha implementado un motor de validación en el storefront y en la IA que obliga a la selección de opciones obligatorias (salsas para fritos, pollo crujiente para hamburguesas, gestión de alérgenos) antes de permitir la inserción del pedido (`orders`), asegurando que la data en Supabase esté 100% limpia para cocina.
 - **Monitor de Salud**: Integración de trazas de errores directamente desde n8n hacia la tabla `error_logs`, expuesto en un dashboard dedicado en `/admin/error-logs` para visibilidad de los administradores.
+- **Seguridad de Secretos**: Los archivos de flujo n8n en el repositorio utilizan **placeholders** para API Keys, exigiendo que las claves reales se gestionen exclusivamente mediante las credenciales seguras del entorno n8n.
 
 ### 3. `src/app/admin/` (Rutas Clean)
 Las páginas en el App Router serán solo "contenedores" delgados:

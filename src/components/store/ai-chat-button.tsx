@@ -190,11 +190,16 @@ export function AIChatButton() {
       if (historyError) console.error('Error sincronizando n8n memory:', historyError)
     }
 
+    // 14. Anti doble envío
+    if (isLoading) return;
+    
+    // 13. UX obligatoria: isTyping = true antes del fetch
+    setIsLoading(true);
     setInput('')
 
-    // Notificar a n8n según la estructura de su Webhook con Timeout de 15s
+    // 12. Timeout obligatorio (10s)
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15000)
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
 
     try {
       const n8nWebhookUrl = process.env.NEXT_PUBLIC_N8N_CHAT_WEBHOOK_URL || 'https://n8npozu.pozu2.com/webhook/chat-web'

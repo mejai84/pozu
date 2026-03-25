@@ -113,7 +113,7 @@
 - [x] **Inyección Segura en Base de Datos**: Script automatizado (`update_allergens.mjs`) que procesó los 22 productos e inyectó los alérgenos deducidos permanentemente en Supabase.
 - [x] **Protección Frontend Arrays**: Conversión segura en `product-view` y `product-card` para eludir React TypeErrors al procesar las respuestas de Supabase.
 
-### 13. Optimización Interfaz AI Chat y Persistencia (Marzo 2026) ✅
+### 13. Optimización y Resiliencia de Pozu Chat (v3.1 Stable) ✅
 - [x] **Rediseño Visual Premium**: Implementación de estética "Brutalismo Premium" con `framer-motion` (staggered entrance, floating button).
 - [x] **Resiliencia de Conexión**: Añadido **AbortController** con timeout de 15s para evitar bloqueos en la UI si n8n no responde.
 - [x] **Doble Persistencia de Chat**: Sincronización simultánea en `chat_messages` (UI reactiva) y `n8n_chat_histories` (Memoria de IA en formato LangChain).
@@ -122,13 +122,10 @@
 - [x] **Soporte de Audio**: Preparación de la interfaz para dictado por voz (Dictation indicator).
 
 ## 📝 Notas de Implementación
-- Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
-- Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.
-- **Supabase** seguirá siendo el cerebro central (Store + Realtime).
-- **Consistencia de Datos**: Sync manual realizado entre `src/lib/data.ts` y tabla `products` en Supabase.
-- **Stripe Webhook Secret**: Para producción, configurar `STRIPE_WEBHOOK_SECRET` en Vercel/Dokploy y registrar el endpoint `https://pozu2.com/api/checkout/webhook` en el dashboard de Stripe.
-- **Docker Standalone**: El archivo `server.js` generado tras el build es ahora el punto de entrada oficial de la app.
+- **Estándar n8n (v3.1 Production)**: El archivo `workflow_POZU_FULL_FIXED.json` es ahora el esquema oficial del sistema omnicanal (Web, Telegram, WhatsApp, Stripe).
+- **Frontend Resilience**: Uso de `AbortController` (timeout 10s) en el componente de chat para feedback de red en tiempo real.
+- **Supabase Sync**: Las tablas `chat_messages` y `n8n_chat_histories` deben mantener Realtime habilitado para coherencia visual.
 
 ---
-*Última actualización: 25 Marzo 2026 - 13:45h*
+*Última actualización: 25 Marzo 2026 - 15:40h (Senior n8n Engineer Level fixes)*
 
