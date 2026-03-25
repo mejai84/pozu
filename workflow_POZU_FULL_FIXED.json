@@ -799,7 +799,7 @@
             {
               "id": "id-3",
               "name": "session_id",
-              "value": "={{ $json.session_id }}",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
               "type": "string"
             }
           ]
@@ -1467,7 +1467,9 @@
       ]
     },
     {
-      "parameters": {},
+      "parameters": {
+        "sessionId": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}"
+      },
       "id": "7bd42cb1-6b81-4b5f-ac19-8dbf08afe213",
       "name": "Simple Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
