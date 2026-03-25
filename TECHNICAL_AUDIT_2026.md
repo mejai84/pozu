@@ -113,6 +113,14 @@
 - [x] **Inyección Segura en Base de Datos**: Script automatizado (`update_allergens.mjs`) que procesó los 22 productos e inyectó los alérgenos deducidos permanentemente en Supabase.
 - [x] **Protección Frontend Arrays**: Conversión segura en `product-view` y `product-card` para eludir React TypeErrors al procesar las respuestas de Supabase.
 
+### 13. Optimización Interfaz AI Chat y Persistencia (Marzo 2026) ✅
+- [x] **Rediseño Visual Premium**: Implementación de estética "Brutalismo Premium" con `framer-motion` (staggered entrance, floating button).
+- [x] **Resiliencia de Conexión**: Añadido **AbortController** con timeout de 15s para evitar bloqueos en la UI si n8n no responde.
+- [x] **Doble Persistencia de Chat**: Sincronización simultánea en `chat_messages` (UI reactiva) y `n8n_chat_histories` (Memoria de IA en formato LangChain).
+- [x] **Blindaje de Webhook**: Refactorización del payload para incluir campos redundantes (`text` y `message: { text }`), garantizando compatibilidad con el enrutador de n8n.
+- [x] **Feedback de Error UI**: Implementación de mensajes de error amigables en el chat si el webhook de n8n falla (CORS, 500 o Timeout).
+- [x] **Soporte de Audio**: Preparación de la interfaz para dictado por voz (Dictation indicator).
+
 ## 📝 Notas de Implementación
 - Se mantendrá el uso de **Tailwind CSS** y **Vanilla CSS** según las guías.
 - Se dará prioridad a la estética "Premium" y animaciones con **Framer Motion**.
@@ -122,5 +130,5 @@
 - **Docker Standalone**: El archivo `server.js` generado tras el build es ahora el punto de entrada oficial de la app.
 
 ---
-*Última actualización: 20 Marzo 2026 - 21:55h*
+*Última actualización: 25 Marzo 2026 - 13:45h*
 
