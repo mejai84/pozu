@@ -79,6 +79,7 @@
 - [x] **Auditoría de IA**: Creación de la tabla `error_logs` para monitorear fallos en el orquestador n8n.
 - [x] **Shield 2.0 (Customer Risk)**: Implementación de función RPC `get_customer_risk_profile` para análisis preventivo de clientes basado en historial de incidencias y cancelaciones.
 - [x] **Automatización Multicanal**: Sincronización del flujo n8n v3.0 con soporte para Telegram, WhatsApp, Vapi y Web Chat, consumiendo `feature_flags` en tiempo real.
+- [x] **Chat Omnicanal v3.0**: Implementación de tabla `chat_messages` con Realtime y webhook directo a n8n para respuestas IA en el storefront.
 
 ### 9. Integración Completa n8n v3.0 Dynamic (17 Marzo 2026) ✅
 - [x] **Migración DB `20260317_n8n_v3_gaps.sql`**: Añadidas columnas `payment_link` (TEXT), `payment_status` (TEXT DEFAULT 'pending') y `source` (TEXT) a la tabla `orders`.

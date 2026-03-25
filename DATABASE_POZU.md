@@ -46,6 +46,22 @@ Captura errores de ejecución del flujo n8n para auditoría técnica. Visible en
 - `item_data` (JSONB): Datos del item que causó el error.
 - `created_at` (TIMESTAMPTZ): Timestamp del fallo.
 
+### `chat_messages` (Chat Histórico)
+Almacena el historial de conversación del widget web para sincronización con la IA.
+- `id` (UUID, PK)
+- `session_id` (TEXT): ID único de sesión del navegador (`web_xxxxxx`).
+- `sender` (TEXT): `user` o `assistant`.
+- `message` (TEXT): Contenido del mensaje.
+- `attachment_url` (TEXT): URL opcional de imagen o archivo adjunto.
+- `timestamp` (TIMESTAMPTZ): Fecha y hora del mensaje.
+
+### `n8n_chat_histories` (Memoria Persistente IA)
+Tabla optimizada para que n8n recupere el contexto exacto de la conversación entre reinicios del servidor.
+- `id` (SERIAL, PK)
+- `session_id` (TEXT): Relacionado con el chat web o identificador de red social.
+- `message` (JSONB): Estructura completa del mensaje compatible con LangChain.
+- `created_at` (TIMESTAMPTZ): Timestamp de creación.
+
 ### `settings` (Configuración Dinámica)
 Configuración centralizada que n8n consume al vuelo.
 

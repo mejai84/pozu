@@ -148,8 +148,7 @@ WHERE email = 'tu_email@ejemplo.com';
 3. Acceder a `/admin`
 
 **Usuario demo:**
-- Email: `mejai84@ejemplo.com`
-- Password: `@Mejai840316*`
+- Disponible bajo petición al administrador.
 
 ---
 
@@ -430,9 +429,9 @@ Este proyecto es privado y pertenece a Pozu Hamburguesas.
 - [x] **Ubicación Satelital 3D** (Precision Pointing)
 - [x] **Gestión CRUD de Auth** (Editar/Eliminar empleados)
 
-**Versión:** 3.1 (Professional Deployment)
-**Última actualización:** 20 Marzo 2026 - 21:55  
-**Estado:** ✅ Producción Live (VPS / Dokploy) 🚀 - Build Stable - Master Switches Control Panel - Professional Menu Sync - Custom Pricing Engine - Terms & Conditions Enforcement - Stripe Verified - Docker Optimized
+**Versión:** 3.2 (Multimodal AI Deployment)
+**Última actualización:** 25 Marzo 2026 - 03:30  
+**Estado:** ✅ Producción Live (VPS / Dokploy) 🚀 - Build Stable Resilient - Pozu AI Multimodal (Vision & Audio) - Persistence Chat Memory (Postgres) - Automatic Customer Risk Scoring.
 
 
 ---
