@@ -555,4 +555,24 @@ El panel de administración de **Pozu 2.0** ahora es completamente funcional con
 
 ---
 
-**Todo listo, localizado y sincronizado! 🚀**
+### 28. **Estabilización de Pozu AI y Agente Omnicanal (Marzo 2026)** 🤖 ⭐ NUEVO
+**Ubicación:** n8n Workflow (`workflow_POZU_FULL_FIXED.json`) y Configuración de Groq
+
+**Mejoras de Estabilidad:**
+- ✅ **Eliminación de Bucles Infinitos**: Activación de "Execute Once" en el nodo del Agente para prevenir ejecuciones paralelas descontroladas.
+- ✅ **Optimización de Rate Limits (Groq)**: Migración al modelo `llama-3.1-8b-instant` con temperatura `0.2` para maximizar la cuota de tokens y la precisión.
+- ✅ **Gestión de Memoria Eficiente**: Reducción de la ventana de contexto (`contextWindowLength: 2`) y límite de iteraciones (`Max Iterations: 3`) para un consumo mínimo de tokens.
+
+**Arquitectura de Procesamiento Separado (El "Semáforo"):**
+- ✅ **Nodo IF de Clasificación**: Implementación de un filtro lógico (`Verificar si es Pedido`) inmediatamente después del Agente.
+- ✅ **Separación de Charlas vs. Pedidos**: 
+  - **Ruta FALSE (Charla)**: Los mensajes puramente conversacionales (saludos, dudas) se desvían directamente al enrutador de respuestas sin tocar la base de datos de pedidos ni Stripe.
+  - **Ruta TRUE (Pedido)**: Solo los mensajes que contienen un JSON de pedido estructurado (`detalle_pedido`) activan el flujo de verificación de riesgo y cobro.
+- ✅ **Resiliencia en Búsquedas Supabase**:
+  - Implementación de la doble flecha (`->>`) para consultas correctas sobre campos JSONB (`guest_info->>phone`).
+  - Uso de valores por defecto (`000000000`) para evitar errores en clientes nuevos sin teléfono registrado.
+  - Activación de "Always Output Data" para garantizar que el flujo siempre devuelva una respuesta, incluso si no se encuentran registros previos.
+
+---
+
+**Todo listo, estabilizado y optimizado para producción! 🚀**

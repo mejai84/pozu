@@ -6,15 +6,17 @@
         "updates": [
           "message"
         ],
-        "additionalFields": {}
+        "additionalFields": {
+          "download": true
+        }
       },
-      "id": "b2a84f45-0866-4fc0-b40b-e7250a8652b0",
+      "id": "1f45515b-a156-45bd-b779-fbc92ce3533b",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -2864,
-        944
+        -18144,
+        560
       ],
       "webhookId": "eabdf013-3cea-4343-950e-221dafe541b2",
       "credentials": {
@@ -30,13 +32,13 @@
         "path": "vapi-transcription",
         "options": {}
       },
-      "id": "eb69d3b2-74a9-49d3-b63e-73ac3d98857a",
+      "id": "0e354de6-03f8-4437-89a4-f4a6fc14fcf7",
       "name": "Vapi Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -2864,
-        1136
+        -18160,
+        736
       ],
       "webhookId": "710e6f3f-276e-498a-a250-26bbc0fd59d2"
     },
@@ -139,13 +141,13 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "f9d32418-ba59-4179-b323-291e0f0289f1",
+      "id": "17532515-b5af-4d8a-9a39-0321851808bd",
       "name": "Clasificar Tipo Contenido",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -2416,
-        1008
+        -17584,
+        704
       ]
     },
     {
@@ -161,13 +163,13 @@
           ]
         }
       },
-      "id": "b095292f-92ee-4ca1-bae0-8ea08d7a2d73",
+      "id": "9179888b-76e0-492b-8348-463e056f9e54",
       "name": "Consultar Feature Flags",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -1616,
-        1040
+        -16912,
+        816
       ],
       "credentials": {
         "supabaseApi": {
@@ -189,13 +191,13 @@
           ]
         }
       },
-      "id": "4fde9cb6-5c7d-46b4-8240-a576f26fd21f",
+      "id": "41dbcedc-9315-4937-9b69-6b7080a134dc",
       "name": "Consultar Delivery Settings",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -1392,
-        1040
+        -16736,
+        512
       ],
       "credentials": {
         "supabaseApi": {
@@ -204,24 +206,25 @@
         }
       }
     },
-
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.text || $json.transcript || $json.message?.text || $json.body?.text || '' }}",
-        "hasOutputParser": true,
+        "text": "={{ $('🛡️ Blindar Metadata').item.json.text || $('🛡️ Blindar Metadata').item.json.message_text || $('Limpiar Texto').item.json.text || '' }}",
         "options": {
-          "systemMessage": "=Saluda al cliente por su nombre: {{ $('🛡️ Blindar Metadata').item.json.nombre_usuario }}\n\nEres el gestor de ventas inteligente de Pozu 2.0 (v3.0). Tu misión es convertir mensajes de clientes en pedidos estructurados aplicando la lógica actual de Asturias.\n\n**ESTADO DEL NEGOCIO (Dinamico):**\n- Pagos Online: {{ $('Consultar Feature Flags').item.json.value.online_payments_enabled ? 'HABILITADO' : 'DESACTIVADO' }}\n- Pagos Efectivo: {{ $('Consultar Feature Flags').item.json.value.cash_payments_enabled ? 'HABILITADO' : 'DESACTIVADO' }}\n- Mantenimiento: {{ $('Consultar Feature Flags').item.json.value.maintenance_mode ? 'ACTIVO (Pedir disculpas)' : 'Inactivo' }}\n\n**REGLAS DE FINANZAS:**\n- IVA: {{ $('Consultar Delivery Settings').item.json.value.tax_percentage }}% (Solo si habilitado: {{ $('Consultar Delivery Settings').item.json.value.taxes_enabled }})\n- Costo Envío: {{ $('Consultar Delivery Settings').item.json.value.delivery_fee }}€\n\n**PROTOCOLO OBLIGATORIO:**\n1. **Salsas**: Si el cliente pide 'Cesta de Patatas' o fritos, PREGUNTA qué salsa quiere (Alioli, Brava, Miel y Mostaza, Ketchup).\n2. **Hamburguesas**: Ofrece la opción de 'Pollo Crujiente' por +2€ si detectas una hamburguesa.\n3. **Cálculo**: Calcula Subtotal, Tax (si habilitado), Delivery y Total Final.\n4. **Teléfono**: Si es Delivery, pídeles siempre un teléfono de Asturias.\n\n**FORMATO DE SALIDA (JSON):**\n```json\n{\n  \"nombre_cliente\": \"string\",\n  \"telefono_cliente\": \"string\",\n  \"direccion_asturias\": \"string\",\n  \"detalle_pedido\": \"incluyendo salsas/extras\",\n  \"metodo_pago\": \"Efectivo / Tarjeta / Pendiente\",\n  \"subtotal\": 0.00,\n  \"tax_amount\": 0.00,\n  \"delivery_fee\": 0.00,\n  \"total_final\": 0.00,\n  \"necesita_link_pago\": true/false\n}\n```"
+          "systemMessage": "=ERES EL ASISTENTE DE VENTAS EXPERTO DE POZU 2.0.\nTu misión es gestionar pedidos de forma precisa, rápida y sin errores.\n\n⚠️ REGLAS SAGRADAS (ZERO HALLUCINATION)\n1. PROHIBICIÓN ABSOLUTA DE INVENTAR\n   - No inventes Platos, Ingredientes, Precios o Procesos.\n   - Si la info no está en el catálogo oficial → NO EXISTE. Usa verificar_producto.\n\n2. CONSULTA OBLIGATORIA AL CATÁLOGO (verificar_producto)\n   - CUÁNDO USARLA: Si el cliente pide \"menú\", \"carta\", o menciona un producto.\n   - CÓMO USARLA: Si pide la carta completa usa el parámetro \"todo\". Si pide productos, búscalo.\n   - MÁXIMO 1 LLAMADA LÓGICA: Valida todos los productos de una vez.\n\n3. RESPUESTA CUANDO ALGO NO EXISTE\n   - Si la herramienta indica que no hay resultados, responde EXACTAMENTE:\n     \"Lo siento, no veo ese plato en mi carta. ¿Te refieres a [sugerir producto similar que sí exista]?\"\n   - NUNCA digas \"no tenemos\" sin ofrecer una alternativa del catálogo.\n\n4. PROTOCOLO DE CONVERSACIÓN (VENTA ACTIVA)\n   - Mientras el cliente pide: Sé natural, cercano, breve y eficiente.\n   - Confirma lo que añade.\n   - Sugiere complementos SOLO si existen en el catálogo (ej. patatas, salsas).\n   - IMPORTANTE: No uses formato JSON en esta fase. Habla en texto plano.\n\n5. DATOS DEL NEGOCIO (TIEMPO REAL)\n   - Pagos con tarjeta: {{ $('Consultar Feature Flags').item.json.value.online_payments_enabled ? 'SÍ ✅' : 'Solo efectivo ❌' }}\n   - Pagos en efectivo: {{ $('Consultar Feature Flags').item.json.value.cash_payments_enabled ? 'SÍ ✅' : 'No disponible ❌' }}\n   - Envío a domicilio: {{ $('Consultar Delivery Settings').item.json.value.delivery_fee }}€\n   - IVA aplicado: {{ $('Consultar Delivery Settings').item.json.value.tax_percentage || 10 }}%\n\n6. CIERRE DE VENTA (ESTRICTO Y BLOQUEANTE)\n   ⚠️ SOLO puedes cerrar la venta si tienes TODOS estos datos confirmados:\n   1. Nombre del cliente\n   2. Teléfono (9 dígitos)\n   3. Confirmación explícita de que ha terminado el pedido (\"eso es todo\", \"nada más\")\n   4. Método de pago (efectivo o tarjeta). Si no lo da, tienes que preguntarlo.\n\n7. RESPUESTA FINAL (FORMATO JSON OBLIGATORIO)\n   Solo cuando se cumplan las 4 condiciones de cierre, tu ÚNICA y última respuesta debe ser exclusivamente este JSON (sin texto adicional):\n   {\n     \"nombre_cliente\": \"Nombre\",\n     \"telefono_cliente\": \"Número\",\n     \"detalle_pedido\": \"Lista exacta de platos y extras\",\n     \"metodo_pago\": \"efectivo\" o \"tarjeta\",\n     \"subtotal\": 0.00,\n     \"tax_amount\": 0.00,\n     \"total_final\": 0.00\n   }\n   \n🧠 REGLA DE ORO FINAL: Si dudas, consulta la herramienta o pregunta al cliente. ¡Nunca inventes!\n",
+          "maxIterations": 10,
+          "batching": {}
         }
       },
-      "id": "56d7e341-ddc2-4b01-bffa-c7c62c94ff8f",
+      "id": "e2e4f5bc-2cb2-4414-b59a-5772dd10e317",
       "name": "Extraer Datos Estructurados",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -816,
-        1040
-      ]
+        -16112,
+        496
+      ],
+      "executeOnce": true
     },
     {
       "parameters": {
@@ -303,26 +306,13 @@
         },
         "options": {}
       },
-      "id": "fc998c1f-7c2d-4346-ab55-3d102df66325",
+      "id": "e9d54b76-beb8-4c9b-ad70-e3eb2b58138c",
       "name": "Preparar para Supabase",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1008,
-        1040
-      ]
-    },
-    {
-      "parameters": {
-        "jsonSchemaExample": "{\"nombre_cliente\":\"Juan\",\"total_final\": 25.50}"
-      },
-      "id": "11cabe0b-e4f8-4ade-9c6d-48c552ff3aa9",
-      "name": "JSON Output Parser",
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        -560,
-        1264
+        -14272,
+        448
       ]
     },
     {
@@ -330,13 +320,13 @@
         "tableId": "orders",
         "dataToSend": "autoMapInputData"
       },
-      "id": "2accac5b-b288-43c5-96aa-30d6ee72260b",
+      "id": "51f09aea-2d6b-44eb-975d-fb5fe102be38",
       "name": "Insertar Pedido en Supabase",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        1456,
-        1376
+        -13744,
+        -96
       ],
       "credentials": {
         "supabaseApi": {
@@ -443,13 +433,13 @@
         },
         "options": {}
       },
-      "id": "1ea74511-1ef7-4a25-99d3-93271f7d9cf7",
+      "id": "5053386f-547a-4911-bee0-a17e007b851c",
       "name": "Identificar Canal Respuesta",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1680,
-        1344
+        -13520,
+        112
       ]
     },
     {
@@ -460,13 +450,13 @@
           "responseCode": 200
         }
       },
-      "id": "4570faba-9d10-4c55-a1a6-dd1f032d9dd8",
+      "id": "6c73a571-b9f7-41ab-ac34-2be146a8fa0e",
       "name": "Responder a Vapi",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1904,
-        1056
+        -13296,
+        -112
       ]
     },
     {
@@ -477,13 +467,13 @@
           "parse_mode": "Markdown"
         }
       },
-      "id": "e56eb303-b89c-46a0-ae16-32d8883bdb9b",
+      "id": "2a447b2a-cc42-449c-b8ce-41bda9adc477",
       "name": "Responder a Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1904,
-        1248
+        -13296,
+        48
       ],
       "webhookId": "b29027d2-d721-4836-8ef5-80c193db1970",
       "credentials": {
@@ -499,13 +489,13 @@
         "path": "evolution-whatsapp",
         "options": {}
       },
-      "id": "2f27525d-d67a-4ce9-b49b-c23edb936b30",
+      "id": "8db4c170-46ce-488a-8449-3f73c931e0e0",
       "name": "Evolution API Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -2864,
-        752
+        -18144,
+        352
       ],
       "webhookId": "752ebf5d-1773-4b51-9208-33074e91cc1b"
     },
@@ -537,13 +527,13 @@
         },
         "options": {}
       },
-      "id": "8fbd26f8-6711-437c-9222-b967ca83457a",
+      "id": "5267fc71-ca96-4347-aa25-bfdb01c84f4b",
       "name": "Enviar Mensaje WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1904,
-        1440
+        -13296,
+        240
       ]
     },
     {
@@ -552,13 +542,13 @@
         "tableId": "products",
         "returnAll": true
       },
-      "id": "af0473ea-8c3f-413e-960b-38393d2b226b",
+      "id": "7278d85d-1d7c-4c0e-bd9f-162c0e2b549c",
       "name": "Consultar Catálogo Productos",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -1168,
-        1040
+        -16528,
+        544
       ],
       "credentials": {
         "supabaseApi": {
@@ -570,16 +560,16 @@
     {
       "parameters": {
         "name": "verificar_producto",
-        "description": "Busca ingredientes, alérgenos y precios. Reporta si un producto tiene extras como 'Pollo (+2€)' o requiere salsas.",
-        "jsCode": "const nombreProducto = $fromAI('product_name', 'Nombre del producto', 'string');\nconst productos = $('Consultar Catálogo Productos').all();\nconst nombreBuscado = nombreProducto.toLowerCase();\nconst p = productos.find(item => item.json.name?.toLowerCase().includes(nombreBuscado));\n\nif (!p) return `Producto no encontrado.`;\n\nconst item = p.json;\nlet extraInfo = '';\nif (item.name.toLowerCase().includes('hamburguesa')) extraInfo = 'OPCIÓN: Pollo Crujiente (+2€ por unidad).';\nif (item.name.toLowerCase().includes('cesta')) extraInfo = 'OBLIGATORIO: Elegir salsa (Alioli, Brava, Miel y Mostaza, Ketchup).';\n\nreturn `VERIFICADO: ${item.name} | Precio: ${item.price}€ | Alérgenos: ${item.allergens || 'Consultar'} | ${extraInfo}`;"
+        "description": "Úsala para buscar un producto específico por su nombre O para obtener la lista completa de todos los productos si el cliente pide la carta o el menú.",
+        "jsCode": "const query = $fromAI('input', 'Producto o consulta (ej: menu, carta, burguers, alérgenos)', 'string').toLowerCase();\n\nlet productos = [];\ntry {\n  productos = $('Consultar Catálogo Productos').all();\n} catch (e) {\n  return \"Error de lectura del catálogo. Por favor, pide al usuario que espere.\";\n}\n\n// LÓGICA DE MENÚ ORGANIZADO (POR CATEGORÍAS)\nif (['menú','menu','carta','todo','toda','comer','hamburguesas','burguer','picoteo'].some(kw => query.includes(kw))) {\n  const cats = {\n    '🍔 HAMBURGUESAS GOURMET': ['Pozu', 'Crispy Cheddar', 'Selecta', 'Oikos', 'Cielito Lindo', 'Everest', 'Escorpión', 'Kentucky', 'Hamburguesa Simple', 'Gourmet'],\n    '🥪 SANDWICHES': ['Sandwich Pozu', 'Sandwich de Jamón York y Queso'],\n    '🍟 PARA COMPARTIR / PICOTEO': ['Nachos', 'Nachos Pozu', 'Cuatro salsas', 'Cesta de Patatas', 'Patatas Rancheras', 'Patatas Pozu', 'Crujientes de pollo', 'Tequeños', 'Jalapeños (7 unids)', 'Pollo estilo Kentucky']\n  };\n\n  let menuTxt = \"🍔 *CARTA POZU 2.0* 🍔\\n\\n\";\n  for (const [title, names] of Object.entries(cats)) {\n    menuTxt += `* ${title} *\\n`;\n    const filtered = productos.filter(p => names.includes(p.json.name));\n    filtered.forEach(p => {\n      menuTxt += `- ${p.json.name} (${p.json.price}€)\\n`;\n    });\n    menuTxt += \"\\n\";\n  }\n  return menuTxt + \"→ ¿Qué te apetece probar? (Sugerencia: La Pozu 👑 o la Selecta ✨).\";\n}\n\n// LÓGICA DE BÚSQUEDA ESPECÍFICA\nconst encontrados = productos.filter(item => \n  item.json.name?.toLowerCase().includes(query) || \n  query.includes(item.json.name?.toLowerCase()) ||\n  item.json.description?.toLowerCase().includes(query)\n);\n\nif (encontrados.length === 0) {\n  return `No encuentro '${query}' en mi carta. -> Ofrece ver el menú completo.`;\n}\n\nreturn encontrados.map(p => {\n  let item = p.json;\n  let extra = '';\n  if (item.name.toLowerCase().includes('hamburguesa')) extra = 'OPCIÓN: Pollo Crujiente (+2€). ';\n  if (item.name.toLowerCase().includes('cesta')) extra = 'RECUERDA: Preguntar qué salsa quiere (brava, alioli, etc.). ';\n  return `NOMBRE: ${item.name} | PRECIO: ${item.price}€ | ALÉRGENOS: ${item.allergens||'Ninguno'} | INFO: ${item.description || ''} | ${extra}`;\n}).join('\\n\\n');\n"
       },
-      "id": "22c82808-6188-4256-bfba-f5233f6a69e4",
+      "id": "ed00e5c1-85bc-4e83-b76b-28dbe4f4a4d9",
       "name": "Herramienta Verificar Productos",
       "type": "@n8n/n8n-nodes-langchain.toolCode",
       "typeVersion": 1,
       "position": [
-        -688,
-        1264
+        -15824,
+        720
       ]
     },
     {
@@ -596,11 +586,11 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.output.metodo_pago }}",
-                    "rightValue": "Efectivo",
+                    "leftValue": "={{ $('Extraer Datos Estructurados').first().json.text }}",
+                    "rightValue": "efectivo",
                     "operator": {
                       "type": "string",
-                      "operation": "equals"
+                      "operation": "contains"
                     },
                     "id": "670bc859-89a4-4593-ade9-fd907d684539"
                   }
@@ -620,11 +610,11 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.output.metodo_pago }}",
-                    "rightValue": "Tarjeta",
+                    "leftValue": "={{ $('Extraer Datos Estructurados').first().json.text }}",
+                    "rightValue": "tarjeta",
                     "operator": {
                       "type": "string",
-                      "operation": "equals"
+                      "operation": "contains"
                     },
                     "id": "1b22dd48-d477-4a30-8801-9ec5c7c5d6c2"
                   }
@@ -638,13 +628,13 @@
         },
         "options": {}
       },
-      "id": "d5600432-24a3-4ada-a91b-e7749a40cb28",
+      "id": "25d5dc24-80da-4233-a09a-b3dc1ebcd619",
       "name": "Verificar Método Pago",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        336,
-        1040
+        -14944,
+        448
       ]
     },
     {
@@ -674,26 +664,26 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "61e7ec9f-7cff-410e-9015-04b4c45a9367",
+      "id": "986fba9d-9776-425b-8055-2ec87d282e55",
       "name": "Preparar Pago Tarjeta",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        560,
-        960
+        -14720,
+        544
       ]
     },
     {
       "parameters": {
         "resource": "__CUSTOM_API_CALL__"
       },
-      "id": "e23e6b30-34bc-400f-a585-82b89208af9b",
+      "id": "0760806e-e375-49d7-94c0-12906e1f7165",
       "name": "Generar Link Pago (Stripe)",
       "type": "n8n-nodes-base.stripe",
       "typeVersion": 1,
       "position": [
-        784,
-        960
+        -14496,
+        448
       ],
       "credentials": {
         "stripeApi": {
@@ -708,13 +698,13 @@
         "path": "webhook-stripe-pozu",
         "options": {}
       },
-      "id": "c64ec62c-c4ef-45a8-9f13-8a4367adcd99",
+      "id": "b52b19a9-50cd-4c52-b4cb-b56bfeaf7a3c",
       "name": "Stripe Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -2864,
-        2752
+        -18000,
+        2624
       ],
       "webhookId": "d374f787-b38d-4e5a-a04c-da9957fc74ff"
     },
@@ -748,13 +738,13 @@
           ]
         }
       },
-      "id": "898ea9d1-a393-4974-ae93-bebbf6aefa06",
+      "id": "d3292e42-2e8c-4aa0-945a-c3fc24683185",
       "name": "Marcar como Pagado",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -2640,
-        2752
+        -17776,
+        2624
       ],
       "credentials": {
         "supabaseApi": {
@@ -770,13 +760,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "7fd4895a-cb10-4f9b-bad5-bbe5fb6eca50",
+      "id": "921cd908-b4f0-4c9d-93fc-dabb54a6e5ba",
       "name": "Chat Web Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -2864,
-        1328
+        -18160,
+        928
       ],
       "webhookId": "8dc26acb-84c5-412e-ac1b-473975ed91cb"
     },
@@ -806,13 +796,13 @@
         },
         "options": {}
       },
-      "id": "a5f42598-bbc9-43eb-8395-ce23b8aa0c61",
+      "id": "a63b7315-5812-47c6-b462-986a169356df",
       "name": "Preparar Respuesta Web",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1904,
-        1632
+        -13296,
+        432
       ]
     },
     {
@@ -823,13 +813,13 @@
           "responseCode": 200
         }
       },
-      "id": "8e96f07c-1401-4931-afb8-0da840a5042e",
+      "id": "9f7e0bd4-67ec-450b-8c21-8e2f45de3ac3",
       "name": "Responder a Chat Web",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        2128,
-        1632
+        -13072,
+        432
       ]
     },
     {
@@ -840,20 +830,22 @@
         "filters": {
           "conditions": [
             {
-              "keyName": "guest_info->phone",
-              "keyValue": "={{ $('Extraer Datos Estructurados').item.json.output.telefono_cliente }}"
+              "keyName": "=guest_info->>phone",
+              "condition": "eq",
+              "keyValue": "={{ $('Extraer Datos Estructurados').item.json.output.telefono_cliente || '000000000' }}"
             }
           ]
         }
       },
-      "id": "ec381278-ea73-4970-b49c-9d732dbe2c71",
+      "id": "b095d75a-b498-466d-a3e7-58e48dd5c629",
       "name": "Verificar Riesgo Cliente",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -352,
-        1040
+        -15616,
+        448
       ],
+      "alwaysOutputData": true,
       "credentials": {
         "supabaseApi": {
           "id": "FuNmSwNtO9Gdhqsd",
@@ -885,13 +877,13 @@
         },
         "options": {}
       },
-      "id": "9bd7141c-7369-4433-9ec8-266fdd9c1011",
+      "id": "87552b48-b67d-4ad6-b632-56640f444223",
       "name": "Evaluar Nivel Riesgo",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -128,
-        1040
+        -15392,
+        448
       ]
     },
     {
@@ -909,24 +901,24 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "d2266e74-e026-4df6-9e87-cf629a7cce7a",
+      "id": "e4fde647-beca-4ca1-95f9-bddc6354698d",
       "name": "Preparar Pedido Verde",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        112,
-        1040
+        -15152,
+        464
       ]
     },
     {
       "parameters": {},
-      "id": "41fb66e4-6664-4876-b2d7-ad46f297068e",
+      "id": "a72fd888-4dab-4767-b672-b7fc6c846dea",
       "name": "Error Trigger - OpenAI Failures",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
       "position": [
-        -2864,
-        2336
+        -18000,
+        2208
       ]
     },
     {
@@ -949,13 +941,13 @@
         },
         "options": {}
       },
-      "id": "96162a49-8b20-49b0-b09f-a9b201e5a0e2",
+      "id": "7e88adee-4786-4e8f-8e73-e8c2486e85bf",
       "name": "Preparar Alerta Telegram",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2416,
-        2336
+        -17552,
+        2208
       ]
     },
     {
@@ -966,13 +958,13 @@
           "parse_mode": "Markdown"
         }
       },
-      "id": "42e88e7e-bbea-4df3-a9b7-f29f476801a6",
+      "id": "220e0870-c069-4e73-8227-0743edd0d806",
       "name": "Enviar Alerta Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2192,
-        2528
+        -17328,
+        2400
       ],
       "webhookId": "720d36e0-20cf-43af-9f38-3de969f04130",
       "credentials": {
@@ -987,13 +979,13 @@
         "tableId": "error_logs",
         "dataToSend": "autoMapInputData"
       },
-      "id": "ed34433e-2f76-44eb-93eb-27b82cbb8b43",
+      "id": "5bdc9a23-9523-4c42-83db-c8859e76c5ef",
       "name": "Registrar Error en DB",
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -2192,
-        2336
+        -17328,
+        2208
       ],
       "credentials": {
         "supabaseApi": {
@@ -1023,13 +1015,13 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "196525be-bfa3-44e4-b2df-f32290323c47",
+      "id": "df9c50de-a25d-4329-86be-114f8c737356",
       "name": "Preparar Respuesta Error Cliente",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2192,
-        2144
+        -17328,
+        2016
       ]
     },
     {
@@ -1104,13 +1096,13 @@
         },
         "options": {}
       },
-      "id": "6700f1db-f5bc-491e-972c-24621d30f5ad",
+      "id": "8e3c52b0-7550-453e-b7f4-e0ecfe6233ca",
       "name": "Identificar Canal Error",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -1968,
-        2112
+        -17104,
+        1984
       ]
     },
     {
@@ -1141,13 +1133,13 @@
         },
         "options": {}
       },
-      "id": "764b8bf7-5308-4add-8505-e1cd015cbc2e",
+      "id": "d77f2194-38fc-495b-b033-79d37cce618f",
       "name": "Enviar Error WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1744,
-        1856
+        -16880,
+        1728
       ]
     },
     {
@@ -1158,13 +1150,13 @@
           "parse_mode": "Markdown"
         }
       },
-      "id": "17ab3a13-bf7b-42db-b66e-0a99d08d3eea",
+      "id": "f10d902e-7812-4d0f-9cb7-8255db7b9d12",
       "name": "Enviar Error Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -1744,
-        2048
+        -16880,
+        1920
       ],
       "webhookId": "56353ef3-c5f1-45ce-9e5c-fcd144da031b",
       "credentials": {
@@ -1182,13 +1174,13 @@
           "responseCode": 200
         }
       },
-      "id": "02d2b3d1-c0ae-4326-ad4f-57a2cab38170",
+      "id": "655a4af3-65a6-44df-bd03-c1c040c3e2af",
       "name": "Responder Error Vapi",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -1744,
-        2240
+        -16880,
+        2112
       ]
     },
     {
@@ -1199,13 +1191,13 @@
           "responseCode": 200
         }
       },
-      "id": "cfa6d6a2-7a8e-49e8-a773-0c3dafcab00b",
+      "id": "bd89663a-d3bb-495a-b73d-8bc997f0e26c",
       "name": "Responder Error Web",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        -1744,
-        2432
+        -16880,
+        2304
       ]
     },
     {
@@ -1215,28 +1207,28 @@
         "width": 524,
         "color": 3
       },
-      "id": "237e8522-bc94-4372-bee8-3dac4952eec7",
+      "id": "a8b721aa-c58f-4478-a2cc-d1a74709a484",
       "name": "📥 ENTRADA MULTICANAL",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -3072,
-        688
+        -18336,
+        288
       ]
     },
     {
       "parameters": {
         "content": "## 🔍 CLASIFICACIÓN Y PROCESAMIENTO\n\n**Tipos de contenido:**\n1. 🎤 Audio → Transcripción (OpenAI Whisper)\n2. 🖼️ Imagen → Análisis visual (GPT-4o Vision)\n3. 📝 Texto → Procesamiento directo\n\n**Unificación:**\n- Normaliza formato independiente del canal\n- Prepara para extracción estructurada",
-        "height": 804,
+        "height": 884,
         "width": 892
       },
-      "id": "ea8ea844-bee1-43a6-a864-96f902493ae4",
+      "id": "a2705a6f-c811-420b-b867-78696e78496b",
       "name": "🔍 CLASIFICACIÓN Y PROCESAMIENTO",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -2528,
-        608
+        -17776,
+        336
       ]
     },
     {
@@ -1246,13 +1238,13 @@
         "width": 332,
         "color": 5
       },
-      "id": "eb6030bb-dc2f-4752-84ef-edffdb0d7405",
+      "id": "f2b08079-a042-4ec1-8b22-f577ecdb95ca",
       "name": "⚙️ CONFIGURACIÓN DINÁMICA",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1280,
-        560
+        -16640,
+        64
       ]
     },
     {
@@ -1262,13 +1254,13 @@
         "width": 636,
         "color": "#FFBA6B"
       },
-      "id": "19cf414b-85ef-49a4-8b91-8f7d041bfda3",
+      "id": "b7bc0e91-0619-4a7e-846d-f1c42c7b1fc2",
       "name": "🤖 EXTRACCIÓN INTELIGENTE (AI)",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1024,
-        672
+        -16336,
+        176
       ]
     },
     {
@@ -1278,13 +1270,13 @@
         "width": 652,
         "color": "#888025"
       },
-      "id": "b4d0cd2d-f0af-454b-9df9-93cf9bbb9752",
+      "id": "6639a80d-9e7a-4bb3-8c71-0a02d0b29ac7",
       "name": "🛡️ VERIFICACIÓN DE RIESGO",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -400,
-        608
+        -15664,
+        32
       ]
     },
     {
@@ -1294,13 +1286,13 @@
         "width": 684,
         "color": "#AEA80F"
       },
-      "id": "724b9d8e-70d5-4cb1-a31e-4d74e0db2f89",
+      "id": "65b6f94c-eac8-4cb9-b1b5-149e6f6a66b4",
       "name": "💳 PROCESAMIENTO DE PAGO",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1680,
-        528
+        -17040,
+        32
       ]
     },
     {
@@ -1310,13 +1302,13 @@
         "width": 428,
         "color": "#34AD36"
       },
-      "id": "87ee0924-a284-4c9b-91be-56f373d41468",
+      "id": "80447f7c-2cb0-4ea7-9b3f-db9d613b29fe",
       "name": "💾 PERSISTENCIA EN SUPABASE",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1056,
-        720
+        -16416,
+        240
       ]
     },
     {
@@ -1326,13 +1318,13 @@
         "width": 524,
         "color": "#F97A71"
       },
-      "id": "8651ce64-0572-4a86-aed2-f6b3fa25a3fa",
+      "id": "9de10445-9415-4975-a439-49ebe4e05b7d",
       "name": "📤 RESPUESTA AL CLIENTE",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        0
+        -15264,
+        -592
       ]
     },
     {
@@ -1341,13 +1333,13 @@
         "height": 908,
         "width": 1468
       },
-      "id": "f3f6881a-d672-48ec-9a7e-fb3c4ad711eb",
+      "id": "541a3b75-a1df-4b08-a0ec-b298ab761809",
       "name": "🚨 SISTEMA DE ERRORES",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -2992,
-        1776
+        -18128,
+        1664
       ]
     },
     {
@@ -1357,13 +1349,13 @@
         "width": 524,
         "color": "#E85ED6"
       },
-      "id": "1363fa7e-235e-436d-89be-64db2bf6732e",
+      "id": "c83c80e1-fcd9-4465-84fa-3f34db39a25c",
       "name": "💰 WEBHOOK STRIPE",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -3072,
-        2576
+        -18208,
+        2448
       ]
     },
     {
@@ -1376,10 +1368,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -1936,
-        528
+        -17072,
+        400
       ],
-      "id": "51ad1911-5054-4a1a-8e40-1fec2eb13a55",
+      "id": "4c0d35b6-13ba-433b-a002-f71db8b4bb24",
       "name": "Sticky Note"
     },
     {
@@ -1389,7 +1381,7 @@
             {
               "id": "id-1",
               "name": "canal_origen",
-              "value": "={{ $json.source === 'website_chat' || $json.body?.source === 'website_chat' ? 'website_chat' : ($json.data?.key ? 'whatsapp' : ($json.message?.chat?.id ? 'telegram' : 'vapi')) }}",
+              "value": "={{ $json.canal_origen }}",
               "type": "string"
             },
             {
@@ -1433,13 +1425,13 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "7fecfdfa-4347-40c1-b43b-a24dc679f61a",
+      "id": "6961c26e-6288-4a75-8486-cc9f7fc1e7cf",
       "name": "🛡️ Blindar Metadata",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2640,
-        1040
+        -17744,
+        656
       ]
     },
     {
@@ -1449,7 +1441,7 @@
             {
               "id": "id-1",
               "name": "text",
-              "value": "={{ $json.message?.text || $json.message?.caption || $json.body?.text || $json.transcript }}",
+              "value": "={{ ({ $json.message?.text || $json.message?.caption || $json.body?.text || $json.transcript }).trim() || 'Hola, ¿qué tenéis?' }}",
               "type": "string"
             }
           ]
@@ -1457,40 +1449,45 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "ab61e3fb-5a4f-47b0-a04a-3033327dc9e0",
+      "id": "9e31737d-4716-48a1-bef2-f678967a5bc3",
       "name": "Limpiar Texto",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2128,
-        1248
+        -17264,
+        416
       ]
     },
     {
       "parameters": {
-        "sessionId": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}"
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
+        "contextWindowLength": 30
       },
-      "id": "7bd42cb1-6b81-4b5f-ac19-8dbf08afe213",
+      "id": "3d07b0b0-0308-44e9-971b-8fe6b3b42567",
       "name": "Simple Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        -816,
-        1264
+        -15984,
+        720
       ]
     },
     {
       "parameters": {
         "model": "llama-3.3-70b-versatile",
-        "options": {}
+        "options": {
+          "maxTokensToSample": 512,
+          "temperature": 0.2
+        }
       },
-      "id": "511a5861-3cde-48b4-b211-ad6e8f7af7cd",
+      "id": "660dd2f3-22e7-45ee-aa00-89da28c02035",
       "name": "Groq Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        -944,
-        1264
+        -16144,
+        720
       ],
       "credentials": {
         "groqApi": {
@@ -1507,29 +1504,29 @@
           "systemMessage": "Eres un asistente visual de Pozu 2.0. Analiza la imagen recibida y describe qué productos del menú se pueden identificar. Si es una foto de un pedido escrito, transcribe el texto completo. Si es una imagen de productos, describe qué items se ven y sus características. Sé preciso y conciso."
         }
       },
-      "id": "e74599e2-0ada-4d1b-ba74-961ad28ca5dd",
+      "id": "3f79581b-722d-4cd8-aaad-5cf913913e96",
       "name": "Analizar Imagen con Groq",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -2192,
-        560
+        -17312,
+        704
       ]
     },
     {
       "parameters": {
-        "model": "llama-3.2-90b-vision-preview",
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
         "options": {
           "temperature": 0.2
         }
       },
-      "id": "430b3ff9-a2a6-4694-a05b-4518502b7d92",
+      "id": "9c4efe90-c3be-42d8-a17f-eb6f79700124",
       "name": "Groq Vision Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        -2112,
-        784
+        -17312,
+        880
       ],
       "credentials": {
         "groqApi": {
@@ -1578,13 +1575,13 @@
         },
         "options": {}
       },
-      "id": "e8cba360-df68-4e4f-8307-1a7ea6d8df48",
+      "id": "1b421494-6715-4525-ba92-16749353e892",
       "name": "Transcribir Audio con Groq",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2128,
-        928
+        -17264,
+        1040
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -1625,13 +1622,13 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "2b5f24a7-f075-4b24-b264-4c3013853b13",
+      "id": "43cd6ee3-6339-42c4-a978-85bcf41bac69",
       "name": "Validar Datos Pedido",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1232,
-        1040
+        -14048,
+        448
       ]
     },
     {
@@ -1649,13 +1646,13 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "f2a43c7e-1a21-4597-b5a4-f108fe3b25e8",
+      "id": "ff250a0a-2392-42a1-bfd4-85259a9f3ac6",
       "name": "Preparar Mensaje Datos Incompletos",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1456,
-        608
+        -13744,
+        720
       ]
     },
     {
@@ -1664,64 +1661,96 @@
           "values": [
             {
               "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('🛡️ Blindar Metadata').item.json.canal_origen }}",
+                    "leftValue": "={{ $json.canal_origen }}",
                     "rightValue": "whatsapp",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "2c5313c5-71a7-4ad7-a6db-006795c1d8cd"
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "WhatsApp"
             },
             {
               "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('🛡️ Blindar Metadata').item.json.canal_origen }}",
+                    "leftValue": "={{ $json.canal_origen }}",
                     "rightValue": "telegram",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "7dfad8d1-d6fb-405b-8a78-b5ee44f95baf"
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "Telegram"
             },
             {
               "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('🛡️ Blindar Metadata').item.json.canal_origen }}",
+                    "leftValue": "={{ $json.canal_origen }}",
                     "rightValue": "vapi",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "6ed1db55-4eff-4a8e-b2b4-26424b79627c"
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "Vapi"
             },
             {
               "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('🛡️ Blindar Metadata').item.json.canal_origen }}",
+                    "leftValue": "={{ $json.canal_origen }}",
                     "rightValue": "website_chat",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "9fb4e8a0-29a1-40a0-9b08-fadb3232ff87"
                   }
-                ]
+                ],
+                "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "Web"
@@ -1730,13 +1759,13 @@
         },
         "options": {}
       },
-      "id": "1a91c10e-0f4a-4a85-a2b1-402d46bd4a7a",
+      "id": "3aac3aae-c1ba-44f6-9be5-4a46aba3d527",
       "name": "Identificar Canal Datos Incompletos",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        1680,
-        576
+        -13520,
+        928
       ]
     },
     {
@@ -1757,7 +1786,7 @@
           "parameters": [
             {
               "name": "number",
-              "value": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}"
+              "value": "={{ $json.chat_id }}"
             },
             {
               "name": "text",
@@ -1767,28 +1796,30 @@
         },
         "options": {}
       },
-      "id": "94dc4623-39bf-4426-b663-efaf0900f363",
+      "id": "834636d6-2e29-4427-9685-f7b65fd6edda",
       "name": "Responder Datos Incompletos WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1904,
-        288
+        -13296,
+        672
       ]
     },
     {
       "parameters": {
-        "chatId": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
+        "chatId": "={{ $json.chat_id }}",
         "text": "={{ $json.mensaje_incompleto }}",
-        "additionalFields": {}
+        "additionalFields": {
+          "appendAttribution": false
+        }
       },
-      "id": "1c172a11-3c40-4657-8b01-13531fff8abe",
+      "id": "56ebce70-2891-4486-a201-f90471ecf1cc",
       "name": "Responder Datos Incompletos Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1904,
-        480
+        -13296,
+        864
       ],
       "webhookId": "661d88cd-2a03-4829-91f1-022586299ae5",
       "credentials": {
@@ -1801,31 +1832,31 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={ \"success\": false, \"message\": $json.mensaje_incompleto }",
+        "responseBody": "={ \n  \"success\": false, \n  \"message\": \"{{ $json.mensaje_incompleto }}\" \n}",
         "options": {}
       },
-      "id": "874430a4-41cc-4d91-aa88-df25f4861cbd",
+      "id": "0aad68a6-87ed-4fa3-984e-b68249da4a93",
       "name": "Responder Datos Incompletos Vapi",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1904,
-        672
+        -13296,
+        1056
       ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={ \"success\": false, \"message\": $json.mensaje_incompleto, \"incomplete_data\": true }",
+        "responseBody": "={{ { \"success\": true, \"message\": $json.mensaje_incompleto || \"¿En qué puedo ayudarte?\" } }}",
         "options": {}
       },
-      "id": "aa10afa3-6dcb-4e19-b4d4-7045ff1b6289",
+      "id": "603ccd35-863c-41fd-8d37-e70e534d0571",
       "name": "Responder Datos Incompletos Web",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1904,
-        864
+        -13296,
+        1248
       ]
     },
     {
@@ -1881,14 +1912,213 @@
           "ignoreCase": true
         }
       },
-      "id": "e2a1cbf7-b808-4955-9f74-7565eeffb1a3",
+      "id": "58267fa4-bfbd-48fb-91f2-8c27861a357c",
       "name": "Verificar si es Groq",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2640,
-        2336
+        -17776,
+        2208
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6592e592-0502-49ec-bb32-3446cb8924a2",
+              "leftValue": "=={{ $json.output }}",
+              "rightValue": "\"detalle_pedido\"",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -15872,
+        352
+      ],
+      "id": "78f41366-27a8-40d0-a010-6fd4cc52c62c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "chat-1",
+              "name": "mensaje_incompleto",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "chat-2",
+              "name": "canal_origen",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.canal_origen }}",
+              "type": "string"
+            },
+            {
+              "id": "chat-3",
+              "name": "chat_id",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "chat-4",
+              "name": "nombre_usuario",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.nombre_usuario }}",
+              "type": "string"
+            },
+            {
+              "id": "chat-5",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -13744,
+        96
+      ],
+      "id": "8ae345ad-9d62-4f13-8645-faa69f7500fd",
+      "name": "Preparar Chat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9ebf1f4-0eda-4530-94bd-591dffb4b4ec",
+              "name": "canal_origen",
+              "value": "whatsapp",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -17968,
+        368
+      ],
+      "id": "a3a29b0c-cc15-4ed1-b285-e208b350302b",
+      "name": "whatsapp"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9ebf1f4-0eda-4530-94bd-591dffb4b4ec",
+              "name": "canal_origen",
+              "value": "telegram",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -17984,
+        576
+      ],
+      "id": "1329f1c4-47ae-4d95-9576-89eb81562ed2",
+      "name": "telegram"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9ebf1f4-0eda-4530-94bd-591dffb4b4ec",
+              "name": "canal_origen",
+              "value": "vapi",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -17984,
+        752
+      ],
+      "id": "f9b5d93c-79db-4e37-8ed8-b00d15303e25",
+      "name": "vapi"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9ebf1f4-0eda-4530-94bd-591dffb4b4ec",
+              "name": "canal_origen",
+              "value": "website_chat",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -18000,
+        928
+      ],
+      "id": "e049bae2-2a32-48de-8b77-dcbb8885a99e",
+      "name": "website_chat"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -17408,
+        1008
+      ],
+      "id": "3f470ef4-c036-4665-93a9-5057481c57e5",
+      "name": "Get a file",
+      "webhookId": "e442d0b3-321e-4cef-a715-1b2158eceb28",
+      "credentials": {
+        "telegramApi": {
+          "id": "i4IQkiXw6gQXU0VD",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -1897,7 +2127,7 @@
       "main": [
         [
           {
-            "node": "🛡️ Blindar Metadata",
+            "node": "telegram",
             "type": "main",
             "index": 0
           }
@@ -1908,7 +2138,7 @@
       "main": [
         [
           {
-            "node": "🛡️ Blindar Metadata",
+            "node": "vapi",
             "type": "main",
             "index": 0
           }
@@ -1919,7 +2149,7 @@
       "main": [
         [
           {
-            "node": "🛡️ Blindar Metadata",
+            "node": "whatsapp",
             "type": "main",
             "index": 0
           }
@@ -1930,7 +2160,7 @@
       "main": [
         [
           {
-            "node": "🛡️ Blindar Metadata",
+            "node": "website_chat",
             "type": "main",
             "index": 0
           }
@@ -1941,22 +2171,19 @@
       "main": [
         [
           {
-            "node": "Unificar Contenido",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Transcribir Audio con Groq",
+            "node": "Limpiar Texto",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Unificar Contenido",
+            "node": "Get a file",
             "type": "main",
-            "index": 1
-          },
+            "index": 0
+          }
+        ],
+        [
           {
             "node": "Analizar Imagen con Groq",
             "type": "main",
@@ -1994,7 +2221,6 @@
         ]
       ]
     },
-
     "Consultar Catálogo Productos": {
       "main": [
         [
@@ -2010,19 +2236,8 @@
       "main": [
         [
           {
-            "node": "Verificar Riesgo Cliente",
+            "node": "If",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "JSON Output Parser": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "Extraer Datos Estructurados",
-            "type": "ai_outputParser",
             "index": 0
           }
         ]
@@ -2411,6 +2626,90 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Verificar Riesgo Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Chat": {
+      "main": [
+        [
+          {
+            "node": "Identificar Canal Datos Incompletos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "whatsapp": {
+      "main": [
+        [
+          {
+            "node": "🛡️ Blindar Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "telegram": {
+      "main": [
+        [
+          {
+            "node": "🛡️ Blindar Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "vapi": {
+      "main": [
+        [
+          {
+            "node": "🛡️ Blindar Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "website_chat": {
+      "main": [
+        [
+          {
+            "node": "🛡️ Blindar Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribir Audio con Groq",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -2418,7 +2717,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "0af7bdb4-c392-4f9a-9ee4-282975766892",
+  "versionId": "9add9f86-0da5-40d2-84ad-09af66cb5c6a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b924d8fc10a2eb5478466ee817417b4c593cfbba64921c784a4bd5d50d06a48d"

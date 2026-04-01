@@ -126,6 +126,20 @@
 - **Frontend Resilience**: Uso de `AbortController` (timeout 10s) en el componente de chat para feedback de red en tiempo real.
 - **Supabase Sync**: Las tablas `chat_messages` y `n8n_chat_histories` deben mantener Realtime habilitado para coherencia visual.
 
+### 14. Robustez de Pozu AI y Conciencia de Herramientas (v3.2) ✅
+- [x] **Inyección de Contexto Dinámico**: El `systemMessage` del Agente ahora consume en tiempo real parámetros de `feature_flags` y `delivery_settings` para evitar respuestas genéricas sobre pagos y envío.
+- [x] **Refactor de Búsqueda de Menú**: La herramienta `verificar_producto` ahora soporta consultas de lenguaje natural sobre el "menú completo", "carta" o "hamburguesas", devolviendo el listado de 22 productos con precios sin fallar.
+- [x] **Soporte de Consultas de Negocio**: Integración de lógica en la herramienta para responder sobre horarios generales, ubicación y métodos de pago sin salir del flujo de IA.
+- [x] **Blindaje Anti-Alucinación**: Instrucción estricta en el prompt del Agente para forzar el uso de herramientas ante cualquier duda de producto, eliminando el mensaje recurrente "No tengo acceso al menú".
+- [x] **Optimización de Iteraciones**: Incrementado `maxIterations` a 10 en el Agente n8n para permitir búsquedas profundas si el cliente tiene múltiples dudas antes de confirmar el pedido.
+
+### 15. Estabilización de Enrutamiento del Chatbot n8n (Abril 2026) ✅
+- [x] **Enrutamiento Casual vs. Pedidos**: Separación estricta de caminos de respuesta local en n8n mediante analizador condicional (`detalle_pedido`).
+- [x] **Reparación de Objeto de Respuesta**: Reconstrucción del nodo `Responder Datos Incompletos Web` con expresión n8n sintácticamente válida (`success: true`) para enviar la réplica conversacional.
+- [x] **Protección de Mensajes de Web Chat**: Confirmación exhaustiva del *Switch Clasificador de Contenido*, filtrando y dirigiendo `website_chat` al evaluador de texto con fallback anti-emojis.
+- [x] **Reestructuración Visual de Carta AI**: Categorización en la herramienta `Verificar Productos` para devolver listado dinámico separado por categorías (Gourmet, Sandwiches, Picoteo).
+- [x] **Merging de Nodos Consolidado**: Autogenerado archivo maestro `workflow_POZU_FULL_FIXED.json` sin errores semánticos `=={{`, apto para inyección productiva.
+
 ---
-*Última actualización: 25 Marzo 2026 - 15:40h (Senior n8n Engineer Level fixes)*
+*Última actualización: 01 Abril 2026 - 16:34h (Fix: Chatbot Webhook Routing Stability)*
 
