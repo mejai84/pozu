@@ -197,9 +197,9 @@ export function AIChatButton() {
     setIsLoading(true);
     setInput('')
 
-    // 12. Timeout obligatorio (10s)
+    // 12. Timeout extendido (35s) — El agente IA + 3 consultas Supabase pueden tardar hasta 25s
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
+    const timeoutId = setTimeout(() => controller.abort(), 35000)
 
     try {
       const n8nWebhookUrl = process.env.NEXT_PUBLIC_N8N_CHAT_WEBHOOK_URL || 'https://n8npozu.pozu2.com/webhook/chat-web'
@@ -254,6 +254,8 @@ export function AIChatButton() {
         })
       } else if (!res.ok) {
         throw new Error(`Error en n8n: ${res.statusText}`)
+      } else {
+        throw new Error(`Pozu AI no devolvió una respuesta válida. Probablemente esté muy ocupado ahora mismo.`);
       }
       
     } catch (error: any) {
@@ -261,8 +263,8 @@ export function AIChatButton() {
       
       // Feedback opcional para el usuario en caso de error crítico
       const errorMessage = error.name === 'AbortError' 
-        ? "Pozu AI tardó demasiado en responder. Por favor, revisa tu conexión o intenta de nuevo en unos segundos."
-        : "Lo siento, hubo un problema al conectar con Pozu AI. Estamos revisando la cocina."
+        ? "Pozu AI tardó demasiado en pensar. Por favor, asegúrate de hablarle con un poco menos de prisa o espera unos segundos."
+        : "Lo siento, hubo un problema al conectar con mis circuitos en la cocina. Vuelve a intentarlo en un instante.";
 
       await supabase.from('chat_messages').insert({
         session_id: sessionId,

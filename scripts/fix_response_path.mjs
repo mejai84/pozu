@@ -85,10 +85,8 @@ workflow.nodes = workflow.nodes.map(node => {
     const textAssign = assignments.find(a => a.name === 'text')
     if (textAssign) {
       // Add fallback for empty/emoji-only messages
-      const original = textAssign.value
-      textAssign.value = `={{ (${original.replace(/^={/, '').replace(/}$/, '')}).trim() || 'Hola, ¿qué tenéis?' }}`
-      console.log('✅ Fix 3: Limpiar Texto - fallback de texto vacío añadido')
-      fixes++
+      const innerExpression = original.replace(/^=\{\{/, '').replace(/\}\}$/, '').trim();
+      textAssign.value = `={{ (${innerExpression} || '').trim() || 'Hola, ¿qué tenéis?' }}`
     }
   }
   return node

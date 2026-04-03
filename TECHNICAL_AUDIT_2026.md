@@ -140,6 +140,11 @@
 - [x] **Reestructuración Visual de Carta AI**: Categorización en la herramienta `Verificar Productos` para devolver listado dinámico separado por categorías (Gourmet, Sandwiches, Picoteo).
 - [x] **Merging de Nodos Consolidado**: Autogenerado archivo maestro `workflow_POZU_FULL_FIXED.json` sin errores semánticos `=={{`, apto para inyección productiva.
 
+### 16. Estabilización n8n JSON Extraction y Rate Limits (Abril 2026) ✅
+- [x] **Gestión de Respuestas Vacías (Empty Body JSON)**: Aumentado el `timeout` a 35 segundos en el webhook del frontend (`ai-chat-button.tsx`) y añadido manejo de excepciones para cierres inesperados de conexión.
+- [x] **Inline Parse de LangChain**: Las celdas críticas (`Preparar para Supabase` y `Preparar Pago Tarjeta`) han sido actualizadas con lógica en línea `Regex+JSON.parse` para extraer objetos JSON directamente desde las respuestas de texto bruto del Agente IA sin necesidad de nodos intermedios, para máxima retrocompatibilidad.
+- [x] **Control de Rate Limits (Groq)**: Se ha verificado que la cuota de la API para modelos masivos (Llama 70B) genera bloqueos gestionados de 1h ("Rate limit reached"), activando perfectamente la rama salvavidas del flujo n8n para notificar al usuario en el chat.
+
 ---
-*Última actualización: 01 Abril 2026 - 16:34h (Fix: Chatbot Webhook Routing Stability)*
+*Última actualización: 03 Abril 2026 - 16:00h (Fix: n8n Inline JSON Parsing & Chatbot Stability)*
 
