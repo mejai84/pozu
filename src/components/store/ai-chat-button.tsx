@@ -304,17 +304,19 @@ export function AIChatButton() {
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(true)}
                 aria-label="Abrir asistente IA Pozu"
-                className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#1A1A1A] border-4 border-primary shadow-[0_0_50px_rgba(255,184,0,0.5)] flex items-center justify-center overflow-hidden group touch-none"
+                className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#1A1A1A] border-4 border-primary shadow-[0_0_50px_rgba(255,184,0,0.5)] flex items-center justify-center group touch-none"
               >
-                <div className="absolute top-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-40 transition-opacity">
+                <div className="absolute top-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-40 transition-opacity z-10 pointer-events-none">
                   <GripHorizontal className="w-4 h-4 text-white" />
                 </div>
-                <div className="absolute inset-0 bg-primary/20 animate-ping rounded-full" />
-                <Image src="/images/logo.jpg" alt="Pozu Logo" fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-primary/20 animate-ping rounded-full pointer-events-none" />
+                <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+                  <Image src="/images/logo.jpg" alt="Pozu Logo" fill className="object-contain bg-black group-hover:scale-110 transition-transform duration-700" />
+                </div>
                 <motion.div 
                   animate={{ scale: [1, 1.2, 1], boxShadow: ["0 0 10px #FFB800", "0 0 20px #FFB800", "0 0 10px #FFB800"] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-1 -right-1 bg-primary text-black text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full border-2 border-black shadow-lg"
+                  className="absolute -top-1 -right-1 bg-primary text-black text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full border-2 border-black shadow-lg z-20"
                 >
                   AI
                 </motion.div>
@@ -335,8 +337,8 @@ export function AIChatButton() {
                 <div className="p-6 bg-gradient-to-br from-primary via-primary to-secondary flex items-center justify-between cursor-move shadow-lg relative overflow-hidden">
                   <div className="absolute inset-0 bg-white/10 opacity-20 pointer-events-none" />
                   <div className="flex items-center gap-4 relative z-10">
-                    <div className="w-12 h-12 rounded-2xl border-2 border-black bg-white overflow-hidden relative shadow-[4px_4px_0px_#000]">
-                      <Image src="/images/logo.jpg" alt="Logo" fill className="object-cover" />
+                    <div className="w-12 h-12 rounded-2xl border-2 border-black bg-black overflow-hidden relative shadow-[4px_4px_0px_#000]">
+                      <Image src="/images/logo.jpg" alt="Logo" fill className="object-contain" />
                     </div>
                     <div>
                       <h3 className="text-black font-black italic uppercase tracking-tighter text-base leading-none">Pozu AI Business</h3>
@@ -450,29 +452,39 @@ export function AIChatButton() {
                             if (recognition) recognition.stop()
                             setIsRecording(false)
                           } else {
-                            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-                            if (!SpeechRecognition) {
-                              alert("Tu navegador no soporta reconocimiento de voz.")
-                              return
+                            try {
+                              const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+                              if (!SpeechRecognition) {
+                                alert("⚠️ Tu navegador o teléfono bloquea el dictado por voz de forma nativa (común en iOS/Safari). Intenta usar Chrome o simplemente escribe tu mensaje.")
+                                return
+                              }
+                              const recognition = new SpeechRecognition()
+                              recognition.lang = 'es-ES'
+                              recognition.interimResults = true // Permite ver el texto en tiempo real
+                              recognition.onstart = () => setIsRecording(true)
+                              recognition.onresult = (event: any) => {
+                                const transcript = Array.from(event.results)
+                                  .map((result: any) => result[0].transcript)
+                                  .join('')
+                                setInput(transcript)
+                              }
+                              recognition.onerror = (e: any) => {
+                                console.error('Error de micrófono:', e)
+                                setIsRecording(false)
+                                if (e.error === 'not-allowed') alert("🔌 Debes darle permisos de micrófono al navegador.")
+                              }
+                              recognition.onend = () => setIsRecording(false)
+                              ;(window as any).recognition = recognition
+                              recognition.start()
+                            } catch (e) {
+                              console.error(e)
+                              alert("⚠️ Error técnico al activar el micrófono. Revisa tus permisos.")
                             }
-                            const recognition = new SpeechRecognition()
-                            recognition.lang = 'es-ES'
-                            recognition.interimResults = false
-                            recognition.onstart = () => setIsRecording(true)
-                            recognition.onresult = (event: any) => {
-                              const transcript = event.results[0][0].transcript
-                              setInput(transcript)
-                              setIsRecording(false)
-                            }
-                            recognition.onerror = () => setIsRecording(false)
-                            recognition.onend = () => setIsRecording(false)
-                            ;(window as any).recognition = recognition
-                            recognition.start()
                           }
                         }}
                         aria-label={isRecording ? "Detener grabación" : "Dictar mensaje"}
                         className={cn(
-                          "transition-all p-1 rounded-full", 
+                          "transition-all p-1 rounded-full",
                           isRecording ? "text-red-500 scale-150 animate-pulse bg-red-500/10" : "text-white/40 hover:text-primary active:scale-95"
                         )} 
                         title={isRecording ? "Escuchando…" : "Dictar mensaje"}

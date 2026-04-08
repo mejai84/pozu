@@ -62,6 +62,32 @@ Tabla optimizada para que n8n recupere el contexto exacto de la conversación en
 - `message` (JSONB): Estructura completa del mensaje compatible con LangChain.
 - `created_at` (TIMESTAMPTZ): Timestamp de creación.
 
+### `reservations` (Reservas Automáticas) ⭐ **NUEVO**
+Almacena las reservas gestionadas por el Agente de IA omnicanal con estados automatizados y recordatorios.
+- `id` (UUID, PK)
+- `customer_name` (TEXT): Nombre real o inferido de la IA.
+- `customer_phone` (TEXT): Teléfono con código de área (vital para recordatorios WhatsApp).
+- `reservation_date` (DATE): Fecha 'YYYY-MM-DD'.
+- `reservation_time` (TIME): Hora 'HH:MM'.
+- `party_size` (INT): Plazas requeridas.
+- `table_id` (UUID, FK): Mesa física asignada (opcional, calculable en vivo).
+- `status` (TEXT): `confirmed`, `cancelled`, `completed`, `no-show`.
+- `reminder_sent` (BOOL): Verificación del recordatorio a 4 horas.
+- `customer_confirmed` (BOOL): Si el cliente respondió 'SÍ' al recordatorio.
+- `source` (TEXT): Canal de origen (`telegram`, `whatsapp`, `website_chat`, `vapi`).
+
+### `tables` (Mesas Físicas) ⭐ **NUEVO**
+Inventario de mesas del local para calcular el aforo máximo de cada reserva.
+- `id` (UUID, PK)
+- `capacity` (INT): Capacidad de sillas.
+- `is_active` (BOOL): Flag para bloqueos o indisposición.
+
+### `time_slots` (Horarios de Reserva) ⭐ **NUEVO**
+Tramos discretos de horas en los que hay recepción (ej: 13:00, 14:00, 20:00).
+- `id` (UUID, PK)
+- `open_time` (TIME): HH:MM del slot.
+- `is_active` (BOOL): Flag de disponibilidad manual por turno.
+
 ### `settings` (Configuración Dinámica)
 Configuración centralizada que n8n consume al vuelo.
 
