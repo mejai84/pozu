@@ -145,6 +145,11 @@
 - [x] **Inline Parse de LangChain**: Las celdas críticas (`Preparar para Supabase` y `Preparar Pago Tarjeta`) han sido actualizadas con lógica en línea `Regex+JSON.parse` para extraer objetos JSON directamente desde las respuestas de texto bruto del Agente IA sin necesidad de nodos intermedios, para máxima retrocompatibilidad.
 - [x] **Control de Rate Limits (Groq)**: Se ha verificado que la cuota de la API para modelos masivos (Llama 70B) genera bloqueos gestionados de 1h ("Rate limit reached"), activando perfectamente la rama salvavidas del flujo n8n para notificar al usuario en el chat.
 
----
-*Última actualización: 03 Abril 2026 - 16:00h (Fix: n8n Inline JSON Parsing & Chatbot Stability)*
+### 17. Estabilización Flujo de Pagos y Web Chat UI (Abril 2026) ✅
+- [x] **Reparación de Tipos de Dato n8n**: Eliminación de errores `=24` y `customer_phone null` corrigiendo sintaxis Javascript y expresiones lambda dentro de n8n para asegurar tipos estrictos `Number` y `String` en la inserción a Supabase.
+- [x] **Solución Enlaces Mudos en Chat**: Implementación de función `renderMessageWithLinks` en `ai-chat-button.tsx` para forzar evaluación por Regex de URLs (provenientes de Stripe) generadas por IA como etiquetas `href` activas en la UI.
+- [x] **Scrollbar y Selección Táctil**: Modificación de clases `touch-none` e inyección de `select-text` en componente Web Chat, restaurando el comportamiento de scroll interactivo y lectura nativa.
+- [x] **Arquitectura KDS**: Verificación de ciclo de flujo estricto; el KDS ignora pedidos `pending` generados por Stripe a la espera de conciliación del Webhook para proteger producción.
 
+---
+*Última actualización: 09 Abril 2026 - 17:35h (Fix: UI Chat interactions & n8n Data Syntax)*

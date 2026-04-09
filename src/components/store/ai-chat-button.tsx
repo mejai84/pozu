@@ -18,8 +18,29 @@ import {
   ImageIcon
 } from 'lucide-react'
 import Image from 'next/image'
+import { v4 as uuidv4 } from 'uuid'
+import { createClient } from '@supabase/supabase-js'
 import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase/client'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+const renderMessageWithLinks = (text: string) => {
+  if (!text) return text;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline decoration-2 underline-offset-2 hover:text-blue-400 break-all select-all">
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
 
 interface Message {
   id?: string
@@ -331,7 +352,7 @@ export function AIChatButton() {
                 initial={{ opacity: 0, y: 100, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 100, scale: 0.8 }}
-                className="w-[90vw] sm:w-[400px] h-[600px] max-h-[80vh] bg-[#111111] border border-white/10 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden glass touch-none"
+                className="w-[90vw] sm:w-[400px] h-[600px] max-h-[80vh] bg-[#111111] border border-white/10 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden glass"
               >
                 {/* Header */}
                 <div className="p-6 bg-gradient-to-br from-primary via-primary to-secondary flex items-center justify-between cursor-move shadow-lg relative overflow-hidden">
@@ -369,7 +390,7 @@ export function AIChatButton() {
                   variants={containerVariants}
                   initial="hidden"
                   animate="show"
-                  className="flex-1 overflow-y-auto p-6 space-y-5 no-scrollbar bg-[url('https://www.transparenttextures.com/patterns/dark-wood.png')] bg-fixed pointer-events-auto"
+                  className="flex-1 overflow-y-auto p-6 space-y-5 bg-[url('https://www.transparenttextures.com/patterns/dark-wood.png')] bg-fixed pointer-events-auto select-text"
                 >
                   {messages.map((msg, i) => (
                     <motion.div 
@@ -389,7 +410,7 @@ export function AIChatButton() {
                             <img src={msg.attachment_url} alt="attachment" className="max-h-48 w-full object-cover" />
                           </div>
                         )}
-                        <p className="whitespace-pre-wrap text-[13px] sm:text-sm tracking-tight text-pretty">{msg.message}</p>
+                        <p className="whitespace-pre-wrap text-[13px] sm:text-sm tracking-tight text-pretty select-text">{renderMessageWithLinks(msg.message)}</p>
                       </div>
                       <span className="text-[9px] font-black uppercase text-muted-foreground mt-2 opacity-50 flex items-center gap-1">
                         {msg.sender === 'assistant' && <Bot className="w-3 h-3 text-primary" />}
