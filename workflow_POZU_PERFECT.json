@@ -1,0 +1,544 @@
+{
+  "name": "Pozu_PERFECT_VERSION",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "id": "9797136c-075b-4046-be98-bb9d46282dd6",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        3024
+      ],
+      "webhookId": "eabdf013-3cea-4343-950e-221dafe541b2",
+      "credentials": {
+        "telegramApi": {
+          "id": "i4IQkiXw6gQXU0VD",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vapi-transcription",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "589a4209-a817-4ad7-8836-e3035577f17b",
+      "name": "Vapi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        3216
+      ],
+      "webhookId": "710e6f3f-276e-498a-a250-26bbc0fd59d2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.source === 'website_chat' || $json.body?.source === 'website_chat') ? 'si' : '' }}",
+                    "rightValue": "si",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c2bc925-5bd8-4e89-8a8e-c75744a6068d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Website Chat"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.message?.voice || $json.message?.audio || $json.message?.document?.mime_type?.includes('audio')) ? 'audio' : '' }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "53f9806a-c9fb-4076-aade-822a157313b2"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.message?.photo || $json.message?.document?.mime_type?.includes('image')) ? 'imagen' : '' }}",
+                    "rightValue": "imagen",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "287a4506-710a-4e79-822e-ea218e7f8bd7"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.message?.text || $json.message?.caption || $json.transcript || $json.body?.text) ? 'texto' : '' }}",
+                    "rightValue": "texto",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e920b9df-cc9c-47d4-a4c8-3ac5977ed8ed"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "f2a839eb-0617-4ca9-a8d1-1b082a49cce0",
+      "name": "Clasificar Tipo Contenido",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        3024
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "settings",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "keyValue": "feature_flags"
+            }
+          ]
+        }
+      },
+      "id": "e9c64445-ca51-40fb-b4aa-a176e0ecb4be",
+      "name": "Consultar Feature Flags",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        3024
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuNmSwNtO9Gdhqsd",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "settings",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "keyValue": "delivery_settings"
+            }
+          ]
+        }
+      },
+      "id": "21a3ace0-afaf-4d66-ae52-4ac05fb79378",
+      "name": "Consultar Delivery Settings",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2560,
+        3024
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuNmSwNtO9Gdhqsd",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ \n  ($('🛡️ Blindar Metadata').isExecuted ? ($('🛡️ Blindar Metadata').item.json.text || $('🛡️ Blindar Metadata').item.json.message_text) : \"\") || \n  ($('Limpiar Texto').isExecuted ? $('Limpiar Texto').item.json.text : \"\") || \n  ($('Transcribir Audio con OpenAI').isExecuted ? $('Transcribir Audio con OpenAI').item.json.text : \"\") || \n  \"Hola\"\n}}\n",
+        "options": {
+          "systemMessage": "=={{  `ERES EL ASISTENTE DE VENTAS EXPERTO DE POZU 2.0.\\n\\n!!! MOSTRAR EL MENU (OBLIGATORIO):\\n- Si el cliente pide ver la carta, el menu o las opciones disponibles, MUESTRASELOS SIEMPRE usando la herramienta verificar_producto con la palabra \"menu\".\\n\\n!!! REGLA DE PEDIDOS Y MENÚ:\\n- SOLO puedes vender platos que existan en el catalogo oficial.\\n- SIEMPRE que un cliente pregunte por INGREDIENTES, ALÉRGENOS o de qué está hecho un plato, DEBES USAR la herramienta verificar_producto para buscar la información en la base de datos. NUNCA lo inventes.\\n- Si el cliente usa un nombre PARCIAL o APODO (ej: \"la especial\"), usa verificar_producto.\\n\\n\\n!!! PROTOCOLO DE ENTREGA (OBLIGATORIO):\\n- ANTES de cerrar la venta, PREGUNTA: \"Recogida en local o domicilio?\".\\n- SI ES DOMICILIO: Pide la direccion COMPLETA.\\n- Necesitas OBLIGATORIAMENTE: Nombre, Teléfono, Tipo de Entrega, Dirección (si domicilio) y Método de Pago.\\n- Si tienes todo EXCEPTO método de pago, PREGUNTA: \"¿Pagaras en efectivo o con tarjeta?\".\\n\\n!!! SISTEMA DE RESERVAS DE MESAS:\\n${ $('Consultar Feature Flags').item?.json?.value?.reservations_enabled === true ? \"- Si el cliente quiere RESERVAR una mesa (no pedir comida), usa consultar_disponibilidad con formato: dd/mm/yyyy,HH:MM,pax.\\\\n- Si hay disponibilidad, CONFIRMA los datos con el cliente.\\\\n- SOLO cuando el cliente confirme todos los datos, usa confirmar_reserva.\\\\n- Si no hay disponibilidad, ofrece alternativas del mismo turno.\" : \"- ACTUALMENTE NO ACEPTAMOS RESERVAS (Estan deshabilitadas en el sistema).\\\\n- Si el cliente quiere reservar, infórmale muy amablemente que en este momento no hay servicio de reservas y discúlpate.\" }\\n\\n!!! CONSULTA DE ESTADO DE PEDIDOS:\\n- Si el cliente pregunta por el estado de su pedido o menciona un ID de pedido, usa consultar_estado_pedido.\\n- Si el cliente NO proporciona el ID, pregúntale: \"¿Cuál es el número de tu pedido? Lo encuentras en el mensaje de confirmación.\"\\n- Si el pedido está en camino, menciona el repartidor si está disponible.\\n- Si el pedido no existe, sugiere verificar el número o contactar directamente al restaurante.\\n\\n!!! INFORMACION DEL LOCAL:\\n- Si preguntan por la dirección o ubicación: \"Estamos en Calle Falsa 123, Gijón/Oviedo, Asturias. ¡Te esperamos!\"\\n- Si preguntan por horarios: \"Abrimos de martes a domingo. Comidas de 13:00 a 16:00, cenas de 20:00 a 23:00. Los lunes descansamos.\"\\n\\n!!! CIERRE DE VENTA Y JSON (VITAL):\\nSi el cliente YA te ha dado de forma clara los 5 datos obligatorios (Nombre, Teléfono, Tipo de entrega, Dirección y Método de pago), NO le pidas más confirmaciones. Asume que el pedido está listo y responde ÚNICAMENTE con la frase \"Procesando tu pedido... ⏳\" seguida INMEDIATAMENTE por este bloque JSON exacto. \\nProcesando tu pedido... ⏳\\n{\\n  \"detalle_pedido\": \"...\",\\n  \"Nombre\": \"...\",\\n  \"Telefono\": \"...\",\\n  \"Tipo de entrega\": \"...\",\\n  \"Metodo de pago\": \"...\",\\n  \"Direccion\": \"...\",\\n  \"total_final\": 25.50\\n}\\n\\n!!! IMPORTANTE: EL TOTAL_FINAL\\n- Debes calcularlo sumando el precio de todos los productos del pedido más el costo de envío si aplica.\\n- NUNCA pongas 0.00 si hay productos en el pedido.\\n\\n!!! RESPUESTA TRAS CONFIRMAR RESERVA:\\nCuando confirmar_reserva devuelva éxito, responde al cliente confirmando la reserva.\\n- Si confirmar_reserva devuelve un error -> responde con disculpas y pide que llamen.\\n\\n## REGLAS CRÍTICAS DE RESERVAS\\n- NUNCA confirmes disponibilidad sin llamar a consultar_disponibilidad.\\n- NUNCA mezcles el JSON de cierre de pedido con datos de reserva.\\n\\nMODULO 3: USO DE HERRAMIENTAS\\n**verificar_producto(input)**\\n**consultar_disponibilidad(fecha, hora, personas)**\\n**confirmar_reserva(fecha, hora, personas, nombre, telefono, notas)**\\n**consultar_estado_pedido(order_id)**\\n\\nMODULO 4: TONO Y ESTILO\\n- Tono: cercano, natural, con personalidad.\\n- Usa emojis con moderación.\\n- Respuestas cortas y directas.\\n\\nMODULO 5: LO QUE NUNCA DEBES HACER\\n- NUNCA generes el JSON del pedido antes de tener los 5 datos.\\n- NUNCA confirmes disponibilidad sin consultar_disponibilidad.` }}\n",
+        "maxIterations": 10,
+        "batching": {}
+      },
+      "id": "dff44c5f-56ef-45f4-9cb5-1928ef1addba",
+      "name": "Extraer Datos Estructurados",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3872,
+        3024
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-2",
+              "name": "guest_info",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return { full_name: parsed?.Nombre || parsed?.nombre || 'Cliente', phone: parsed?.Telefono || parsed?.telefono || '' }; })() }}",
+              "type": "object"
+            },
+            {
+              "id": "id-3",
+              "name": "delivery_address",
+              "value": "={{ $('Extraer Datos Estructurados').item.json.output.Direccion }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "status",
+              "value": "={{ ($('Extraer Datos Estructurados').item.json.output['Metodo de pago'] || '').includes('Efectivo') ? 'confirmed' : 'pending' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "payment_status",
+              "value": "unpaid",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "total",
+              "value": "={{ parseFloat(String($('Extraer Datos Estructurados').first().json.output?.total_final || $('Extraer Datos Estructurados').first().json.output?.total || 0).replace(',','.')  ) || ($json.amount_total ? $json.amount_total / 100 : 0) }}\n\n\n",
+              "type": "number"
+            },
+            {
+              "id": "id-9",
+              "name": "source",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.canal_origen }}",
+              "type": "string"
+            },
+            {
+              "id": "id-10",
+              "name": "items",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return { detalle: parsed?.detalle_pedido || '', metodo_pago: parsed['Metodo de pago'] || parsed.metodo_pago || '' }; })() }}",
+              "type": "object"
+            },
+            {
+              "id": "id-12",
+              "name": "session_id",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "01de19c9-a64b-405b-9cb4-b9b42d0dd7e5",
+              "name": "customer_name",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return (parsed?.Nombre || parsed?.nombre || 'Cliente').trim(); })() }}\n",
+              "type": "string"
+            },
+            {
+              "id": "b8cc32cf-2d09-4580-9f0d-2e47b9a05c8b",
+              "name": "customer_phone",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return String(parsed?.Telefono || parsed?.telefono || '').trim(); })() }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d86dc5c3-09a4-4f30-a0b0-f7b2df3bbd80",
+      "name": "Preparar para Supabase",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5968,
+        3408
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "tableId": "orders",
+        "dataToSend": "autoMapInputData",
+        "inputsToIgnore": "items_raw,session_id,sourcet"
+      },
+      "id": "a5310d08-a09d-4595-8f06-8fbba88de918",
+      "name": "Insertar Pedido en Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        6416,
+        3312
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "FuNmSwNtO9Gdhqsd",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
+        "text": "=={{ \n  \"✅ ¡Oído cocina, \" + ($('Preparar para Supabase').item.json.customer_name || 'Fiera') + \"! Tu pedido está marchando. 🍔🍟\\\\n\\\\n\" + \n  \"📦 *Resumen de tu pedido:*\\\\n\" + ($('Preparar para Supabase').item.json.items.detalle || 'Pedido registrado') + \"\\\\n\\\\n\" + \n  \"📍 *Entrega:* \" + ($('Preparar para Supabase').item.json.delivery_address || 'Recogida en local') + \"\\\\n\" + \n  \"💳 Pago: \" + ($json.items?.metodo_pago || 'Pendiente') + \"\\\\n\" + \n  ($('Generar Link Pago (Stripe)').isExecuted && $('Generar Link Pago (Stripe)').item?.json?.url ? \"👉 *PAGA AQUÍ:* \" + $('Generar Link Pago (Stripe)').item.json.url + \"\\\\n\" : \"\") + \"\\\\n\" + \n  \"💰 *Total:* \" + ($('Preparar para Supabase').item.json.total || 0) + \"€ (IVA incl.)\\\\n\\\\n\" + \n  \"Sigue el estado de tu pedido en tiempo real aquí:\\\\n🔗 https://pozu2.com/pedidos/tracking?id=\" + $('Insertar Pedido en Supabase').item.json.id\n}}\n",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "66b443dd-de6e-4429-b332-b72de9b8ed80",
+      "name": "Responder a Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6864,
+        3456
+      ],
+      "webhookId": "b29027d2-d721-4836-8ef5-80c193db1970",
+      "credentials": {
+        "telegramApi": {
+          "id": "i4IQkiXw6gQXU0VD",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pozu2.com/message/sendText/pozu-instance",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "=={{ \n  \"✅ ¡Oído cocina, \" + ($('Preparar para Supabase').item.json.customer_name || 'Fiera') + \"! Tu pedido está marchando. 🍔🍟\\\\n\\\\n\" + \n  \"📦 **Resumen de tu pedido:**\\\\n\" + ($('Preparar para Supabase').item.json.items.detalle || 'Pedido registrado') + \"\\\\n\\\\n\" + \n  \"📍 **Entrega:** \" + ($('Preparar para Supabase').item.json.delivery_address || 'Recogida en local') + \"\\\\n\" + \n  \"💳 Pago: \" + ($json.items?.metodo_pago || 'Pendiente') + \"\\\\n\" + \n  ($('Generar Link Pago (Stripe)').isExecuted && $('Generar Link Pago (Stripe)').item?.json?.url ? \"👉 **PAGA AQUÍ:** \" + $('Generar Link Pago (Stripe)').item.json.url + \"\\\\n\" : \"\") + \"\\\\n\" + \n  \"💰 **Total:** \" + ($('Preparar para Supabase').item.json.total || 0) + \"€ (IVA incl.)\\\\n\\\\n\" + \n  \"Sigue el estado de tu pedido en tiempo real aquí:\\\\n🔗 https://pozu2.com/pedidos/tracking?id=\" + $('Insertar Pedido en Supabase').item.json.id\n}}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "88515ad4-457b-4bca-9801-7dc7ebed7d2c",
+      "name": "Enviar Mensaje WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6864,
+        3648
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "id-2",
+              "name": "message",
+              "value": "=={{ \n  \"✅ ¡Oído cocina, \" + ($json.customer_name || 'Fiera') + \"! Tu pedido está marchando. 🍔🍟\\\\n\\\\n\" + \n  \"📦 Resumen:\\\\n\" + ($json.items?.detalle || 'Pedido registrado') + \"\\\\n\\\\n\" + \n  \"📍 Entrega: \" + ($json.delivery_address || 'Recogida en local') + \"\\\\n\" + \n  \"💳 Pago: \" + ($json.items?.metodo_pago || 'Pendiente') + \"\\\\n\" + \n  ($('Generar Link Pago (Stripe)').isExecuted && $('Generar Link Pago (Stripe)').item?.json?.url ? \"👉 *PAGA AQUÍ:* \" + $('Generar Link Pago (Stripe)').item.json.url + \"\\\\n\" : \"\") + \"\\\\n\" + \n  \"💰 Total: \" + ($json.total || 0) + \"€\\\\n\\\\n\" + \n  \"Sigue tu pedido aquí:\\\\n🔗 https://pozu2.com/pedidos/tracking?id=\" + $json.id\n}}\n",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "session_id",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "89c6ad6e-8345-4ccb-8240-4d4ccd96e3df",
+      "name": "Preparar Respuesta Web",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6864,
+        3840
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "cd932b04-cde9-4303-a918-b7c143a75701",
+      "name": "Responder a Chat Web",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        7088,
+        3840
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "canal_origen",
+              "value": "={{ $json.canal_origen }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "chat_id",
+              "value": "={{ $json.message?.chat?.id || $json.data?.key?.remoteJid || $json.body?.session_id || $json.session_id || $json.message?.call?.customer?.number || 'desconocido' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "supabase_url",
+              "value": "https://api.pozu2.com",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "708e27a4-ca93-486e-ac43-00e4ef0ff349",
+      "name": "🛡️ Blindar Metadata",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        3056
+      ]
+    }
+  ],
+  "connections": {
+    "🛡️ Blindar Metadata": {
+      "main": [
+        [
+          {
+            "node": "Consultar Feature Flags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer Datos Estructurados": {
+      "main": [
+        [
+          {
+            "node": "Preparar para Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar para Supabase": {
+      "main": [
+        [
+          {
+            "node": "Insertar Pedido en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar Pedido en Supabase": {
+      "main": [
+        [
+          {
+            "node": "Responder a Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enviar Mensaje WhatsApp",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar Respuesta Web",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Respuesta Web": {
+      "main": [
+        [
+          {
+            "node": "Responder a Chat Web",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
