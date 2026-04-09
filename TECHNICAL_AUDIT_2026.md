@@ -150,6 +150,7 @@
 - [x] **Solución Enlaces Mudos en Chat**: Implementación de función `renderMessageWithLinks` en `ai-chat-button.tsx` para forzar evaluación por Regex de URLs (provenientes de Stripe) generadas por IA como etiquetas `href` activas en la UI.
 - [x] **Scrollbar y Selección Táctil**: Modificación de clases `touch-none` e inyección de `select-text` en componente Web Chat, restaurando el comportamiento de scroll interactivo y lectura nativa.
 - [x] **Arquitectura KDS**: Verificación de ciclo de flujo estricto; el KDS ignora pedidos `pending` generados por Stripe a la espera de conciliación del Webhook para proteger producción.
+- [x] **Unificación de Dominio Tracking**: Cambio de `pozu.es` a `pozu2.com` en todos los nodos de salida (Telegram, WhatsApp, Web) para que el enlace de seguimiento funcione correctamente sobre la nueva infraestructura Dokploy.
 
 ---
-*Última actualización: 09 Abril 2026 - 17:35h (Fix: UI Chat interactions & n8n Data Syntax)*
+*Última actualización: 09 Abril 2026 - 18:15h (Fix: Unified Tracking Domain pozu2.com)*
