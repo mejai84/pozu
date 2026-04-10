@@ -35,6 +35,8 @@ interface OrderTracking {
     customer_phone?: string
     total: number
     order_items: any[]
+    payment_status?: string
+    payment_link?: string
 }
 
 const statusConfig = {
