@@ -21,4 +21,7 @@ export type Order = {
   source: string | null
   order_items: OrderItem[]
   risk_level?: 'VERDE' | 'AMARILLO' | 'ROJO'
+  customer_name?: string
+  payment_status?: string
+  payment_link?: string
 }

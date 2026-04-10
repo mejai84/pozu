@@ -12,6 +12,10 @@ export type Order = {
     status: string
     order_items: OrderItem[]
     guest_info?: any
+    customer_name?: string
+    customer_phone?: string
+    payment_status?: string
+    payment_link?: string
 }
 
 export interface BusinessInfo {

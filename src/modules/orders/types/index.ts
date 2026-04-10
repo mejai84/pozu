@@ -30,12 +30,11 @@ export interface Order {
     order_type: 'pickup' | 'delivery' | 'dine_in'
     total: number
     subtotal: number
-    guest_info: {
-        name: string
-        phone?: string
-        email?: string
-    }
+    guest_info: any
     order_items: OrderItem[]
     payment_method: string
     payment_status: string
+    customer_name?: string
+    customer_phone?: string
+    payment_link?: string
 }
