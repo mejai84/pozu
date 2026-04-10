@@ -184,64 +184,85 @@ if (nodoStripe) {
 
 // ══════════════════════════════════════════════
 // FIX 6: Mensaje de Telegram/Canal — quitar tracking link del mensaje inicial
-// El tracking debe llegar SOLO tras pago confirmado (vía Stripe webhook)
-// El mensaje inicial al completar el pedido solo debe mostrar el link de pago
 // ══════════════════════════════════════════════
 const nodoRespTelegram = wf.nodes.find(n => n.name === 'Responder a Telegram');
 if (nodoRespTelegram && nodoRespTelegram.parameters?.text) {
-  // Reemplazar el mensaje para mostrar link Stripe en lugar de tracking si es tarjeta
   nodoRespTelegram.parameters.text = `={{ 
   "✅ ¡Oído cocina, " + ($('Preparar para Supabase').item.json.customer_name || 'Fiera') + "! Tu pedido está marchando. 🍔🍟\\n\\n" + 
   "📦 *Resumen de tu pedido:*\\n" + ($('Preparar para Supabase').item.json.items?.detalle || 'Pedido registrado') + "\\n\\n" + 
   "📍 *Entrega:* " + ($('Preparar para Supabase').item.json.delivery_address || 'Recogida en local') + "\\n" + 
   "💳 Pago: " + ($('Preparar para Supabase').item.json.items?.metodo_pago || 'Pendiente') + "\\n" + 
-  ($('Generar Link Pago (Stripe)').isExecuted && $('Generar Link Pago (Stripe)').item?.json?.url ? "\\n👉 *PAGA AQUÍ:* " + $('Generar Link Pago (Stripe)').item.json.url + "\\n\\n⚠️ Te enviaremos el link de seguimiento una vez confirmado el pago." : "\\n🔗 Sigue tu pedido: https://pozu2.com/pedidos/tracking?id=" + $('Insertar Pedido en Supabase').item.json.id) + "\\n\\n" + 
+  ($('Generar Link Pago').isExecuted && $('Generar Link Pago').item?.json?.url ? "\\n👉 *PAGA AQUÍ:* " + $('Generar Link Pago').item.json.url + "\\n\\n⚠️ Te enviaremos el link de seguimiento una vez confirmado el pago." : "\\n🔗 Sigue tu pedido: https://pozu2.com/pedidos/tracking?id=" + $('Insertar Pedido en Supabase').item.json.id) + "\\n\\n" + 
   "🧾 *Total:* " + ($('Preparar para Supabase').item.json.total || 0) + "€ (IVA incl.)"
 }}`;
-  console.log('✅ FIX 6: Mensaje Telegram — tracking solo aparece si es efectivo, Stripe link si es tarjeta');
+  console.log('✅ FIX 6: Mensaje Telegram actualizado para apuntar a Generar Link Pago genérico');
   fixCount++;
 }
 
 // ══════════════════════════════════════════════
-// FIX 7 (CRÍTICO): Añadir metadata.order_id a la sesión Stripe
-// - El webhook busca session.metadata.order_id para actualizar el pedido
-// - Sin este metadata, el webhook no puede encontrar el pedido → queda en 'pending' SIEMPRE
-// - El KDS/Dashboard filtra por 'confirmed', así que el pedido NUNCA aparecería
+// FIX 7 (CRÍTICO v10): Reemplazo de Stripe estático por Petición Backend Multigateway
+// Reemplazamos el viejo "Generar Link Pago (Stripe)" por un HTTP Node "Generar Link Pago"
 // ══════════════════════════════════════════════
 if (nodoStripe) {
-  const params = nodoStripe.parameters.bodyParameters?.parameters;
-  if (params) {
-    // Verificar si ya existe metadata
-    const metadataParam = params.find(p => p.name === 'metadata');
-    const metadataValue = `={"order_id": "{{ $('Insertar Pedido en Supabase').item.json.id }}", "customer_name": "{{ $('Preparar para Supabase').item.json.customer_name || 'Cliente' }}"}`;
-    if (metadataParam) {
-      metadataParam.value = metadataValue;
-      console.log('✅ FIX 7: Stripe metadata.order_id actualizado');
-    } else {
-      params.push({ name: 'metadata', value: metadataValue });
-      console.log('✅ FIX 7: Stripe metadata.order_id añadido (era inexistente)');
-    }
-    fixCount++;
+  nodoStripe.name = 'Generar Link Pago';
+  nodoStripe.type = 'n8n-nodes-base.httpRequest';
+  nodoStripe.typeVersion = 4.1;
+  nodoStripe.parameters = {
+    method: 'POST',
+    url: 'https://pozu2.com/api/checkout/create-link',
+    sendBody: true,
+    specifyBody: 'json',
+    jsonBody: `={
+  "order_id": "{{ $('Insertar Pedido en Supabase').item.json.id }}",
+  "amount": {{ $('Preparar para Supabase').item.json.total }},
+  "summary": "{{ $('Preparar para Supabase').item.json.items.detalle }}"
+}`,
+    options: {}
+  };
+  // Eliminar credenciales de stripe viejas
+  if (nodoStripe.credentials) {
+    delete nodoStripe.credentials;
   }
-} else {
-  console.warn('⚠️  FIX 7: No se encontró nodo "Generar Link Pago (Stripe)" para metadata');
+  console.log('✅ FIX 7: Nodo Stripe reemplazado por llamado HTTP Multigateway a tu backend');
+  fixCount++;
+}
+
+// ══════════════════════════════════════════════
+// Actualizar connections para reflejar el nuevo nombre 'Generar Link Pago'
+// ══════════════════════════════════════════════
+if (wf.connections['¿Es Tarjeta?']) {
+  wf.connections['¿Es Tarjeta?'].main[0] = [{ node: 'Generar Link Pago', type: 'main', index: 0 }];
+}
+if (wf.connections['Generar Link Pago (Stripe)']) {
+  wf.connections['Generar Link Pago'] = wf.connections['Generar Link Pago (Stripe)'];
+  delete wf.connections['Generar Link Pago (Stripe)'];
+}
+
+// Cambiar referencias en "Actualizar Payment Link en Supabase"
+const nodoActLink = wf.nodes.find(n => n.name === 'Actualizar Payment Link en Supabase');
+if (nodoActLink && nodoActLink.parameters?.assignments?.assignments) {
+    const asgs = nodoActLink.parameters.assignments.assignments;
+    // actualizar para sacar la url del nodo nuevo
+    const urlAsg = asgs.find(a => a.id === 'payment_link');
+    if (urlAsg) {
+      urlAsg.value = "={{ $('Generar Link Pago').item.json.url }}";
+    }
 }
 
 // ══════════════════════════════════════════════
 // Actualizar nombre y versionId
 // ══════════════════════════════════════════════
-wf.name = 'Pozu_FIXED_v9';
-wf.versionId = 'patched-v9-' + Date.now();
+wf.name = 'Pozu_FIXED_v10';
+wf.versionId = 'patched-v10-' + Date.now();
 
 // ══════════════════════════════════════════════
 // Guardar archivo
 // ══════════════════════════════════════════════
-const finalOutputPath = outputPath.replace('v7_PATCHED', 'v9').replace('v8', 'v9');
+const finalOutputPath = outputPath.replace('v7_PATCHED', 'v10').replace('v8', 'v10').replace('v9', 'v10');
 fs.writeFileSync(finalOutputPath, JSON.stringify(wf, null, 2), 'utf8');
 console.log(`\n✅ ${fixCount} fixes aplicados exitosamente`);
 console.log(`📁 Archivo guardado en: ${finalOutputPath}`);
 console.log('\n📋 SIGUIENTES PASOS:');
-console.log('  1. Importa Pozu_FIXED_v9.json en n8n');
-console.log('  2. Ejecuta supabase_migrations/20260410_orders_n8n_columns.sql en Supabase');
-console.log('  3. Verifica que STRIPE_WEBHOOK_SECRET está configurado en Dokploy');
+console.log('  1. Importa Pozu_FIXED_v10.json en n8n');
+console.log('  2. Ya NO hace falta configurar Stripe en n8n. Usa tus propias API keys de tu panel de admin.');
 

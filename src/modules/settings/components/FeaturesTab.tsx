@@ -146,32 +146,96 @@ export const FeaturesTab = ({ settings, setSettings, onSave, onSaveStripe, loadi
 
             <div className="flex items-center gap-3 text-primary pb-3 pt-6 border-b border-white/10">
                 <Key className="w-6 h-6" />
-                <h3 className="text-xl font-bold">API Keys & Pagos</h3>
+                <h3 className="text-xl font-bold">API Keys & Pagos Multigates</h3>
             </div>
             
             <div className="space-y-4">
                 <div className="p-4 bg-white/5 rounded-xl space-y-4">
                     <div>
-                        <label className="text-sm font-bold text-white mb-2 block">Stripe Publishable Key (pk_test_... o pk_live_...)</label>
-                        <input
-                            type="text"
-                            value={settings.stripe_public_key || ""}
-                            onChange={(e) => setSettings({ ...settings, stripe_public_key: e.target.value })}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
-                            placeholder="pk_live_xxxxxxxxxxxxxxxxxxxxxxxx"
-                        />
+                        <label className="text-sm font-bold text-white mb-2 block">Pasarela de Pago Activa</label>
+                        <select 
+                            value={settings.active_gateway || 'stripe'}
+                            onChange={(e) => setSettings({ ...settings, active_gateway: e.target.value as any })}
+                            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none transition-colors appearance-none"
+                        >
+                            <option value="stripe">Stripe (Tarjetas de Crédito, Apple/Google Pay)</option>
+                            <option value="mercadopago">MercadoPago (Latam)</option>
+                            <option value="paypal">PayPal</option>
+                        </select>
+                        <p className="text-xs text-muted-foreground mt-2">
+                            Selecciona por qué plataforma procesarás los cobros cuando los clientes soliciten pago online.
+                        </p>
                     </div>
-                    <div>
-                        <label className="text-sm font-bold text-white mb-2 block">Stripe Secret Key (sk_test_... o sk_live_...)</label>
-                        <input
-                            type="password"
-                            value={settings.stripe_secret_key || ""}
-                            onChange={(e) => setSettings({ ...settings, stripe_secret_key: e.target.value })}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
-                            placeholder="Introduce nueva clave (ej: sk_test_123...)"
-                        />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
+
+                    {settings.active_gateway === 'stripe' && (
+                        <div className="pt-4 space-y-4 border-t border-white/10 mt-4">
+                            <div>
+                                <label className="text-sm font-bold text-white mb-2 block">Stripe Publishable Key (pk_test_... o pk_live_...)</label>
+                                <input
+                                    type="text"
+                                    value={settings.stripe_public_key || ""}
+                                    onChange={(e) => setSettings({ ...settings, stripe_public_key: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
+                                    placeholder="pk_live_xxxxxxxxxxxxxxxxxxxxxxxx"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-bold text-white mb-2 block">Stripe Secret Key (sk_test_... o sk_live_...)</label>
+                                <input
+                                    type="password"
+                                    value={settings.stripe_secret_key || ""}
+                                    onChange={(e) => setSettings({ ...settings, stripe_secret_key: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
+                                    placeholder="Introduce nueva clave (ej: sk_test_123...)"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {settings.active_gateway === 'mercadopago' && (
+                        <div className="pt-4 space-y-4 border-t border-white/10 mt-4">
+                            <div>
+                                <label className="text-sm font-bold text-white mb-2 block">MercadoPago Access Token (APP_USR-...)</label>
+                                <input
+                                    type="password"
+                                    value={settings.mercadopago_access_token || ""}
+                                    onChange={(e) => setSettings({ ...settings, mercadopago_access_token: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
+                                    placeholder="APP_USR-xxxxxxxxxxxxxxxxxxxxxxxx"
+                                />
+                            </div>
+                            <p className="text-xs text-blue-400">
+                                Las credenciales de Producción en MercadoPago requieren ser generadas en la sección "Tus Integraciones" del panel de MP.
+                            </p>
+                        </div>
+                    )}
+
+                    {settings.active_gateway === 'paypal' && (
+                        <div className="pt-4 space-y-4 border-t border-white/10 mt-4">
+                            <div>
+                                <label className="text-sm font-bold text-white mb-2 block">PayPal Client ID</label>
+                                <input
+                                    type="text"
+                                    value={settings.paypal_client_id || ""}
+                                    onChange={(e) => setSettings({ ...settings, paypal_client_id: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
+                                    placeholder="AaBbCcDdEeFf..."
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-bold text-white mb-2 block">PayPal Secret Key</label>
+                                <input
+                                    type="password"
+                                    value={settings.paypal_secret || ""}
+                                    onChange={(e) => setSettings({ ...settings, paypal_secret: e.target.value })}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
+                                    placeholder="Introduce el secret key de PayPal..."
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <p className="text-xs text-muted-foreground mt-4 block">
                         Estas claves determinan hacia dónde va el dinero de los pedidos. Asegúrate de poner las correctas. Se guardan de forma segura en la base de datos de tu proyecto.
                     </p>
                 </div>

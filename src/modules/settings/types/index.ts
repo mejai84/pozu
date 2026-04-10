@@ -27,8 +27,14 @@ export interface Settings {
     taxes_enabled: boolean
     tax_percentage: number
     printers: PrinterConfig[]
+    
+    // Gateway configs
+    active_gateway?: 'stripe' | 'mercadopago' | 'paypal'
     stripe_public_key?: string
     stripe_secret_key?: string
+    mercadopago_access_token?: string
+    paypal_client_id?: string
+    paypal_secret?: string
 }
 
 export interface BusinessHours {

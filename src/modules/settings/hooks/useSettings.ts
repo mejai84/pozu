@@ -22,8 +22,13 @@ const defaultSettings: Settings = {
     taxes_enabled: true,
     tax_percentage: 10,
     printers: [],
+    
+    active_gateway: 'stripe',
     stripe_public_key: "",
-    stripe_secret_key: ""
+    stripe_secret_key: "",
+    mercadopago_access_token: "",
+    paypal_client_id: "",
+    paypal_secret: ""
 }
 
 export const useSettings = () => {
@@ -67,9 +72,13 @@ export const useSettings = () => {
                         Object.assign(mapped, item.value)
                     } else if (item.key === 'printers_config') {
                         mapped.printers = item.value as PrinterConfig[]
-                    } else if (item.key === 'stripe_keys') {
+                    } else if (item.key === 'stripe_keys') { // Keeping key name for backward compatibility
+                        mapped.active_gateway = item.value.active_gateway || 'stripe'
                         mapped.stripe_public_key = item.value.public_key || ""
                         mapped.stripe_secret_key = item.value.secret_key || ""
+                        mapped.mercadopago_access_token = item.value.mercadopago_access_token || ""
+                        mapped.paypal_client_id = item.value.paypal_client_id || ""
+                        mapped.paypal_secret = item.value.paypal_secret || ""
                     }
                 })
                 
@@ -137,9 +146,13 @@ export const useSettings = () => {
     const handleSavePrinters = () => saveByKey('printers_config', settings.printers, "✓ Hardware vinculado")
 
     const handleSaveStripe = () => saveByKey('stripe_keys', {
+        active_gateway: settings.active_gateway,
         public_key: settings.stripe_public_key,
-        secret_key: settings.stripe_secret_key
-    }, "✓ Claves de Stripe guardadas")
+        secret_key: settings.stripe_secret_key,
+        mercadopago_access_token: settings.mercadopago_access_token,
+        paypal_client_id: settings.paypal_client_id,
+        paypal_secret: settings.paypal_secret
+    }, "✓ Pasarelas de Pago actualizadas")
 
     return {
         settings, setSettings,
