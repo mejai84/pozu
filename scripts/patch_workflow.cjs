@@ -203,19 +203,45 @@ if (nodoRespTelegram && nodoRespTelegram.parameters?.text) {
 }
 
 // ══════════════════════════════════════════════
+// FIX 7 (CRÍTICO): Añadir metadata.order_id a la sesión Stripe
+// - El webhook busca session.metadata.order_id para actualizar el pedido
+// - Sin este metadata, el webhook no puede encontrar el pedido → queda en 'pending' SIEMPRE
+// - El KDS/Dashboard filtra por 'confirmed', así que el pedido NUNCA aparecería
+// ══════════════════════════════════════════════
+if (nodoStripe) {
+  const params = nodoStripe.parameters.bodyParameters?.parameters;
+  if (params) {
+    // Verificar si ya existe metadata
+    const metadataParam = params.find(p => p.name === 'metadata');
+    const metadataValue = `={"order_id": "{{ $('Insertar Pedido en Supabase').item.json.id }}", "customer_name": "{{ $('Preparar para Supabase').item.json.customer_name || 'Cliente' }}"}`;
+    if (metadataParam) {
+      metadataParam.value = metadataValue;
+      console.log('✅ FIX 7: Stripe metadata.order_id actualizado');
+    } else {
+      params.push({ name: 'metadata', value: metadataValue });
+      console.log('✅ FIX 7: Stripe metadata.order_id añadido (era inexistente)');
+    }
+    fixCount++;
+  }
+} else {
+  console.warn('⚠️  FIX 7: No se encontró nodo "Generar Link Pago (Stripe)" para metadata');
+}
+
+// ══════════════════════════════════════════════
 // Actualizar nombre y versionId
 // ══════════════════════════════════════════════
-wf.name = 'Pozu_FIXED_v8';
-wf.versionId = 'patched-v8-' + Date.now();
+wf.name = 'Pozu_FIXED_v9';
+wf.versionId = 'patched-v9-' + Date.now();
 
 // ══════════════════════════════════════════════
 // Guardar archivo
 // ══════════════════════════════════════════════
-const finalOutputPath = outputPath.replace('v7_PATCHED', 'v8');
+const finalOutputPath = outputPath.replace('v7_PATCHED', 'v9').replace('v8', 'v9');
 fs.writeFileSync(finalOutputPath, JSON.stringify(wf, null, 2), 'utf8');
 console.log(`\n✅ ${fixCount} fixes aplicados exitosamente`);
 console.log(`📁 Archivo guardado en: ${finalOutputPath}`);
 console.log('\n📋 SIGUIENTES PASOS:');
-console.log('  1. Importa Pozu_FIXED_v8.json en n8n');
+console.log('  1. Importa Pozu_FIXED_v9.json en n8n');
 console.log('  2. Ejecuta supabase_migrations/20260410_orders_n8n_columns.sql en Supabase');
-console.log('  3. El sitio next.js debe estar deployado (nueva página /pago-exitoso ya creada)');
+console.log('  3. Verifica que STRIPE_WEBHOOK_SECRET está configurado en Dokploy');
+

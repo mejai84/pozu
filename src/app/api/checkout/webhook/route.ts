@@ -62,38 +62,62 @@ export async function POST(req: Request) {
   ) {
     try {
       let orderId: string | undefined
-      let paymentIntentId: string | undefined
 
-      if (event.type === 'payment_intent.succeeded') {
+      if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session
+        // Intentar obtener order_id por metadata (seteado por n8n en v9+)
+        orderId = session.metadata?.order_id
+        // Fallback: client_reference_id (si n8n lo setea)
+        if (!orderId) orderId = session.client_reference_id ?? undefined
+      } else {
         const pi = event.data.object as Stripe.PaymentIntent
         orderId = pi.metadata?.order_id
-        paymentIntentId = pi.id
-      } else {
-        const session = event.data.object as Stripe.Checkout.Session
-        orderId = session.metadata?.order_id
-        paymentIntentId = session.payment_intent as string
       }
 
       if (orderId) {
-        const { error } = await supabaseAdmin
+        // Actualizar el pedido a confirmed + paid
+        const { data: updatedOrder, error } = await supabaseAdmin
           .from('orders')
           .update({
             status: 'confirmed',
             payment_status: 'paid',
-            updated_at: new Date().toISOString(),
+            paid_at: new Date().toISOString(),
           })
           .eq('id', orderId)
+          .select('id, total, customer_name, customer_phone, items, source, guest_info')
+          .single()
 
-        if (error) console.error('Error actualizando pedido:', error)
+        if (error) {
+          console.error('Error actualizando pedido:', error)
+        } else if (updatedOrder) {
+          console.log(`✅ Pedido ${orderId} confirmado tras pago Stripe`)
+
+          // Enviar mensaje de tracking al cliente si tenemos webhook de n8n configurado
+          const n8nTrackingWebhook = process.env.N8N_TRACKING_WEBHOOK_URL
+          if (n8nTrackingWebhook) {
+            try {
+              await fetch(n8nTrackingWebhook, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  event: 'payment_confirmed',
+                  order_id: orderId,
+                  total: updatedOrder.total,
+                  customer_name: updatedOrder.customer_name || updatedOrder.guest_info?.full_name,
+                  customer_phone: updatedOrder.customer_phone || updatedOrder.guest_info?.phone,
+                  source: updatedOrder.source,
+                  tracking_url: `https://pozu2.com/pedidos/tracking?id=${orderId}`,
+                })
+              })
+            } catch (notifyErr) {
+              console.warn('No se pudo notificar a n8n:', notifyErr)
+            }
+          }
+        }
       } else {
-        await supabaseAdmin
-          .from('orders')
-          .update({
-            status: 'confirmed',
-            payment_status: 'paid',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('payment_link', paymentIntentId)
+        // No tenemos order_id: loguear para diagnóstico pero no crashear
+        console.warn('⚠️ Stripe webhook sin order_id en metadata. Event:', event.type)
+        console.warn('Tip: asegúrate de que n8n setea metadata.order_id al crear la sesión de Stripe')
       }
     } catch (err) {
       console.error('Error processing webhook:', err)
