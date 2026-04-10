@@ -5,15 +5,17 @@ import { Settings } from "../types"
 interface Props {
     settings: Settings
     setSettings: (s: Settings) => void
-    onSave: () => void
-    onSaveStripe?: () => void
+    onSave: () => Promise<any> | void
+    onSaveStripe?: () => Promise<any> | void
     loading: boolean
 }
 
 export const FeaturesTab = ({ settings, setSettings, onSave, onSaveStripe, loading }: Props) => {
-    const handleSaveAll = () => {
-        onSave()
-        if (onSaveStripe) onSaveStripe()
+    const handleSaveAll = async () => {
+        await onSave()
+        if (onSaveStripe) {
+            await onSaveStripe()
+        }
     }
 
     return (
