@@ -189,3 +189,8 @@
 - [x] **Normalización de Tipos (Final Clean)**: Sincronización de interfaces TypeScript en Kitchen, Orders y Realtime Monitor para asegurar builds de producción 100% estables en Dokploy.
 - [x] **Bugfix Dokploy (Production Build)**: Inyectada propiedad `items?: any` en la interfaz `Order` del módulo Orders.
 - [x] **Bugfix Settings UI**: Corregida la interfaz de `Props` en `FeaturesTab.tsx` añadiendo la propiedad `onSave` faltante, eliminando el último bloqueo de compilación de Dokploy.
+
+### 22. Estabilización n8n Telegram Voice & Monitor Zero-Items (10 Abril 2026) ✅
+- [x] **Relajación de Constraints (DB)**: Ejecutados parches SQL para eliminar restricciones `NOT NULL` en `customer_name` y `customer_phone` de la tabla `orders` permitiendo que n8n fluya correctamente en extracciones mixtas.
+- [x] **Fix Telegram Voice (`invalid file_id`)**: Escrito script en JS (`fix_workflow_newlines.cjs`) para procesar el JSON del workflow y extirpar caracteres sueltos de salto de línea (`\n`) en expressions conflictivas que corrompian las subidas de Telegram y llamadas directas de n8n.
+- [x] **Fix Zero-Items Monitor**: Reescrito el hook `useRealtimeOrders.ts` y componente `OrderCard.tsx` eliminando la dependencia explícita del relation join de Supabase con `order_items` para pedidos creados globalmente. El monitor ya no ignora pedidos de la IA que contengan malformación de subproductos, previniendo blind fields vacíos.
