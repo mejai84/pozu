@@ -45,11 +45,18 @@ export const useCustomers = (searchTerm: string, filterType: string) => {
                     const phone = order.customer_phone || gInfo?.phone || "Sin teléfono";
                     const email = gInfo?.email || order.email;
                     
-                    // Extraer dirección si existe
-                    const addrInfo = typeof order.delivery_address === 'string' ? JSON.parse(order.delivery_address || '{}') : (order.delivery_address || {});
-                    let address = order.address || undefined;
-                    if (!address && addrInfo?.street) {
-                        address = `${addrInfo.street}${addrInfo.city ? ', ' + addrInfo.city : ''}`;
+                    // Extraer dirección si existe (puede venir como texto plano de n8n o como JSON)
+                    let address = order.address || order.delivery_address || undefined;
+                    if (address && typeof address === 'string') {
+                        // Intentar parsear como JSON por si viene estructurado
+                        try {
+                            const addrObj = JSON.parse(address);
+                            if (addrObj?.street) {
+                                address = `${addrObj.street}${addrObj.city ? ', ' + addrObj.city : ''}`;
+                            }
+                        } catch {
+                            // Es texto plano (ej: "Calle Juan 65") — perfecto, usarlo tal cual
+                        }
                     }
 
                     const key = (phone && phone !== "Sin teléfono") ? phone : `${name}-${order.created_at}`;
