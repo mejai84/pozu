@@ -37,17 +37,7 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          order_items (
-            quantity,
-            unit_price,
-            notes,
-            products (
-              name
-            )
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(20)
 
