@@ -187,4 +187,5 @@
 - [x] **CRM Smart Extraction**: El módulo de Clientes ahora extrae dinámicamente nombres y teléfonos de pedidos de WhatsApp/Telegram procesados por n8n, eliminando los registros "Desconocido".
 - [x] **Visualización de Ubicación 📍**: Añadida la dirección de entrega directamente en la lista del CRM y en el modal de detalles del cliente para agilizar la logística.
 - [x] **Normalización de Tipos (Final Clean)**: Sincronización de interfaces TypeScript en Kitchen, Orders y Realtime Monitor para asegurar builds de producción 100% estables en Dokploy.
-- [x] **Bugfix Dokploy (Production Build)**: Inyectada propiedad `items?: any` en la interfaz `Order` del módulo Orders para resolver preventivamente el error estricto de compilado (`Type error: Property 'items' does not exist on type 'Order'`).
+- [x] **Bugfix Dokploy (Production Build)**: Inyectada propiedad `items?: any` en la interfaz `Order` del módulo Orders.
+- [x] **Bugfix Settings UI**: Corregida la interfaz de `Props` en `FeaturesTab.tsx` añadiendo la propiedad `onSave` faltante, eliminando el último bloqueo de compilación de Dokploy.

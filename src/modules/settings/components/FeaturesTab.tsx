@@ -5,6 +5,7 @@ import { Settings } from "../types"
 interface Props {
     settings: Settings
     setSettings: (s: Settings) => void
+    onSave: () => Promise<any> | void
     onSaveStripe?: () => Promise<any> | void
     onSaveAdmin?: () => Promise<any> | void
     loading: boolean
