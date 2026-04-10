@@ -35,10 +35,18 @@ export const useCustomers = (searchTerm: string, filterType: string) => {
                 const now = new Date()
 
                 orders.forEach(order => {
-                    const name = order.guest_info?.name || "Desconocido"
-                    const phone = order.guest_info?.phone || "Sin teléfono"
-                    const email = order.guest_info?.email
-                    const key = phone !== "Sin teléfono" ? phone : `${name}-${order.created_at}`
+                    // Normalizar datos de cliente (Traductor Maestro)
+                    const gInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+                    const name = order.customer_name || gInfo?.full_name || gInfo?.name || "Desconocido";
+                    
+                    const phone = order.customer_phone || gInfo?.phone || "Sin teléfono";
+                    const email = gInfo?.email || order.email;
+                    
+                    // Extraer dirección si es de entrega
+                    const addrInfo = typeof order.delivery_address === 'string' ? JSON.parse(order.delivery_address) : order.delivery_address;
+                    const address = addrInfo?.street ? `${addrInfo.street}${addrInfo.city ? ', ' + addrInfo.city : ''}` : undefined;
+
+                    const key = phone !== "Sin teléfono" ? phone : `${name}-${order.created_at}`;
 
                     if (!customerMap.has(key)) {
                         customerMap.set(key, {
@@ -57,6 +65,7 @@ export const useCustomers = (searchTerm: string, filterType: string) => {
                     const customer = customerMap.get(key)!
                     if (name !== 'Desconocido' && customer.name === 'Desconocido') customer.name = name
                     if (email && !customer.email) customer.email = email
+                    if (address && !customer.address) customer.address = address
                     
                     customer.totalOrders += 1
                     customer.totalSpent += (order.total || 0)

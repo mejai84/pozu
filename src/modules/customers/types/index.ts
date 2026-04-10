@@ -9,6 +9,7 @@ export interface Customer {
     points: number
     isRisk: boolean
     riskLevel?: 'VERDE' | 'AMARILLO' | 'ROJO'
+    address?: string
 }
 
 export interface CRMMetadata {

@@ -31,6 +31,9 @@ export const CustomerDetailsModal = ({ customer, onClose, onSaveNotes, savingNot
                             <div>
                                 <h2 className="text-lg font-black uppercase italic truncate max-w-[200px]">{customer.name}</h2>
                                 <p className="text-[10px] font-bold text-muted-foreground">{customer.phone}</p>
+                                {customer.address && (
+                                    <p className="text-[9px] text-primary/60 italic font-medium mt-0.5">📍 {customer.address}</p>
+                                )}
                             </div>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg"><X className="w-4 h-4" /></button>

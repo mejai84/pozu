@@ -105,6 +105,11 @@ export const CustomersModule = () => {
                                             <div>
                                                 <div className="font-bold">{c.name}</div>
                                                 <div className="text-[10px] opacity-40 font-mono">{c.phone}</div>
+                                                {c.address && (
+                                                    <div className="text-[9px] text-primary/60 italic truncate max-w-[200px]" title={c.address}>
+                                                        📍 {c.address}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </td>
