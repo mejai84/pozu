@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }: Props) => {
-  const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+  const guestInfo = typeof order.guest_info === 'string' ? (() => { try { return JSON.parse(order.guest_info || '{}'); } catch(e) { return {}; } })() : (order.guest_info || {});
   const customerName = order.customer_name || guestInfo?.full_name || guestInfo?.name || "Cliente";
   const customerPhone = order.customer_phone || guestInfo?.phone || "Sin teléfono";
   const isPaid = order.status === 'paid' || order.is_paid;
@@ -41,7 +41,7 @@ export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }:
       case 'out_for_delivery': return 'EN REPARTO'
       case 'delivered': return 'ENTREGADO'
       case 'paid': return 'PAGADO'
-      default: return status.toUpperCase()
+      default: return (status || '').toUpperCase()
     }
   }
 
@@ -57,6 +57,7 @@ export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }:
   }
 
   const getTimeElapsed = (createdAt: string) => {
+    if (!createdAt) return '—'
     const elapsed = Math.floor((new Date().getTime() - new Date(createdAt).getTime()) / 60000)
     if (elapsed < 1) return 'Recién llegado'
     return `Hace ${elapsed} min`
@@ -86,7 +87,7 @@ export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }:
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black uppercase text-muted-foreground opacity-50 tracking-widest">PEDIDO</span>
-            <h2 className="text-xl font-black italic tracking-tighter uppercase text-primary">#{order.id.split('-')[0]}</h2>
+            <h2 className="text-xl font-black italic tracking-tighter uppercase text-primary">#{order.id?.split('-')[0] || '???'}</h2>
           </div>
           <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground flex-wrap">
             <Clock className="w-4 h-4" />
@@ -159,7 +160,7 @@ export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }:
                   )}
                 </div>
               </div>
-              <span className="font-bold text-xs">{(item.unit_price * item.quantity).toFixed(2)}€</span>
+              <span className="font-bold text-xs">{( (item.unit_price || 0) * (item.quantity || 1) ).toFixed(2)}€</span>
             </div>
           ))}
         </div>
@@ -171,7 +172,7 @@ export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }:
           <div className="space-y-1">
             <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50">Total facturado</p>
             <div className="flex items-center gap-2">
-              <span className="text-3xl font-black italic tracking-tighter text-white">{order.total.toFixed(2)}€</span>
+              <span className="text-3xl font-black italic tracking-tighter text-white">{(order.total || 0).toFixed(2)}€</span>
               {isPaid && (
                 <div className="bg-green-500/10 text-green-500 text-[9px] font-black px-2 py-0.5 rounded border border-green-500/20 uppercase">Pagado</div>
               )}

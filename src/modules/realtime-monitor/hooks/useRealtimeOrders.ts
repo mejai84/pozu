@@ -52,12 +52,14 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
         .limit(20)
 
       if (error) throw error
-      const newOrders = (data || []).map(order => ({
+
+      const rawOrders = data || []
+      const newOrders = rawOrders.map(order => ({
           ...order,
-          risk_level: 'AMARILLO' // Default behavior while we stabilize the backend
+          risk_level: order.risk_level || 'AMARILLO'
       }));
       
-      setOrders(newOrders as Order[])
+      setOrders(newOrders)
       setLastUpdate(new Date())
 
       if (isFirstLoad.current) {
