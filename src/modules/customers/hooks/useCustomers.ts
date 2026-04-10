@@ -11,15 +11,19 @@ export const useCustomers = (searchTerm: string, filterType: string) => {
     const fetchCustomersAndMetadata = async () => {
         setLoading(true)
         try {
-            // 1. Fetch CRM Metadata (Notes)
-            const { data: settingsData } = await supabase
-                .from('settings')
-                .select('value')
-                .eq('key', 'crm_metadata')
-                .single()
-            
-            if (settingsData?.value) {
-                setCrmMetadata(settingsData.value as any)
+            // 1. Fetch CRM Metadata (Notes) - Silently fail if not exists
+            try {
+                const { data: settingsData } = await supabase
+                    .from('settings')
+                    .select('value')
+                    .eq('key', 'crm_metadata')
+                    .maybeSingle()
+                
+                if (settingsData?.value) {
+                    setCrmMetadata(settingsData.value as any)
+                }
+            } catch (e) {
+                console.warn('CRM Metadata not found, using empty object');
             }
 
             // 2. Fetch Orders
@@ -30,23 +34,25 @@ export const useCustomers = (searchTerm: string, filterType: string) => {
 
             if (error) throw error
 
-            if (orders) {
+            if (orders && orders.length > 0) {
                 const customerMap = new Map<string, Customer>()
-                const now = new Date()
 
                 orders.forEach(order => {
                     // Normalizar datos de cliente (Traductor Maestro)
-                    const gInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+                    const gInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info || '{}') : (order.guest_info || {});
                     const name = order.customer_name || gInfo?.full_name || gInfo?.name || "Desconocido";
                     
                     const phone = order.customer_phone || gInfo?.phone || "Sin teléfono";
                     const email = gInfo?.email || order.email;
                     
-                    // Extraer dirección si es de entrega
-                    const addrInfo = typeof order.delivery_address === 'string' ? JSON.parse(order.delivery_address) : order.delivery_address;
-                    const address = addrInfo?.street ? `${addrInfo.street}${addrInfo.city ? ', ' + addrInfo.city : ''}` : undefined;
+                    // Extraer dirección si existe
+                    const addrInfo = typeof order.delivery_address === 'string' ? JSON.parse(order.delivery_address || '{}') : (order.delivery_address || {});
+                    let address = order.address || undefined;
+                    if (!address && addrInfo?.street) {
+                        address = `${addrInfo.street}${addrInfo.city ? ', ' + addrInfo.city : ''}`;
+                    }
 
-                    const key = phone !== "Sin teléfono" ? phone : `${name}-${order.created_at}`;
+                    const key = (phone && phone !== "Sin teléfono") ? phone : `${name}-${order.created_at}`;
 
                     if (!customerMap.has(key)) {
                         customerMap.set(key, {
@@ -58,12 +64,13 @@ export const useCustomers = (searchTerm: string, filterType: string) => {
                             lastOrder: order.created_at,
                             orders: [],
                             points: 0,
-                            isRisk: false
+                            isRisk: false,
+                            address
                         })
                     }
 
                     const customer = customerMap.get(key)!
-                    if (name !== 'Desconocido' && customer.name === 'Desconocido') customer.name = name
+                    if (name !== 'Desconocido' && (customer.name === 'Desconocido' || !customer.name)) customer.name = name
                     if (email && !customer.email) customer.email = email
                     if (address && !customer.address) customer.address = address
                     
@@ -76,24 +83,37 @@ export const useCustomers = (searchTerm: string, filterType: string) => {
                     }
                 })
 
-                // Calcular puntos y riesgo real
-                const finalCustomers = await Promise.all(Array.from(customerMap.values()).map(async (c) => {
-                    // Consultar reputación real en Supabase
-                    const { data: riskData } = await supabase.rpc('check_order_risk', { p_phone: c.phone })
-                    const riskLevel = riskData?.[0]?.risk_level || 'AMARILLO'
+                // Convertir mapa a array y calcular puntos básicos
+                const customerList = Array.from(customerMap.values()).map(c => ({
+                    ...c,
+                    points: Math.floor(c.totalSpent / 10)
+                }));
 
-                    return {
-                        ...c,
-                        points: Math.floor(c.totalSpent / 10),
-                        isRisk: riskLevel === 'ROJO',
-                        riskLevel: riskLevel as any
-                    }
-                }))
+                setCustomers(customerList);
 
-                setCustomers(finalCustomers)
+                // 3. Intento asíncrono de riesgo (sin bloquear la lista principal)
+                try {
+                    const finalWithRisk = await Promise.all(customerList.map(async (c) => {
+                        if (!c.phone || c.phone === 'Sin teléfono') return c;
+                        
+                        const { data: riskData } = await supabase.rpc('check_order_risk', { p_phone: c.phone });
+                        const riskLevel = riskData?.[0]?.risk_level || 'AMARILLO';
+
+                        return {
+                            ...c,
+                            isRisk: riskLevel === 'ROJO',
+                            riskLevel: riskLevel as any
+                        }
+                    }))
+                    setCustomers(finalWithRisk)
+                } catch (riskErr) {
+                    console.warn('Error en check_order_risk RPC:', riskErr);
+                }
+            } else {
+                setCustomers([]);
             }
         } catch (err) {
-            console.error(err)
+            console.error('Error crítico en fetchCustomers:', err)
         }
         setLoading(false)
     }
