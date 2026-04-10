@@ -37,4 +37,5 @@ export interface Order {
     customer_name?: string
     customer_phone?: string
     payment_link?: string
+    items?: any
 }

@@ -1,6 +1,5 @@
 {
   "PROBLEMA_STRIPE": "Race condition: Insertar Pedido dispara Identificar Canal Respuesta Y ¿Es Tarjeta? en PARALELO. La respuesta al cliente sale ANTES de que Stripe genere el link.",
-  
   "FLUJO_ACTUAL_ROTO": {
     "Insertar Pedido en Supabase": [
       "→ Identificar Canal Respuesta (INMEDIATO ❌ - responde SIN link Stripe)",
@@ -9,7 +8,6 @@
       "→ ¿Es Tarjeta? → Stripe (llega TARDE, cliente ya recibió respuesta)"
     ]
   },
-
   "FLUJO_CORRECTO": {
     "Insertar Pedido en Supabase": [
       "→ ¿Es Tarjeta? → Parsear Items Pedido"
@@ -32,82 +30,151 @@
       "→ Parsear Items Pedido"
     ]
   },
-
   "CAMBIOS_EN_CONNECTIONS": {
     "descripcion": "En el JSON del workflow, reemplaza el bloque connections de estos nodos:",
-    
     "1_Insertar_Pedido_en_Supabase": {
       "ANTES": {
-        "main": [[
-          {"node": "Identificar Canal Respuesta", "type": "main", "index": 0},
-          {"node": "Parsear Items Pedido", "type": "main", "index": 0},
-          {"node": "Responder Chat Web Pedido", "type": "main", "index": 0},
-          {"node": "¿Es Tarjeta?", "type": "main", "index": 0}
-        ]]
+        "main": [
+          [
+            {
+              "node": "Identificar Canal Respuesta",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Parsear Items Pedido",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Responder Chat Web Pedido",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "¿Es Tarjeta?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       },
       "DESPUES": {
-        "main": [[
-          {"node": "¿Es Tarjeta?", "type": "main", "index": 0}
-        ]]
+        "main": [
+          [
+            {
+              "node": "¿Es Tarjeta?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
-
     "2_Es_Tarjeta": {
       "ANTES": {
         "main": [
-          [{"node": "Generar Link Pago (Stripe)", "type": "main", "index": 0}],
+          [
+            {
+              "node": "Generar Link Pago (Stripe)",
+              "type": "main",
+              "index": 0
+            }
+          ],
           []
         ]
       },
       "DESPUES": {
         "main": [
-          [{"node": "Generar Link Pago (Stripe)", "type": "main", "index": 0}],
           [
-            {"node": "Identificar Canal Respuesta", "type": "main", "index": 0},
-            {"node": "Parsear Items Pedido", "type": "main", "index": 0}
+            {
+              "node": "Generar Link Pago (Stripe)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Identificar Canal Respuesta",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Parsear Items Pedido",
+              "type": "main",
+              "index": 0
+            }
           ]
         ]
       }
     },
-
     "3_Generar_Link_Pago_Stripe": {
       "ANTES": {
         "main": [
-          [{"node": "Actualizar Payment Link en Supabase", "type": "main", "index": 0}]
+          [
+            {
+              "node": "Actualizar Payment Link en Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ]
         ]
       },
       "DESPUES": {
         "main": [
-          [{"node": "Actualizar Payment Link en Supabase", "type": "main", "index": 0}],
           [
-            {"node": "Identificar Canal Respuesta", "type": "main", "index": 0},
-            {"node": "Parsear Items Pedido", "type": "main", "index": 0}
+            {
+              "node": "Actualizar Payment Link en Supabase",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Identificar Canal Respuesta",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Parsear Items Pedido",
+              "type": "main",
+              "index": 0
+            }
           ]
         ]
       },
       "nota": "Output 1 = error output de Stripe (onError: continueErrorOutput). Si Stripe falla, igualmente responde al cliente sin link."
     },
-
     "4_Actualizar_Payment_Link_en_Supabase": {
       "ANTES": {
-        "main": [[]]
+        "main": [
+          []
+        ]
       },
       "DESPUES": {
-        "main": [[
-          {"node": "Identificar Canal Respuesta", "type": "main", "index": 0},
-          {"node": "Parsear Items Pedido", "type": "main", "index": 0}
-        ]]
+        "main": [
+          [
+            {
+              "node": "Identificar Canal Respuesta",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Parsear Items Pedido",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     }
   },
-
   "NODO_EXTRA_ELIMINAR": {
     "nombre": "Responder Chat Web Pedido",
     "id": "respond-web-order-001",
     "razon": "Este nodo responde al chat web DIRECTAMENTE desde Insertar Pedido, duplicando la respuesta y saltándose el link de Stripe. Debe eliminarse. El canal web ya está cubierto por: Identificar Canal Respuesta → output Web Chat → Preparar Respuesta Web → Responder a Chat Web",
     "accion": "Eliminar las conexiones de este nodo Y el nodo mismo del workflow"
   },
-
   "VERIFICACION_FINAL": [
     "1. Pedido con TARJETA: Flujo debe pasar por ¿Es Tarjeta? → Stripe → Actualizar BD → Responder (CON link incluido)",
     "2. Pedido con EFECTIVO: Flujo va directo ¿Es Tarjeta? output 1 → Responder (sin link Stripe)",

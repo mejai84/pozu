@@ -1,0 +1,176 @@
+{
+  "name": "Pozu_MASTER_v14_FINAL_POZU",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "id": "af88743f-0bb6-4998-bd7d-c967f00753e1",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        7376
+      ],
+      "webhookId": "eabdf013-3cea-4343-950e-221dafe541b2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vapi-transcription",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4cafb122-531d-40d7-a86b-6cd28514ac63",
+      "name": "Vapi Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        7568
+      ],
+      "webhookId": "710e6f3f-276e-498a-a250-26bbc0fd59d2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-2",
+              "name": "guest_info",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return { full_name: (parsed?.Nombre || parsed?.nombre || 'Cliente').trim().replace(/[\\n\\r]/g, ''), phone: String(parsed?.Telefono || parsed?.telefono || '').trim().replace(/[\\n\\r]/g, ''), address: (parsed?.Direccion || parsed?.direccion || '').trim().replace(/[\\n\\r]/g, '') }; })() }}",
+              "type": "object"
+            },
+            {
+              "id": "id-3",
+              "name": "delivery_address",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); const addr = (parsed?.Direccion || parsed?.direccion || '').trim().replace(/[\\n\\r]/g, ''); return addr || null; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "status",
+              "value": "pending",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "payment_status",
+              "value": "unpaid",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "total",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return parsed?.total_final || 0; })() }}",
+              "type": "number"
+            },
+            {
+              "id": "id-9",
+              "name": "source",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.canal_origen }}",
+              "type": "string"
+            },
+            {
+              "id": "id-10",
+              "name": "items",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return { detalle: parsed?.detalle_pedido || '', metodo_pago: parsed?.['Metodo de pago'] || parsed?.metodo_pago || '' }; })() }}",
+              "type": "object"
+            },
+            {
+              "id": "id-12",
+              "name": "session_id",
+              "value": "={{ $('🛡️ Blindar Metadata').item.json.chat_id }}",
+              "type": "string"
+            },
+            {
+              "id": "e15c495e-533d-4a08-a0f7-884391307516",
+              "name": "payment_link",
+              "value": "={{ $('Generar Link Pago').isExecuted ? ($('Generar Link Pago').item.json.url || \"\") : \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "01de19c9-a64b-405b-9cb4-b9b42d0dd7e5",
+              "name": "customer_name",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return (parsed?.Nombre || parsed?.nombre || 'Cliente').trim().replace(/[\\n\\r]/g, ''); })() }}",
+              "type": "string"
+            },
+            {
+              "id": "b8cc32cf-2d09-4580-9f0d-2e47b9a05c8b",
+              "name": "customer_phone",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return String(parsed?.Telefono || parsed?.telefono || '').trim().replace(/[\\n\\r]/g, ''); })() }}",
+              "type": "string"
+            },
+            {
+              "id": "addr-crm-fix",
+              "name": "address",
+              "value": "={{ (() => { const out = $('Extraer Datos Estructurados').first().json.output; const parsed = (typeof out === 'string') ? (() => { try { return JSON.parse(out.match(/\\{[\\s\\S]*\\}/)?.[0] || '{}'); } catch(e) { return {}; } })() : (out || {}); return (parsed?.Direccion || parsed?.direccion || '').trim().replace(/[\\n\\r]/g, ''); })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "81bd8d4c-3fe8-4236-b439-b4be25369539",
+      "name": "Preparar para Supabase",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5824,
+        7760
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "sev-1",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "checkout.session.completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "stripe-event-filter-001",
+      "name": "Filtrar Evento Stripe",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        696,
+        10144
+      ]
+    }
+  ],
+  "connections": {
+    "Extraer Datos Estructurados": {
+      "main": [
+        [
+          {
+            "node": "Preparar para Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
