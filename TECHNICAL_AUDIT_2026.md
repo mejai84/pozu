@@ -182,3 +182,8 @@
 - [x] **Resiliencia de Tickets**: Corregida detección de método de pago en el generador de tickets para pedidos provenientes de n8n v3.1.
 - [x] **Monitor Live Sanity**: Eliminado chequeo bloqueante de riesgo de cliente (`check_order_risk`) que causaba pantalla negra en caso de fallo de RPC, garantizando visibilidad total del negocio.
 - [x] **Fix Pago Exitoso**: Implementado sistema de reintentos y `.maybeSingle()` en `/pago-exitoso` para manejar la latencia entre Stripe y Supabase sin errores 406.
+
+### 21. Inteligencia de CRM y Captura Multicanal (10 Abril 2026) ✅
+- [x] **CRM Smart Extraction**: El módulo de Clientes ahora extrae dinámicamente nombres y teléfonos de pedidos de WhatsApp/Telegram procesados por n8n, eliminando los registros "Desconocido".
+- [x] **Visualización de Ubicación 📍**: Añadida la dirección de entrega directamente en la lista del CRM y en el modal de detalles del cliente para agilizar la logística.
+- [x] **Normalización de Tipos (Final Clean)**: Sincronización de interfaces TypeScript en Kitchen, Orders y Realtime Monitor para asegurar builds de producción 100% estables en Dokploy.
