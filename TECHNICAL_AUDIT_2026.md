@@ -153,4 +153,18 @@
 - [x] **Unificación de Dominio Tracking**: Cambio de `pozu.es` a `pozu2.com` en todos los nodos de salida (Telegram, WhatsApp, Web) para que el enlace de seguimiento funcione correctamente sobre la nueva infraestructura Dokploy.
 
 ---
-*Última actualización: 09 Abril 2026 - 18:15h (Fix: Unified Tracking Domain pozu2.com)*
+*Última actualización: 10 Abril 2026 — Fix: Persistencia de Pedidos, Race Condition Stripe, Página /pago-exitoso*
+
+### 18. Persistencia de Pedidos y Fix Race Condition Stripe (Abril 2026) ✅
+- [x] **Diagnóstico Completo de Flujo n8n**: Identificados 6 bugs críticos que impedían la persistencia de pedidos en Supabase y la actualización del dashboard.
+- [x] **Migración DB `20260410_orders_n8n_columns.sql`**: Añadidas columnas `customer_name` (TEXT), `customer_phone` (TEXT), `items` (JSONB) y `paid_at` (TIMESTAMPTZ) a la tabla `orders`. Sin estas columnas el INSERT de n8n fallaba con error 400 silencioso.
+- [x] **Fix Switch sin Fallback**: Nodo `Verificar Método Pago` ahora tiene `fallbackOutput: extra` conectado a `Preparar para Supabase`. Pedidos con método de pago ambiguo ya no se pierden.
+- [x] **Fix onError Silencioso**: `Preparar para Supabase` cambiado de `continueErrorOutput` (salida desconectada) a `continueRegularOutput`. Los datos ya no se pierden silenciosamente si falla una expresión.
+- [x] **Fix Race Condition Stripe**: Reestructuradas las connections de `Insertar Pedido en Supabase` para que la respuesta al cliente salga **DESPUÉS** de que Stripe genere el link, no en paralelo. Flujo: Insertar → ¿Es Tarjeta? → (Stripe → Actualizar) → Responder.
+- [x] **Eliminación de Nodo Duplicado**: Eliminado nodo `Responder Chat Web Pedido` que respondía al chat web saltándose el flujo de Stripe.
+- [x] **Fix Stripe success_url**: Actualizada `success_url` de Stripe para incluir `?order_id={id}`, permitiendo que `/pago-exitoso` muestre el resumen del pedido.
+- [x] **Fix Mensaje de Tracking**: El mensaje al canal ahora muestra el link de pago Stripe si el método es tarjeta, y el link de tracking directo si es efectivo. El tracking llega DESPUÉS del pago.
+- [x] **Nueva Página `/pago-exitoso`**: Creada `src/app/pago-exitoso/page.tsx` con confirmación visual premium, resumen del pedido desde Supabase (por `order_id`), realtime listener de `payment_status`, y botón directo a `/pedidos/tracking`.
+- [x] **Fix useOrders.ts Hook**: Corregido polling roto que solo copiaba el array sin re-fetchear. Añadida suscripción realtime `postgres_changes` para actualización instantánea al recibir pedidos de n8n.
+- [x] **Script Automatizado de Patching**: `scripts/patch_workflow.cjs` genera `Pozu_FIXED_v8.json` aplicando los 11 fixes de forma reproducible sobre cualquier versión del workflow.
+

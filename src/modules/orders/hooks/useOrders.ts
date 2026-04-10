@@ -45,10 +45,25 @@ export const useOrders = () => {
         fetchOrders()
         fetchProducts()
         fetchSettings()
+
+        // Fix: intervalo real que re-fetcha datos (antes solo copiaba el array)
         const interval = setInterval(() => {
-            setOrders(prev => [...prev])
+            fetchOrders()
         }, 30000)
-        return () => clearInterval(interval)
+
+        // Fix: suscripción realtime para actualizar al instante cuando n8n inserta pedidos
+        const channel = supabase
+            .channel('orders-admin-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+                fetchOrders()
+            })
+            .subscribe()
+
+        return () => {
+            clearInterval(interval)
+            supabase.removeChannel(channel)
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const createOrder = async (customerName: string, items: (Product & { quantity: number; notes?: string })[]) => {

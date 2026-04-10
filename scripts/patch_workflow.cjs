@@ -1,173 +1,221 @@
+/**
+ * Pozu Workflow Patcher - Aplica todos los fixes al JSON del workflow
+ * Uso: node patch_workflow.cjs "ruta/al/input.json" "ruta/al/output.json"
+ */
+
 const fs = require('fs');
+const path = require('path');
 
-const wfPath = 'c:/Users/Cesar/Downloads/Pozu_FIXED_EXPRESSIONS.json';
-const outPath = 'd:/Jaime/Antigravity/Pozu/workflow_POZU_WITH_RESERVATIONS.json';
+const inputPath = process.argv[2] || 'C:\\Users\\Cesar\\Downloads\\Pozu_FIXED_v6 (1).json';
+const outputPath = process.argv[3] || 'C:\\Users\\Cesar\\Downloads\\Pozu_FIXED_v7_PATCHED.json';
 
-let wf;
-try {
-  wf = JSON.parse(fs.readFileSync(wfPath, 'utf8'));
-} catch(e) {
-  console.log('Error reading JSON:', e.message);
-  process.exit(1);
+console.log(`\n📂 Leyendo: ${inputPath}`);
+const raw = fs.readFileSync(inputPath, 'utf8');
+const wf = JSON.parse(raw);
+
+let fixCount = 0;
+
+// ══════════════════════════════════════════════
+// FIX 1: Verificar Método Pago
+// - Quitar \n trailing de expressions
+// - Añadir fallbackOutput: "extra"
+// - caseSensitive: false
+// ══════════════════════════════════════════════
+const nodoVerificarPago = wf.nodes.find(n => n.id === '06195734-677b-419a-a816-55abceb1d633');
+if (nodoVerificarPago) {
+  nodoVerificarPago.parameters.rules.values.forEach(rule => {
+    rule.conditions.conditions.forEach(cond => {
+      // Quitar \n trailing FUERA de {{ }}
+      if (cond.leftValue) cond.leftValue = cond.leftValue.replace(/\}\}\n$/, '}}').trimEnd();
+      // Hacer case insensitive
+      if (rule.conditions.options) rule.conditions.options.caseSensitive = false;
+    });
+  });
+  // Añadir fallbackOutput
+  nodoVerificarPago.parameters.options = { ...nodoVerificarPago.parameters.options, fallbackOutput: 'extra' };
+  console.log('✅ FIX 1: Verificar Método Pago — fallbackOutput añadido, \\n trailing eliminado');
+  fixCount++;
+} else {
+  console.warn('⚠️  FIX 1: No se encontró nodo "Verificar Método Pago" por ID');
 }
 
-// 1. Update Agent prompt
-const agentNode = wf.nodes.find(n => n.name === 'Extraer Datos Estructurados');
-if (agentNode) {
-  const newPrompt = fs.readFileSync('d:/Jaime/Antigravity/Pozu/scripts/n8n_reservations_prompt.txt', 'utf8');
-  agentNode.parameters.options.systemMessage += '\n\n' + newPrompt;
+// ══════════════════════════════════════════════
+// FIX 2: Preparar para Supabase
+// - Cambiar onError a continueRegularOutput
+// ══════════════════════════════════════════════
+const nodoPreparar = wf.nodes.find(n => n.id === '81bd8d4c-3fe8-4236-b439-b4be25369539');
+if (nodoPreparar) {
+  nodoPreparar.onError = 'continueRegularOutput';
+  console.log('✅ FIX 2: Preparar para Supabase — onError → continueRegularOutput');
+  fixCount++;
+} else {
+  console.warn('⚠️  FIX 2: No se encontró nodo "Preparar para Supabase" por ID');
 }
 
-// 2. Add Code Tools
-const tool1Str = fs.readFileSync('d:/Jaime/Antigravity/Pozu/scripts/n8n_reservations_tools.js', 'utf8');
-const tool1Code = tool1Str.split('// TOOL 2:')[0].split('// TOOL 1: consultar_disponibilidad')[1];
-const tool2Code = tool1Str.split('// TOOL 2: crear_reserva')[1];
+// ══════════════════════════════════════════════
+// FIX 3: Eliminar nodo "Responder Chat Web Pedido"
+// - Duplica respuesta web y saltea Stripe
+// ══════════════════════════════════════════════
+const idxResponderWebPedido = wf.nodes.findIndex(n => n.id === 'respond-web-order-001');
+if (idxResponderWebPedido !== -1) {
+  wf.nodes.splice(idxResponderWebPedido, 1);
+  console.log('✅ FIX 3: Nodo "Responder Chat Web Pedido" eliminado');
+  fixCount++;
+} else {
+  console.warn('⚠️  FIX 3: No se encontró nodo "Responder Chat Web Pedido"');
+}
 
-const t1 = {
-  parameters: {
-    description: 'Úsala para verificar si hay mesas disponibles en una fecha y hora concretas. También devuelve horas alternativas si no hay disponibilidad.',
-    jsCode: tool1Code.trim()
-  },
-  type: '@n8n/n8n-nodes-langchain.toolCode',
-  typeVersion: 1.3,
-  position: [-352, -1600],
-  id: 'tool-disp-' + Date.now(),
-  name: 'consultar_disponibilidad'
-};
+// ══════════════════════════════════════════════
+// FIX 4: Reconectar flujo para resolver race condition de Stripe
+// ══════════════════════════════════════════════
 
-const t2 = {
-  parameters: {
-    description: 'Úsala SOLO cuando el cliente haya confirmado todos los datos de la reserva (fecha, hora, personas, nombre, teléfono). Crea la reserva y asigna mesa automáticamente.',
-    jsCode: tool2Code.trim()
-  },
-  type: '@n8n/n8n-nodes-langchain.toolCode',
-  typeVersion: 1.3,
-  position: [-352, -1400],
-  id: 'tool-res-' + Date.now(),
-  name: 'crear_reserva'
-};
+// 4a: Insertar Pedido en Supabase → SOLO conecta a ¿Es Tarjeta?
+if (wf.connections['Insertar Pedido en Supabase']) {
+  wf.connections['Insertar Pedido en Supabase'].main = [[
+    { node: '¿Es Tarjeta?', type: 'main', index: 0 }
+  ]];
+  console.log('✅ FIX 4a: Insertar Pedido en Supabase → solo ¿Es Tarjeta?');
+  fixCount++;
+} else {
+  console.warn('⚠️  FIX 4a: No se encontró connection "Insertar Pedido en Supabase"');
+}
 
-wf.nodes.push(t1, t2);
+// 4b: ¿Es Tarjeta? output 1 (NO) → Identificar Canal Respuesta + Parsear Items
+if (wf.connections['¿Es Tarjeta?']) {
+  wf.connections['¿Es Tarjeta?'].main = [
+    // Output 0 (SI tarjeta) → Generar Link Pago (Stripe)
+    [{ node: 'Generar Link Pago (Stripe)', type: 'main', index: 0 }],
+    // Output 1 (NO tarjeta/efectivo) → Responder directamente
+    [
+      { node: 'Identificar Canal Respuesta', type: 'main', index: 0 },
+      { node: 'Parsear Items Pedido', type: 'main', index: 0 }
+    ]
+  ];
+  console.log('✅ FIX 4b: ¿Es Tarjeta? output NO → Identificar Canal Respuesta + Parsear Items');
+  fixCount++;
+} else {
+  console.warn('⚠️  FIX 4b: No se encontró connection "¿Es Tarjeta?"');
+}
 
-// 3. Connect tools to Agent
-if (!wf.connections[t1.name]) wf.connections[t1.name] = { ai_tool: [[{ node: 'Extraer Datos Estructurados', type: 'ai_tool', index: 0 }]] };
-if (!wf.connections[t2.name]) wf.connections[t2.name] = { ai_tool: [[{ node: 'Extraer Datos Estructurados', type: 'ai_tool', index: 0 }]] };
+// 4c: Generar Link Pago (Stripe)
+//     output 0 (éxito) → Actualizar Payment Link en Supabase
+//     output 1 (error de Stripe) → Identificar Canal Respuesta (fallback sin link)
+if (wf.connections['Generar Link Pago (Stripe)']) {
+  wf.connections['Generar Link Pago (Stripe)'].main = [
+    // Output 0 éxito → actualizar BD
+    [{ node: 'Actualizar Payment Link en Supabase', type: 'main', index: 0 }],
+    // Output 1 error → responder igualmente (sin link)
+    [
+      { node: 'Identificar Canal Respuesta', type: 'main', index: 0 },
+      { node: 'Parsear Items Pedido', type: 'main', index: 0 }
+    ]
+  ];
+  console.log('✅ FIX 4c: Generar Link Pago (Stripe) — error output conectado al canal respuesta');
+  fixCount++;
+} else {
+  console.warn('⚠️  FIX 4c: No se encontró connection "Generar Link Pago (Stripe)"');
+}
 
-// 4. Add Supabase query nodes BEFORE agent
-// Currently: Consultar Catálogo Productos -> Extraer Datos Estructurados
-const getTableStr = (table, name, y) => ({
-  parameters: { operation: 'getAll', tableId: table, returnAll: true },
-  id: 'sup-' + table + '-' + Date.now(),
-  name: name,
-  type: 'n8n-nodes-base.supabase',
-  typeVersion: 1,
-  position: [-976, y],
-  credentials: { supabaseApi: { id: 'FuNmSwNtO9Gdhqsd', name: 'Supabase account' } }
-});
+// 4d: Actualizar Payment Link en Supabase → Identificar Canal Respuesta + Parsear Items
+if (wf.connections['Actualizar Payment Link en Supabase']) {
+  wf.connections['Actualizar Payment Link en Supabase'].main = [[
+    { node: 'Identificar Canal Respuesta', type: 'main', index: 0 },
+    { node: 'Parsear Items Pedido', type: 'main', index: 0 }
+  ]];
+  console.log('✅ FIX 4d: Actualizar Payment Link en Supabase → Identificar Canal Respuesta + Parsear Items');
+  fixCount++;
+} else {
+  console.warn('⚠️  FIX 4d: No se encontró connection "Actualizar Payment Link en Supabase"');
+}
 
-const nHorarios = getTableStr('time_slots', 'Consultar Horarios', -1800);
-const nMesas = getTableStr('tables', 'Consultar Mesas', -1600);
-const nReservas = getTableStr('reservations', 'Consultar Reservas Fecha', -1400);
+// 4e: Añadir conexión del fallback de "Verificar Método Pago" → Preparar para Supabase
+if (wf.connections['Verificar Método Pago']) {
+  const conn = wf.connections['Verificar Método Pago'].main;
+  // output 0 = Efectivo → Preparar para Supabase (ya existe)
+  // output 1 = Tarjeta → Preparar Pago Tarjeta (ya existe)
+  // output 2 = fallback → Preparar para Supabase (nuevo)
+  if (!conn[2]) {
+    conn[2] = [{ node: 'Preparar para Supabase', type: 'main', index: 0 }];
+    console.log('✅ FIX 4e: Verificar Método Pago fallback output → Preparar para Supabase');
+    fixCount++;
+  } else {
+    console.log('ℹ️  FIX 4e: Verificar Método Pago ya tiene output 2, no se modifica');
+  }
+} else {
+  console.warn('⚠️  FIX 4e: No se encontró connection "Verificar Método Pago"');
+}
 
-wf.nodes.push(nHorarios, nMesas, nReservas);
+// ══════════════════════════════════════════════
+// Eliminar referencia a "Responder Chat Web Pedido" de connections
+// ══════════════════════════════════════════════
+if (wf.connections['Responder Chat Web Pedido']) {
+  delete wf.connections['Responder Chat Web Pedido'];
+  console.log('✅ Eliminada connection de Responder Chat Web Pedido');
+}
 
-// Rewire: Productos -> Horarios -> Mesas -> Reservas -> Agent
-wf.connections['Consultar Catálogo Productos'] = { main: [[{ node: 'Consultar Horarios', type: 'main', index: 0 }]] };
-wf.connections[nHorarios.name] = { main: [[{ node: 'Consultar Mesas', type: 'main', index: 0 }]] };
-wf.connections[nMesas.name] = { main: [[{ node: 'Consultar Reservas Fecha', type: 'main', index: 0 }]] };
-wf.connections[nReservas.name] = { main: [[{ node: 'Extraer Datos Estructurados', type: 'main', index: 0 }]] };
-
-// 5. Post-Agent changes: Detect RESERVA_LISTA branch.
-// Currently agent -> If (name 'If')
-const ifNode = wf.nodes.find(n => n.name === 'If');
-
-const nIfReserva = {
-  parameters: {
-    conditions: {
-      options: { caseSensitive:true, leftValue:'', typeValidation:'strict', version:3 },
-      conditions: [{
-        leftValue: '={{ $(\'Extraer Datos Estructurados\').first().json.output }}',
-        rightValue: 'RESERVA_LISTA',
-        operator: { type: 'string', operation: 'contains' }
-      }],
-      combinator: 'and'
+// ══════════════════════════════════════════════
+// FIX 5: Stripe success_url → /pago-exitoso con order_id
+// - Antes: success_url = "https://pozu2.com/pago-exitoso" (sin params → 404)
+// - Ahora: success_url incluye order_id para que la página muestre el pedido
+// - cancel_url → vuelve al inicio (no al chat)
+// ══════════════════════════════════════════════
+const nodoStripe = wf.nodes.find(n => n.name === 'Generar Link Pago (Stripe)');
+if (nodoStripe) {
+  const params = nodoStripe.parameters.bodyParameters?.parameters;
+  if (params) {
+    // Actualizar success_url para incluir el order_id
+    const successUrlParam = params.find(p => p.name === 'success_url');
+    if (successUrlParam) {
+      successUrlParam.value = "=https://pozu2.com/pago-exitoso?order_id={{ $('Insertar Pedido en Supabase').item.json.id }}";
+      console.log('✅ FIX 5a: Stripe success_url → /pago-exitoso?order_id={id}');
+      fixCount++;
     }
-  },
-  type: 'n8n-nodes-base.if',
-  typeVersion: 2.3,
-  position: [1808, -2600], // Adjust position above Preparar Chat
-  id: 'if-reserva-' + Date.now(),
-  name: 'Es Reserva?'
-};
-
-const nPrepReserva = {
-  parameters: {
-    assignments: {
-      assignments: [
-        {
-          name: 'reserva_data',
-          value: '={{ JSON.parse($(\'Extraer Datos Estructurados\').first().json.output.split(\"|\")[1].trim()) }}',
-          type: 'object'
-        }
-      ]
-    },
-    options: {}
-  },
-  type: 'n8n-nodes-base.set',
-  typeVersion: 3.4,
-  position: [2100, -2800],
-  id: 'prep-res-' + Date.now(),
-  name: 'Preparar Objeto Reserva'
-};
-
-const nInsReserva = {
-  parameters: {
-    tableId: 'reservations',
-    dataToSend: 'defineBelow',
-    fieldsUi: {
-      fieldValues: [
-        { fieldId: 'customer_name', fieldValue: '={{ $json.reserva_data.customer_name }}' },
-        { fieldId: 'phone', fieldValue: '={{ $json.reserva_data.phone }}' },
-        { fieldId: 'reservation_date', fieldValue: '={{ $json.reserva_data.reservation_date }}' },
-        { fieldId: 'reservation_time', fieldValue: '={{ $json.reserva_data.reservation_time }}' },
-        { fieldId: 'guests', fieldValue: '={{ $json.reserva_data.guests }}' },
-        { fieldId: 'table_id', fieldValue: '={{ $json.reserva_data.table_id }}' },
-        { fieldId: 'notes', fieldValue: '={{ $json.reserva_data.notes }}' },
-        { fieldId: 'source', fieldValue: '={{ $json.reserva_data.source }}' },
-        { fieldId: 'session_id', fieldValue: '={{ $json.reserva_data.session_id }}' }
-      ]
+    // cancel_url → volver al inicio
+    const cancelUrlParam = params.find(p => p.name === 'cancel_url');
+    if (cancelUrlParam) {
+      cancelUrlParam.value = 'https://pozu2.com';
+      console.log('✅ FIX 5b: Stripe cancel_url → https://pozu2.com');
+      fixCount++;
     }
-  },
-  type: 'n8n-nodes-base.supabase',
-  typeVersion: 1,
-  position: [2300, -2800],
-  id: 'ins-res-' + Date.now(),
-  name: 'Insertar en reservations',
-  credentials: { supabaseApi: { id: 'FuNmSwNtO9Gdhqsd', name: 'Supabase account' } }
-};
-
-wf.nodes.push(nIfReserva, nPrepReserva, nInsReserva);
-
-// Rewire If node False branch to Es Reserva?
-if (wf.connections['If'] && wf.connections['If'].main && wf.connections['If'].main[1]) {
-  wf.connections['If'].main[1] = [{ node: 'Es Reserva?', type: 'main', index: 0 }];
+  }
+} else {
+  console.warn('⚠️  FIX 5: No se encontró nodo "Generar Link Pago (Stripe)"');
 }
 
-wf.connections[nIfReserva.name] = {
-  main: [
-    [{ node: 'Preparar Objeto Reserva', type: 'main', index: 0 }],
-    [{ node: 'Preparar Chat', type: 'main', index: 0 }] // False goes to regular chat
-  ]
-};
+// ══════════════════════════════════════════════
+// FIX 6: Mensaje de Telegram/Canal — quitar tracking link del mensaje inicial
+// El tracking debe llegar SOLO tras pago confirmado (vía Stripe webhook)
+// El mensaje inicial al completar el pedido solo debe mostrar el link de pago
+// ══════════════════════════════════════════════
+const nodoRespTelegram = wf.nodes.find(n => n.name === 'Responder a Telegram');
+if (nodoRespTelegram && nodoRespTelegram.parameters?.text) {
+  // Reemplazar el mensaje para mostrar link Stripe en lugar de tracking si es tarjeta
+  nodoRespTelegram.parameters.text = `={{ 
+  "✅ ¡Oído cocina, " + ($('Preparar para Supabase').item.json.customer_name || 'Fiera') + "! Tu pedido está marchando. 🍔🍟\\n\\n" + 
+  "📦 *Resumen de tu pedido:*\\n" + ($('Preparar para Supabase').item.json.items?.detalle || 'Pedido registrado') + "\\n\\n" + 
+  "📍 *Entrega:* " + ($('Preparar para Supabase').item.json.delivery_address || 'Recogida en local') + "\\n" + 
+  "💳 Pago: " + ($('Preparar para Supabase').item.json.items?.metodo_pago || 'Pendiente') + "\\n" + 
+  ($('Generar Link Pago (Stripe)').isExecuted && $('Generar Link Pago (Stripe)').item?.json?.url ? "\\n👉 *PAGA AQUÍ:* " + $('Generar Link Pago (Stripe)').item.json.url + "\\n\\n⚠️ Te enviaremos el link de seguimiento una vez confirmado el pago." : "\\n🔗 Sigue tu pedido: https://pozu2.com/pedidos/tracking?id=" + $('Insertar Pedido en Supabase').item.json.id) + "\\n\\n" + 
+  "🧾 *Total:* " + ($('Preparar para Supabase').item.json.total || 0) + "€ (IVA incl.)"
+}}`;
+  console.log('✅ FIX 6: Mensaje Telegram — tracking solo aparece si es efectivo, Stripe link si es tarjeta');
+  fixCount++;
+}
 
-wf.connections[nPrepReserva.name] = {
-  main: [[{ node: 'Insertar en reservations', type: 'main', index: 0 }]]
-};
+// ══════════════════════════════════════════════
+// Actualizar nombre y versionId
+// ══════════════════════════════════════════════
+wf.name = 'Pozu_FIXED_v8';
+wf.versionId = 'patched-v8-' + Date.now();
 
-// Insertar Reserva should probably respond somehow, but let the user wire the exact response formatting, or we can pipe it into Preparar Chat but intercept the text
-wf.connections[nInsReserva.name] = {
-  main: [[{ node: 'Preparar Chat', type: 'main', index: 0 }]] // Just going back to chat prep for now
-};
-
-fs.writeFileSync(outPath, JSON.stringify(wf, null, 2));
-console.log('Saved modified workflow to ' + outPath);
+// ══════════════════════════════════════════════
+// Guardar archivo
+// ══════════════════════════════════════════════
+const finalOutputPath = outputPath.replace('v7_PATCHED', 'v8');
+fs.writeFileSync(finalOutputPath, JSON.stringify(wf, null, 2), 'utf8');
+console.log(`\n✅ ${fixCount} fixes aplicados exitosamente`);
+console.log(`📁 Archivo guardado en: ${finalOutputPath}`);
+console.log('\n📋 SIGUIENTES PASOS:');
+console.log('  1. Importa Pozu_FIXED_v8.json en n8n');
+console.log('  2. Ejecuta supabase_migrations/20260410_orders_n8n_columns.sql en Supabase');
+console.log('  3. El sitio next.js debe estar deployado (nueva página /pago-exitoso ya creada)');
