@@ -5,13 +5,14 @@ import { useCart } from "./cart-context"
 import { supabase } from "@/lib/supabase/client"
 import Link from "next/link"
 import { Elements } from '@stripe/react-stripe-js'
-import { stripePromise } from '@/lib/stripe'
+import { loadStripe, Stripe } from '@stripe/stripe-js'
 import { CheckoutInnerForm } from "./checkout-inner-form"
 
 export function CheckoutForm() {
     const { items, cartTotal } = useCart()
     const [user, setUser] = useState<any>(null)
     const [clientSecret, setClientSecret] = useState<string | null>(null)
+    const [dynamicStripe, setDynamicStripe] = useState<Promise<Stripe | null> | null>(null)
     const [error, setError] = useState<string | null>(null)
 
     const [finances, setFinances] = useState({ delivery_fee: 2.50, taxes_enabled: false, tax_percentage: 10 })
@@ -47,8 +48,12 @@ export function CheckoutForm() {
             })
             .then(res => res.json())
             .then(data => {
-                if (data.clientSecret) {
+                if (data.clientSecret && data.publishableKey) {
                     setClientSecret(data.clientSecret)
+                    // Inicializar stripe de forma dinámica
+                    if (!dynamicStripe) {
+                        setDynamicStripe(loadStripe(data.publishableKey))
+                    }
                 } else if (data.error) {
                     setError(data.error)
                 }
@@ -147,9 +152,9 @@ export function CheckoutForm() {
                     )}
                 </div>
 
-                {clientSecret ? (
+                {clientSecret && dynamicStripe ? (
                      <Elements 
-                        stripe={stripePromise} 
+                        stripe={dynamicStripe} 
                         options={{ 
                             clientSecret, 
                             appearance: appearance as any,

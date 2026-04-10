@@ -21,7 +21,9 @@ const defaultSettings: Settings = {
     maintenance_mode: false,
     taxes_enabled: true,
     tax_percentage: 10,
-    printers: []
+    printers: [],
+    stripe_public_key: "",
+    stripe_secret_key: ""
 }
 
 export const useSettings = () => {
@@ -65,6 +67,9 @@ export const useSettings = () => {
                         Object.assign(mapped, item.value)
                     } else if (item.key === 'printers_config') {
                         mapped.printers = item.value as PrinterConfig[]
+                    } else if (item.key === 'stripe_keys') {
+                        mapped.stripe_public_key = item.value.public_key || ""
+                        mapped.stripe_secret_key = item.value.secret_key || ""
                     }
                 })
                 
@@ -131,6 +136,11 @@ export const useSettings = () => {
 
     const handleSavePrinters = () => saveByKey('printers_config', settings.printers, "✓ Hardware vinculado")
 
+    const handleSaveStripe = () => saveByKey('stripe_keys', {
+        public_key: settings.stripe_public_key,
+        secret_key: settings.stripe_secret_key
+    }, "✓ Claves de Stripe guardadas")
+
     return {
         settings, setSettings,
         businessHours, setBusinessHours,
@@ -139,6 +149,7 @@ export const useSettings = () => {
         handleSaveHours,
         handleSaveDelivery,
         handleSaveFeatures,
-        handleSavePrinters
+        handleSavePrinters,
+        handleSaveStripe
     }
 }

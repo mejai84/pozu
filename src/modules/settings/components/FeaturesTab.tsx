@@ -1,4 +1,4 @@
-import { Store, Save } from "lucide-react"
+import { Store, Save, Key } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Settings } from "../types"
 
@@ -6,10 +6,16 @@ interface Props {
     settings: Settings
     setSettings: (s: Settings) => void
     onSave: () => void
+    onSaveStripe?: () => void
     loading: boolean
 }
 
-export const FeaturesTab = ({ settings, setSettings, onSave, loading }: Props) => {
+export const FeaturesTab = ({ settings, setSettings, onSave, onSaveStripe, loading }: Props) => {
+    const handleSaveAll = () => {
+        onSave()
+        if (onSaveStripe) onSaveStripe()
+    }
+
     return (
         <div className="bg-card border border-white/10 rounded-2xl p-6 space-y-6">
             <div className="flex items-center gap-3 text-primary pb-3 border-b border-white/10">
@@ -105,7 +111,7 @@ export const FeaturesTab = ({ settings, setSettings, onSave, loading }: Props) =
                         onClick={() => setSettings({ ...settings, delivery_enabled: !settings.delivery_enabled })}
                         className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${settings.delivery_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
                     >
-                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.delivery_enabled ? 'translate-x-7' : 'translate-x-1'}`} boat-id="signature-toggle-circle" />
+                        <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settings.delivery_enabled ? 'translate-x-7' : 'translate-x-1'}`} />
                     </button>
                 </div>
 
@@ -136,8 +142,41 @@ export const FeaturesTab = ({ settings, setSettings, onSave, loading }: Props) =
                 </div>
             </div>
 
+            <div className="flex items-center gap-3 text-primary pb-3 pt-6 border-b border-white/10">
+                <Key className="w-6 h-6" />
+                <h3 className="text-xl font-bold">API Keys & Pagos</h3>
+            </div>
+            
+            <div className="space-y-4">
+                <div className="p-4 bg-white/5 rounded-xl space-y-4">
+                    <div>
+                        <label className="text-sm font-bold text-white mb-2 block">Stripe Publishable Key (pk_test_... o pk_live_...)</label>
+                        <input
+                            type="text"
+                            value={settings.stripe_public_key || ""}
+                            onChange={(e) => setSettings({ ...settings, stripe_public_key: e.target.value })}
+                            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
+                            placeholder="pk_live_xxxxxxxxxxxxxxxxxxxxxxxx"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold text-white mb-2 block">Stripe Secret Key (sk_test_... o sk_live_...)</label>
+                        <input
+                            type="password"
+                            value={settings.stripe_secret_key || ""}
+                            onChange={(e) => setSettings({ ...settings, stripe_secret_key: e.target.value })}
+                            className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white focus:border-primary focus:outline-none transition-colors"
+                            placeholder="Introduce nueva clave (ej: sk_test_123...)"
+                        />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        Estas claves determinan hacia dónde va el dinero de los pedidos. Asegúrate de poner las correctas. Se guardan de forma segura en la base de datos de tu proyecto.
+                    </p>
+                </div>
+            </div>
+
             <Button
-                onClick={onSave}
+                onClick={handleSaveAll}
                 disabled={loading}
                 className="gap-2 bg-primary text-black font-bold mt-6"
             >
@@ -145,7 +184,7 @@ export const FeaturesTab = ({ settings, setSettings, onSave, loading }: Props) =
                     <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                 ) : (
                     <>
-                        <Save className="w-4 h-4" /> Guardar Funcionalidades
+                        <Save className="w-4 h-4" /> Guardar Funcionalidades y APIs
                     </>
                 )}
             </Button>

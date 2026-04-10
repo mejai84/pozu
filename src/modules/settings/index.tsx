@@ -21,7 +21,8 @@ export const SettingsModule = () => {
         handleSaveHours,
         handleSaveDelivery,
         handleSaveFeatures,
-        handleSavePrinters
+        handleSavePrinters,
+        handleSaveStripe
     } = useSettings()
 
     if (initialLoading) {
@@ -81,6 +82,7 @@ export const SettingsModule = () => {
                         settings={settings} 
                         setSettings={setSettings} 
                         onSave={handleSaveFeatures} 
+                        onSaveStripe={handleSaveStripe}
                         loading={loading} 
                     />
                 )}

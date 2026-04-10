@@ -27,6 +27,8 @@ export interface Settings {
     taxes_enabled: boolean
     tax_percentage: number
     printers: PrinterConfig[]
+    stripe_public_key?: string
+    stripe_secret_key?: string
 }
 
 export interface BusinessHours {
