@@ -19,6 +19,8 @@ export const KDSCard = ({ order, onMarchar, onListo, onExpand, minutes, index }:
     // Normalizar datos de cliente
     const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
     const customerName = order.customer_name || guestInfo?.full_name || guestInfo?.name || "C. Registrado";
+
+    return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
