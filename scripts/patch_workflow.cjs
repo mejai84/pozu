@@ -252,17 +252,133 @@ if (nodoActLink && nodoActLink.parameters?.assignments?.assignments) {
 // ══════════════════════════════════════════════
 // Actualizar nombre y versionId
 // ══════════════════════════════════════════════
-wf.name = 'Pozu_FIXED_v10';
-wf.versionId = 'patched-v10-' + Date.now();
+wf.name = 'Pozu_FIXED_v11';
+wf.versionId = 'patched-v11-' + Date.now();
+
+// ══════════════════════════════════════════════
+// FIX 8: Preparar Respuesta Web — referencia vieja a nodo Stripe eliminado
+// "Generar Link Pago (Stripe)" → "Generar Link Pago"
+// ══════════════════════════════════════════════
+const nodoPrepRespWeb = wf.nodes.find(n => n.name === 'Preparar Respuesta Web');
+if (nodoPrepRespWeb) {
+  const msgField = nodoPrepRespWeb.parameters?.assignments?.assignments?.find(a => a.name === 'message');
+  if (msgField && msgField.value.includes("Generar Link Pago (Stripe)")) {
+    msgField.value = msgField.value
+      .replaceAll("$('Generar Link Pago (Stripe)')", "$('Generar Link Pago')");
+    console.log('✅ FIX 8: Preparar Respuesta Web — referencia corregida a "Generar Link Pago"');
+    fixCount++;
+  } else {
+    console.log('ℹ️  FIX 8: Preparar Respuesta Web ya tiene el nombre correcto o no tiene la referencia');
+  }
+} else {
+  console.warn('⚠️  FIX 8: No se encontró nodo "Preparar Respuesta Web"');
+}
+
+// ══════════════════════════════════════════════
+// FIX 9: Identificar Canal Pago — output Web vacío
+// Conectar output 3 (website_chat) a nodo de respuesta web tras pago
+// ══════════════════════════════════════════════
+if (wf.connections['Identificar Canal Pago']) {
+  const outputs = wf.connections['Identificar Canal Pago'].main;
+  // outputs: [0]=Telegram, [1]=WhatsApp, [2]=Web (vacío)
+  // Debemos conectar output 2 (Web) a un nodo que envíe la confirmación al chat web
+  // Primero verificamos si ya está conectado
+  if (!outputs[2] || outputs[2].length === 0) {
+    // Buscamos si existe nodo de confirmación web de pago, si no lo creamos inline
+    const webConfirmNode = wf.nodes.find(n => n.name === 'Confirmar Pago Web');
+    if (!webConfirmNode) {
+      // Agregar nodo "Confirmar Pago Web" al array de nodos
+      wf.nodes.push({
+        parameters: {
+          respondWith: 'json',
+          responseBody: '={{ { "success": true, "paid": true, "message": $("Preparar Notificaciones Pago").item.json.mensaje_cliente } }}',
+          options: { responseCode: 200 }
+        },
+        id: 'confirmar-pago-web-001',
+        name: 'Confirmar Pago Web',
+        type: 'n8n-nodes-base.set',
+        typeVersion: 3.4,
+        position: [1616, 10432]
+      });
+      console.log('✅ FIX 9a: Nodo "Confirmar Pago Web" creado');
+    }
+    outputs[2] = [{ node: 'Confirmar Pago Web', type: 'main', index: 0 }];
+    // Añadir connections del nuevo nodo si no existen
+    if (!wf.connections['Confirmar Pago Web']) {
+      wf.connections['Confirmar Pago Web'] = { main: [[]] };
+    }
+    console.log('✅ FIX 9b: Identificar Canal Pago → output Web conectado a Confirmar Pago Web');
+    fixCount++;
+  } else {
+    console.log('ℹ️  FIX 9: Identificar Canal Pago ya tiene output Web conectado');
+  }
+} else {
+  console.warn('⚠️  FIX 9: No se encontró connection "Identificar Canal Pago"');
+}
+
+// ══════════════════════════════════════════════
+// FIX 10: Stripe Webhook — añadir filtro de tipo de evento
+// Solo procesar "checkout.session.completed"
+// ══════════════════════════════════════════════
+const nodoStripeWebhook = wf.nodes.find(n => n.name === 'Stripe Webhook');
+const nodoMarcarPagado = wf.nodes.find(n => n.name === 'Marcar como Pagado');
+if (nodoStripeWebhook && nodoMarcarPagado && wf.connections['Stripe Webhook']) {
+  // Insertar nodo de filtro entre Stripe Webhook y Marcar como Pagado
+  const filterId = 'stripe-event-filter-001';
+  const existFilter = wf.nodes.find(n => n.id === filterId);
+  if (!existFilter) {
+    wf.nodes.push({
+      parameters: {
+        conditions: {
+          options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 3 },
+          conditions: [
+            {
+              id: 'sev-1',
+              leftValue: "={{ $json.type }}",
+              rightValue: 'checkout.session.completed',
+              operator: { type: 'string', operation: 'equals' }
+            }
+          ],
+          combinator: 'and'
+        },
+        options: {}
+      },
+      id: filterId,
+      name: 'Filtrar Evento Stripe',
+      type: 'n8n-nodes-base.if',
+      typeVersion: 2.3,
+      position: [
+        nodoStripeWebhook.position[0] + 200,
+        nodoStripeWebhook.position[1]
+      ]
+    });
+    // Reconectar: Stripe Webhook → Filtrar Evento Stripe → (TRUE) → Marcar como Pagado
+    wf.connections['Stripe Webhook'].main = [[{ node: 'Filtrar Evento Stripe', type: 'main', index: 0 }]];
+    wf.connections['Filtrar Evento Stripe'] = {
+      main: [
+        [{ node: 'Marcar como Pagado', type: 'main', index: 0 }], // output TRUE
+        [] // output FALSE → no hacer nada
+      ]
+    };
+    console.log('✅ FIX 10: Stripe Webhook — filtro de evento "checkout.session.completed" añadido');
+    fixCount++;
+  } else {
+    console.log('ℹ️  FIX 10: Filtro de evento Stripe ya existe');
+  }
+} else {
+  console.warn('⚠️  FIX 10: No se encontraron nodos Stripe Webhook o Marcar como Pagado');
+}
 
 // ══════════════════════════════════════════════
 // Guardar archivo
 // ══════════════════════════════════════════════
-const finalOutputPath = outputPath.replace('v7_PATCHED', 'v10').replace('v8', 'v10').replace('v9', 'v10');
+const finalOutputPath = outputPath.replace('v7_PATCHED', 'v11').replace('v8', 'v11').replace('v9', 'v11').replace('v10', 'v11');
 fs.writeFileSync(finalOutputPath, JSON.stringify(wf, null, 2), 'utf8');
 console.log(`\n✅ ${fixCount} fixes aplicados exitosamente`);
 console.log(`📁 Archivo guardado en: ${finalOutputPath}`);
 console.log('\n📋 SIGUIENTES PASOS:');
-console.log('  1. Importa Pozu_FIXED_v10.json en n8n');
-console.log('  2. Ya NO hace falta configurar Stripe en n8n. Usa tus propias API keys de tu panel de admin.');
+console.log('  1. Importa Pozu_FIXED_v11.json en n8n');
+console.log('  2. Verifica que el nodo "Filtrar Evento Stripe" esté conectado correctamente');
+console.log('  3. Activa el workflow y haz un pedido de prueba con tarjeta');
+
 
