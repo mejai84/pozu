@@ -97,13 +97,16 @@ function TrackingContent() {
         }
 
         const fetchOrder = async () => {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('orders')
                 .select('*, order_items(*, products(name))')
                 .eq('id', orderId)
-                .single()
+                .maybeSingle()  // .single() returns 406 if no row found; .maybeSingle() returns null safely
             
-            if (data) setOrder(data)
+            if (data) setOrder({
+                ...data,
+                order_items: data.order_items || []  // fallback if no items yet
+            })
             setLoading(false)
         }
 
@@ -118,7 +121,11 @@ function TrackingContent() {
                 table: 'orders', 
                 filter: `id=eq.${orderId}` 
             }, (payload) => {
-                setOrder(prev => prev ? { ...prev, status: payload.new.status } : null)
+                setOrder(prev => prev ? { 
+                    ...prev, 
+                    status: payload.new.status,
+                    payment_status: payload.new.payment_status 
+                } : null)
             })
             .subscribe()
 
@@ -148,15 +155,33 @@ function TrackingContent() {
     )
 
     const currentStatus = order.status as TrackingStatus
-    const config = statusConfig[currentStatus] || statusConfig.confirmed
+    const isUnpaid = order.payment_status === 'unpaid' && order.payment_link && order.payment_link !== '';
+    
+    // Si no está pagado, forzamos un estado visual de alerta
+    const config = isUnpaid ? {
+        label: 'PAGO PENDIENTE',
+        icon: AlertCircle,
+        color: 'text-amber-500',
+        bg: 'bg-amber-500/10',
+        desc: 'Tu pedido está en el radar, pero necesitamos confirmar el pago para enviarlo a la parrilla.'
+    } : (statusConfig[currentStatus] || statusConfig.confirmed);
+
     const currentStepIndex = steps.indexOf(currentStatus === 'ready' ? 'preparing' : (currentStatus as any))
+
+    // Formatear dirección
+    const fullAddress = typeof order.delivery_address === 'string' 
+        ? order.delivery_address 
+        : (order.delivery_address?.street || order.delivery_address?.line1 || 'No especificada');
 
     return (
         <div className="min-h-screen bg-[#050505] text-white flex flex-col relative overflow-hidden">
             <Navbar />
 
             {/* Ambient Background */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-primary/5 rounded-full blur-[150px] -z-10 animate-pulse" />
+            <div className={cn(
+                "absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] rounded-full blur-[150px] -z-10 animate-pulse",
+                isUnpaid ? "bg-amber-500/10" : "bg-primary/5"
+            )} />
 
             <div className="flex-1 container mx-auto px-6 pt-32 pb-20 max-w-5xl">
                 <div className="grid lg:grid-cols-[1fr_380px] gap-12 items-start">
@@ -167,7 +192,10 @@ function TrackingContent() {
                         <motion.div 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-[#0A0A0A] border border-white/5 rounded-[3rem] p-10 relative overflow-hidden shadow-2xl"
+                            className={cn(
+                                "bg-[#0A0A0A] border rounded-[3rem] p-10 relative overflow-hidden shadow-2xl transition-colors duration-500",
+                                isUnpaid ? "border-amber-500/20 shadow-amber-500/5" : "border-white/5 shadow-black"
+                            )}
                         >
                             <div className="absolute top-0 right-0 p-8 opacity-5">
                                 <config.icon className="w-48 h-48" />
@@ -175,24 +203,39 @@ function TrackingContent() {
                             
                             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div className="space-y-4">
-                                    <div className={cn("inline-flex items-center gap-2 px-4 py-2 rounded-full font-black uppercase tracking-widest text-[10px] border animate-pulse", config.bg, config.color, `border-${config.color.split('-')[1]}-500/20`)}>
+                                    <div className={cn("inline-flex items-center gap-2 px-4 py-2 rounded-full font-black uppercase tracking-widest text-[10px] border animate-pulse", config.bg, config.color, `border-current/20`)}>
                                         <Zap className="w-3 h-3 fill-current" />
                                         {config.label}
                                     </div>
                                     <h1 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">
-                                        {currentStatus === 'preparing' ? 'En la' : 'Tu pedido'} <br />
-                                        <span className="text-primary italic">{currentStatus === 'preparing' ? 'PARRILLA' : config.label.toUpperCase()}</span>
+                                        {isUnpaid ? 'ESPERANDO' : (currentStatus === 'preparing' ? 'En la' : 'Tu pedido')} <br />
+                                        <span className={cn("italic", isUnpaid ? "text-amber-500" : "text-primary")}>
+                                            {isUnpaid ? 'EL PAGO' : (currentStatus === 'preparing' ? 'PARRILLA' : config.label.toUpperCase())}
+                                        </span>
                                     </h1>
                                     <p className="text-muted-foreground text-lg font-medium max-w-md">{config.desc}</p>
+                                    
+                                    {isUnpaid && (
+                                        <div className="pt-4">
+                                            <a href={order.payment_link} target="_blank" rel="noopener noreferrer">
+                                                <Button className="h-16 px-10 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black uppercase italic tracking-tighter text-lg shadow-[0_0_30px_rgba(245,158,11,0.3)] group transition-all">
+                                                    Completar Pago Ahora
+                                                    <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                                </Button>
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="shrink-0 flex flex-col items-center">
                                     <div className="relative">
-                                        <div className="absolute -inset-4 bg-primary/20 blur-2xl rounded-full animate-ping" />
-                                        <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center shadow-[0_0_50px_rgba(234,179,8,0.4)]">
-                                            <config.icon className="w-12 h-12 text-black" />
+                                        <div className={cn("absolute -inset-4 blur-2xl rounded-full animate-ping", isUnpaid ? "bg-amber-500/20" : "bg-primary/20")} />
+                                        <div className={cn("w-24 h-24 rounded-[32px] flex items-center justify-center shadow-2xl", isUnpaid ? "bg-amber-500 text-black" : "bg-primary text-black")}>
+                                            <config.icon className="w-12 h-12" />
                                         </div>
                                     </div>
-                                    <p className="mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Actualizado hace un instante</p>
+                                    <p className="mt-6 text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                                        {isUnpaid ? 'ACCIÓN REQUERIDA' : 'LOCALIZADO EN RADAR'}
+                                    </p>
                                 </div>
                             </div>
                         </motion.div>
@@ -236,7 +279,7 @@ function TrackingContent() {
                                 <Package className="w-6 h-6 text-primary" /> Detalles del Arsenal
                             </h3>
                             <div className="space-y-6">
-                                {order.order_items.map((item: any, i: number) => (
+                                {order.order_items?.map((item: any, i: number) => (
                                     <div key={i} className="flex justify-between items-center group">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center font-black text-primary border border-white/5 group-hover:border-primary/20 transition-all">
@@ -270,7 +313,7 @@ function TrackingContent() {
                                     <MapPin className="w-6 h-6 shrink-0 mt-1" />
                                     <div>
                                         <p className="font-black italic uppercase leading-none mb-2">Street HQ</p>
-                                        <p className="text-sm font-bold opacity-80">{order.delivery_address?.street || 'No especificada'}</p>
+                                        <p className="text-sm font-bold opacity-80">{fullAddress}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4 mt-8 pt-8 border-t border-black/10">

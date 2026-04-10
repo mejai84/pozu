@@ -36,6 +36,7 @@ Componentes de UI, hooks globales y utilidades de Supabase que usan todos los m�
 
 ### 5. Configuración Centralizada, IA y Automatización (v3.0 Dynamic)
 - **Interruptores Maestros (Master Switches)**: El panel de ajustes (`src/modules/settings`) permite el control granular en caliente de funcionalidades críticas (pagos online, efectivo, delivery, takeaway, modo mantenimiento, reservas automáticas) persistidas en la tabla `settings`.
+- **Gestión por Chat (Admin PIN)**: Implementación de un sistema de seguridad basado en PIN almacenado en la tabla `settings` (key: `admin_config`). Permite a los administradores validar su identidad ante la IA mediante n8n para realizar gestiones remotas (apertura/cierre, limpieza de cola) desde WhatsApp/Telegram.
 - **Sistema Integral de Reservas Autogestionadas (v3.2)**: Integración nativa a Inteligencia Artificial para captación de reservas (mesas).
   - La IA evalúa la disponibilidad en tiempo real usando esquemas relacionales nativos (`time_slots`, `reservations`, `tables`).
   - Capacidad nativa de denegación por saturación o aforo (capacidad física) superado.

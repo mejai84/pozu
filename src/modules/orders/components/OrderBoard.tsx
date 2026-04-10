@@ -61,7 +61,12 @@ function OrderColumn({ title, icon: Icon, color, badgeColor, orders, onView, isH
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h4 className="font-black text-lg italic uppercase tracking-tighter group-hover:text-primary transition-colors">#{o.id.split('-')[0].toUpperCase()}</h4>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">{o.guest_info?.name || "Cliente P"}</p>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">
+                                    {(() => {
+                                        const gi = typeof o.guest_info === 'string' ? JSON.parse(o.guest_info) : o.guest_info;
+                                        return o.customer_name || gi?.full_name || gi?.name || "Cliente P";
+                                    })()}
+                                </p>
                             </div>
                             <div className="flex flex-col items-end gap-1">
                                 <div className="text-[10px] font-black italic bg-white/5 px-2 py-0.5 rounded text-primary">{getElapsed(o.created_at)}</div>

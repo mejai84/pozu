@@ -23,13 +23,19 @@ function PagoExitosoContent() {
         const findOrder = async () => {
             setLoading(true)
 
-            // Intentar encontrar el pedido por order_id directo
             if (orderId) {
-                const { data } = await supabase
-                    .from('orders')
-                    .select('id, status, payment_status, total, items, customer_name, guest_info, delivery_address')
-                    .eq('id', orderId)
-                    .single()
+                // Retry up to 3 times (1.5s apart) to handle Stripe→n8n race condition
+                let data = null
+                for (let attempt = 0; attempt < 3; attempt++) {
+                    if (attempt > 0) await new Promise(r => setTimeout(r, 1500))
+                    const result = await supabase
+                        .from('orders')
+                        .select('id, status, payment_status, total, items, customer_name, guest_info, delivery_address')
+                        .eq('id', orderId)
+                        .maybeSingle()  // returns null instead of 406 when no rows found
+
+                    if (result.data) { data = result.data; break }
+                }
 
                 if (data) {
                     setOrder(data)

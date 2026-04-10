@@ -15,6 +15,11 @@ interface Props {
 export const KDSModal = ({ order, onClose, updateStatus, minutes, businessInfo }: Props) => {
     if (!order) return null
 
+    // Normalizar datos de cliente
+    const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+    const customerName = order.customer_name || guestInfo?.full_name || guestInfo?.name || "Cliente P";
+    const contactPhone = order.customer_phone || guestInfo?.phone || "N/A";
+
     return (
         <AnimatePresence>
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/98 backdrop-blur-3xl">
@@ -75,14 +80,14 @@ export const KDSModal = ({ order, onClose, updateStatus, minutes, businessInfo }
                                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Identidad del Cliente</label>
                                 <div className="flex items-center gap-4">
                                     <div className="h-12 w-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"><User className="w-6 h-6" /></div>
-                                    <p className="text-2xl font-black italic uppercase tracking-tight">{order.guest_info?.name || "Cliente P"}</p>
+                                    <p className="text-2xl font-black italic uppercase tracking-tight">{customerName}</p>
                                 </div>
                             </div>
                             <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5 space-y-4">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Canal de Contacto</label>
                                 <div className="flex items-center gap-4">
                                     <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Phone className="w-6 h-6" /></div>
-                                    <p className="text-2xl font-black italic tracking-tight font-mono">{order.guest_info?.phone || "N/A"}</p>
+                                    <p className="text-2xl font-black italic tracking-tight font-mono">{contactPhone}</p>
                                 </div>
                             </div>
                         </div>

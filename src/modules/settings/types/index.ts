@@ -35,6 +35,9 @@ export interface Settings {
     mercadopago_access_token?: string
     paypal_client_id?: string
     paypal_secret?: string
+
+    // Admin Chat Config
+    admin_pin?: string
 }
 
 export interface BusinessHours {

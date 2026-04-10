@@ -75,8 +75,8 @@ export const useOrders = () => {
                 total: total,
                 subtotal: total,
                 guest_info: { name: customerName || "Cliente Presencial", phone: "" },
-                payment_method: 'cash',
-                payment_status: 'pending'
+                payment_status: 'pending',
+                items: { detalle: "Comanda desde Terminal", metodo_pago: "Efectivo" }
             }
             const { data: order, error } = await supabase.from('orders').insert([orderData]).select().single()
             if (error) throw error

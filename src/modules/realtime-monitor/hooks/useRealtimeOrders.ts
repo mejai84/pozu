@@ -52,20 +52,12 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
         .limit(20)
 
       if (error) throw error
-      const newOrders = data || []
-      
-      const ordersWithRisk = await Promise.all(newOrders.map(async (order) => {
-        const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
-        const phone = order.customer_phone || guestInfo?.phone;
-        
-        if (phone) {
-          const { data: riskData } = await supabase.rpc('check_order_risk', { p_phone: phone });
-          return { ...order, risk_level: riskData?.[0]?.risk_level || 'AMARILLO' };
-        }
-        return { ...order, risk_level: 'AMARILLO' };
+      const newOrders = (data || []).map(order => ({
+          ...order,
+          risk_level: 'AMARILLO' // Default behavior while we stabilize the backend
       }));
-
-      setOrders(ordersWithRisk as Order[])
+      
+      setOrders(newOrders as Order[])
       setLastUpdate(new Date())
 
       if (isFirstLoad.current) {
@@ -74,7 +66,7 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
         })
         isFirstLoad.current = false
       } else {
-        const mostRecentOrder = ordersWithRisk[0] as Order
+        const mostRecentOrder = newOrders[0] as Order
         if (mostRecentOrder && 
             mostRecentOrder.status === 'confirmed' && 
             !printedOrdersRef.current.has(mostRecentOrder.id)) {
@@ -87,7 +79,6 @@ export const useRealtimeOrders = (isNotificationsEnabled: boolean) => {
     } finally {
       setLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessInfo])
 
   useEffect(() => {

@@ -15,7 +15,7 @@ interface Props {
 
 export const OrderCard = ({ order, index, isPrinting, onPrint, onUpdateStatus }: Props) => {
   const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
-  const customerName = guestInfo?.name || guestInfo?.full_name || "Cliente";
+  const customerName = order.customer_name || guestInfo?.full_name || guestInfo?.name || "Cliente";
   const customerPhone = order.customer_phone || guestInfo?.phone || "Sin teléfono";
   const isPaid = order.status === 'paid' || order.is_paid;
 

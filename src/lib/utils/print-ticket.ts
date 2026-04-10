@@ -15,7 +15,12 @@ export const printOrderTicket = async (order: any, businessInfo: any) => {
     const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
     const customerName = guestInfo?.name || guestInfo?.full_name || order.customer_name || "Cliente Final";
     const customerPhone = order.customer_phone || guestInfo?.phone || "Sin teléfono";
-    const paymentMethod = order.payment_method === 'stripe' ? 'TARJETA/ONLINE' : 'EFECTIVO';
+    
+    // Nueva lógica: Detectar método de pago desde columna o desde objeto items (n8n v12)
+    const itemsData = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+    const paymentMethodRaw = (itemsData?.metodo_pago || order.payment_method || 'efectivo').toLowerCase();
+    const paymentMethod = paymentMethodRaw.includes('tarjeta') || paymentMethodRaw === 'stripe' ? 'TARJETA' : 'EFECTIVO';
+    
     const source = (order.source || 'web').toUpperCase();
 
     // Load Logo

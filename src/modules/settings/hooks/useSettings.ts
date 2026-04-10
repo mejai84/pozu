@@ -28,7 +28,8 @@ const defaultSettings: Settings = {
     stripe_secret_key: "",
     mercadopago_access_token: "",
     paypal_client_id: "",
-    paypal_secret: ""
+    paypal_secret: "",
+    admin_pin: "1234"
 }
 
 export const useSettings = () => {
@@ -72,6 +73,8 @@ export const useSettings = () => {
                         Object.assign(mapped, item.value)
                     } else if (item.key === 'printers_config') {
                         mapped.printers = item.value as PrinterConfig[]
+                    } else if (item.key === 'admin_config') {
+                        mapped.admin_pin = item.value.pin || "1234"
                     } else if (item.key === 'stripe_keys') { // Keeping key name for backward compatibility
                         mapped.active_gateway = item.value.active_gateway || 'stripe'
                         mapped.stripe_public_key = item.value.public_key || ""
@@ -163,6 +166,7 @@ export const useSettings = () => {
         handleSaveDelivery,
         handleSaveFeatures,
         handleSavePrinters,
-        handleSaveStripe
+        handleSaveStripe,
+        handleSaveAdmin: () => saveByKey('admin_config', { pin: settings.admin_pin }, "✓ Código Admin actualizado")
     }
 }

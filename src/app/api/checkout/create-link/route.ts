@@ -26,12 +26,15 @@ export async function POST(req: NextRequest) {
         const gatewayConfig = settingsData.value;
         const activeGateway = gatewayConfig.active_gateway || "stripe";
 
+        const success_url = `${process.env.NEXT_PUBLIC_APP_URL || "https://pozu2.com"}/pago-exitoso?order_id=${order_id}`;
+        const cancel_url = `${process.env.NEXT_PUBLIC_APP_URL || "https://pozu2.com"}`;
+
         // 2. Generate Link based on Active Gateway
         if (activeGateway === "stripe") {
             const secretKey = gatewayConfig.secret_key;
             if (!secretKey) return NextResponse.json({ error: "Stripe Secret Key not found" }, { status: 500 });
 
-            // Initialize stripe dynamically
+            // Initialize stripe dynamically (using require inside to avoid issues if not used)
             const Stripe = require("stripe");
             const stripeClient = new Stripe(secretKey, { apiVersion: "2023-10-16" });
 
@@ -40,7 +43,7 @@ export async function POST(req: NextRequest) {
                 line_items: [
                     {
                         price_data: {
-                            currency: "eur", // Change accordingly
+                            currency: "eur",
                             product_data: {
                                 name: "Pedido en Pozu",
                                 description: summary || "Tu pedido delicioso",
@@ -51,8 +54,8 @@ export async function POST(req: NextRequest) {
                     },
                 ],
                 mode: "payment",
-                success_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://pozu2.com"}/pago-exitoso?order_id=${order_id}`,
-                cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://pozu2.com"}`,
+                success_url,
+                cancel_url,
                 metadata: {
                     order_id,
                 },
@@ -61,28 +64,91 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ url: session.url });
         } 
         else if (activeGateway === "mercadopago") {
-            // Scaffold for MercadoPago
             const accessToken = gatewayConfig.mercadopago_access_token;
             if (!accessToken) return NextResponse.json({ error: "MercadoPago Access Token not found" }, { status: 500 });
 
-            // TODO: Implement MP Checkout Pro preference logic here using the accessToken
-            // Returns the init_point
-            return NextResponse.json({ 
-                error: "MercadoPago integration pending. Contact developer.",
-                url: "https://mercadopago.com/checkout/pending" 
+            // Create Preference using REST API
+            const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    items: [
+                        {
+                            title: "Pedido en Pozu",
+                            description: summary || "Tu pedido delicioso",
+                            quantity: 1,
+                            currency_id: "EUR",
+                            unit_price: Number(amount),
+                        }
+                    ],
+                    external_reference: order_id,
+                    back_urls: {
+                        success: success_url,
+                        failure: cancel_url,
+                        pending: cancel_url,
+                    },
+                    auto_return: "approved",
+                    notification_url: `${process.env.NEXT_PUBLIC_APP_URL || "https://pozu2.com"}/api/webhooks/mercadopago`,
+                }),
             });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "MercadoPago Error");
+
+            return NextResponse.json({ url: data.init_point });
         }
         else if (activeGateway === "paypal") {
-            // Scaffold for PayPal
             const clientId = gatewayConfig.paypal_client_id;
             const secret = gatewayConfig.paypal_secret;
             if (!clientId || !secret) return NextResponse.json({ error: "PayPal credentials not found" }, { status: 500 });
 
-            // TODO: Implement PayPal Orders v2 logic here
-            return NextResponse.json({ 
-                error: "PayPal integration pending. Contact developer." ,
-                url: "https://paypal.com/checkout/pending"
+            // 1. Get Access Token
+            const auth = Buffer.from(`${clientId}:${secret}`).toString("base64");
+            const tokenResponse = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Basic ${auth}`,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "grant_type=client_credentials",
             });
+
+            const tokenData = await tokenResponse.json();
+            if (!tokenResponse.ok) throw new Error("PayPal Auth Error");
+
+            // 2. Create Order
+            const orderResponse = await fetch("https://api-m.paypal.com/v2/checkout/orders", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${tokenData.access_token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    intent: "CAPTURE",
+                    purchase_units: [
+                        {
+                            reference_id: order_id,
+                            amount: {
+                                currency_code: "EUR",
+                                value: String(amount),
+                            },
+                        }
+                    ],
+                    application_context: {
+                        return_url: success_url,
+                        cancel_url: cancel_url,
+                    }
+                }),
+            });
+
+            const orderData = await orderResponse.json();
+            if (!orderResponse.ok) throw new Error("PayPal Order Error");
+
+            const approveLink = orderData.links.find((l: any) => l.rel === "approve");
+            return NextResponse.json({ url: approveLink.href });
         }
 
         return NextResponse.json({ error: `Unknown gateway: ${activeGateway}` }, { status: 400 });

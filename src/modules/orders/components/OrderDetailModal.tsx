@@ -14,6 +14,11 @@ interface Props {
 export const OrderDetailModal = ({ order, onClose, onUpdateStatus, businessInfo }: Props) => {
     if (!order) return null
 
+    // Normalizar datos de cliente
+    const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+    const customerName = order.customer_name || guestInfo?.full_name || guestInfo?.name || "Sin identificar";
+    const contactPhone = order.customer_phone || guestInfo?.phone || "N/A";
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#151515] border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl">
@@ -22,7 +27,13 @@ export const OrderDetailModal = ({ order, onClose, onUpdateStatus, businessInfo 
                         <div className="p-3 bg-primary/10 rounded-2xl"><ShoppingBag className="w-6 h-6 text-primary" /></div>
                         <div>
                             <h2 className="text-2xl font-black italic uppercase tracking-tighter">ID #{order.id.split('-')[0].toUpperCase()}</h2>
-                            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{order.order_type} • {order.payment_method}</p>
+                            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                                {order.order_type} • {(() => {
+                                    const itemsData = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                                    const mp = (itemsData?.metodo_pago || order.payment_method || 'Efectivo').toLowerCase();
+                                    return mp.includes('tarjeta') || mp === 'stripe' ? 'Tarjeta' : 'Efectivo';
+                                })()}
+                            </p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-2xl transition-all"><X /></button>
@@ -54,11 +65,13 @@ export const OrderDetailModal = ({ order, onClose, onUpdateStatus, businessInfo 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl space-y-1">
                             <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50">Cliente</p>
-                            <p className="font-extrabold uppercase italic tracking-tighter text-lg">{order.guest_info?.name || "Sin identificar"}</p>
+                            <p className="font-extrabold uppercase italic tracking-tighter text-lg">
+                                {customerName}
+                            </p>
                         </div>
                         <div className="p-5 bg-white/[0.03] border border-white/5 rounded-2xl space-y-1">
                             <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50">Contacto</p>
-                            <p className="font-extrabold text-sm">{order.guest_info?.phone || "N/A"}</p>
+                            <p className="font-extrabold text-sm">{contactPhone}</p>
                         </div>
                     </div>
 

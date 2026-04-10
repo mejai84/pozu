@@ -16,7 +16,9 @@ export const KDSCard = ({ order, onMarchar, onListo, onExpand, minutes, index }:
     const isPreparing = order.status === 'preparing'
     const isUrgent = minutes > 15 && !isPreparing
 
-    return (
+    // Normalizar datos de cliente
+    const guestInfo = typeof order.guest_info === 'string' ? JSON.parse(order.guest_info) : order.guest_info;
+    const customerName = order.customer_name || guestInfo?.full_name || guestInfo?.name || "C. Registrado";
         <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -65,7 +67,7 @@ export const KDSCard = ({ order, onMarchar, onListo, onExpand, minutes, index }:
                 <div className="pt-4 border-t border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2 opacity-40">
                         <User className="w-3 h-3" />
-                        <span className="text-[10px] font-bold uppercase truncate max-w-[100px]">{order.guest_info?.name || "C. Registrado"}</span>
+                        <span className="text-[10px] font-bold uppercase truncate max-w-[100px]">{customerName}</span>
                     </div>
                     <button onClick={onExpand} className="p-2 hover:bg-white/10 rounded-xl transition-all"><ZoomIn className="w-4 h-4 text-muted-foreground hover:text-white" /></button>
                 </div>

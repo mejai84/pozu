@@ -98,6 +98,7 @@ Configuración centralizada que n8n consume al vuelo.
 | `business_info` | `business_name`, `phone`, `email`, `address`, `is_open` |
 | `business_hours` | Horarios por día de la semana |
 | `printers_config` | Array de impresoras vinculadas |
+| `admin_config` | ⭐ **NUEVO** PIN de seguridad para gestión remota (`admin_pin`) |
 
 ---
 

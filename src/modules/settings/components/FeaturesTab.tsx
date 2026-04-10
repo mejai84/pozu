@@ -5,17 +5,16 @@ import { Settings } from "../types"
 interface Props {
     settings: Settings
     setSettings: (s: Settings) => void
-    onSave: () => Promise<any> | void
     onSaveStripe?: () => Promise<any> | void
+    onSaveAdmin?: () => Promise<any> | void
     loading: boolean
 }
 
-export const FeaturesTab = ({ settings, setSettings, onSave, onSaveStripe, loading }: Props) => {
+export const FeaturesTab = ({ settings, setSettings, onSave, onSaveStripe, onSaveAdmin, loading }: Props) => {
     const handleSaveAll = async () => {
         await onSave()
-        if (onSaveStripe) {
-            await onSaveStripe()
-        }
+        if (onSaveStripe) await onSaveStripe()
+        if (onSaveAdmin) await onSaveAdmin()
     }
 
     return (
@@ -238,6 +237,30 @@ export const FeaturesTab = ({ settings, setSettings, onSave, onSaveStripe, loadi
                     <p className="text-xs text-muted-foreground mt-4 block">
                         Estas claves determinan hacia dónde va el dinero de los pedidos. Asegúrate de poner las correctas. Se guardan de forma segura en la base de datos de tu proyecto.
                     </p>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-primary pb-3 pt-6 border-b border-white/10">
+                <Store className="w-6 h-6" />
+                <h3 className="text-xl font-bold">Gestión por Chat (Admin)</h3>
+            </div>
+
+            <div className="space-y-4">
+                <div className="p-4 bg-white/5 rounded-xl space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                        Gestiona tu restaurante directamente desde WhatsApp o Telegram usando comandos especiales protegidos por un PIN.
+                    </p>
+                    <div>
+                        <label className="text-sm font-bold text-white mb-2 block">PIN de Administrador (Código Secreto)</label>
+                        <input
+                            type="text"
+                            maxLength={8}
+                            value={settings.admin_pin || ""}
+                            onChange={(e) => setSettings({ ...settings, admin_pin: e.target.value })}
+                            className="w-full max-w-[200px] bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none transition-colors text-center font-mono text-2xl tracking-[0.5em]"
+                            placeholder="1234"
+                        />
+                    </div>
                 </div>
             </div>
 
