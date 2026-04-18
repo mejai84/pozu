@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { uploadLimiter } from '@/lib/rate-limit/limiter'
 
 // Usamos las variables de entorno disponibles
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -12,6 +13,10 @@ const ALLOWED_IMAGES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
 const ALLOWED_VIDEOS = ['video/webm', 'video/mp4']
 
 export async function POST(req: NextRequest) {
+    // Rate limit: 20 uploads per minute per IP
+    const limited = uploadLimiter.check(req);
+    if (limited) return limited;
+
     try {
         const form = await req.formData()
         const file = form.get('file') as File | null
@@ -24,7 +29,7 @@ export async function POST(req: NextRequest) {
         // Validar tipo MIME
         const allowed = type === 'image' ? ALLOWED_IMAGES : ALLOWED_VIDEOS
         if (!allowed.includes(file.type)) {
-            return NextResponse.json({ error: `Tipo no permitido: ${file.type}` }, { status: 400 })
+            return NextResponse.json({ error: 'Tipo de archivo no permitido.' }, { status: 400 })
         }
 
         // Crear nombre limpio y único
@@ -50,7 +55,7 @@ export async function POST(req: NextRequest) {
 
         if (uploadError) {
             console.error('Supabase upload error:', uploadError)
-            return NextResponse.json({ error: uploadError.message }, { status: 500 })
+            return NextResponse.json({ error: 'Error al subir el archivo.' }, { status: 500 })
         }
 
         // Obtener URL pública

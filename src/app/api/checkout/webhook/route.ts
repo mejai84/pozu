@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     }
   } catch (err: any) {
     console.error('Webhook signature error:', err.message)
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
+    return NextResponse.json({ error: 'Error de verificación del webhook.' }, { status: 400 })
   }
 
   if (
@@ -128,8 +128,5 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  return NextResponse.json({
-    status: 'Stripe Webhook OK',
-    configured: !!process.env.STRIPE_SECRET_KEY,
-  })
+  return NextResponse.json({ status: 'ok' })
 }

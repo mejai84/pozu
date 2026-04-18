@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { createPaymentIntentSchema, formatZodErrors } from '@/lib/validation/schemas';
+import { paymentLimiter } from '@/lib/rate-limit/limiter';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,9 +14,18 @@ async function getSupabaseAdmin() {
 }
 
 export async function POST(req: Request) {
+  // Rate limit: 5 payment attempts per minute per IP
+  const limited = paymentLimiter.check(req);
+  if (limited) return limited;
+
   try {
     const supabaseAdmin = await getSupabaseAdmin();
-    if (!supabaseAdmin) throw new Error('Supabase admin not configured');
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Servicio temporalmente no disponible.' },
+        { status: 503 }
+      );
+    }
 
     // Fetch stripe settings directly from DB!
     const { data: stripeData } = await supabaseAdmin.from('settings').select('value').eq('key', 'stripe_keys').single();
@@ -22,14 +33,28 @@ export async function POST(req: Request) {
     const publicKey = stripeData?.value?.public_key || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
     if (!secretKey) {
-      return NextResponse.json({ error: 'Stripe is not configured. Configura las claves en el Admin -> Configuración.' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'El sistema de pagos no está configurado.' },
+        { status: 503 }
+      );
     }
 
     const stripe = new Stripe(secretKey, {
       apiVersion: '2025-02-24.acacia' as any,
     });
 
-    const { amount } = await req.json();
+    // Validate input with Zod
+    const body = await req.json();
+    const parsed = createPaymentIntentSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: formatZodErrors(parsed.error) },
+        { status: 400 }
+      );
+    }
+
+    const { amount } = parsed.data;
 
     // Crear un PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -44,15 +69,15 @@ export async function POST(req: Request) {
       clientSecret: paymentIntent.client_secret,
       publishableKey: publicKey, // Pasamos la clave al frontend para cargar el form!
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating payment intent:', error);
     return NextResponse.json(
-      { error: error.message || 'Error inesperado' },
+      { error: 'Error al procesar el pago. Inténtalo de nuevo.' },
       { status: 500 }
     );
   }
 }
 
 export async function GET() {
-    return NextResponse.json({ status: "Stripe API intent ok" });
+    return NextResponse.json({ status: "ok" });
 }

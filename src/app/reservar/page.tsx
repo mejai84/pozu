@@ -6,10 +6,12 @@ import { Calendar, Users, Clock, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { createReservationSchema, formatZodErrors } from "@/lib/validation/schemas";
 
 export default function ReservarPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         customer_name: "",
         customer_phone: "",
@@ -21,19 +23,35 @@ export default function ReservarPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setFormError(null);
         setLoading(true);
 
-        const { error } = await supabase
-            .from('reservations')
-            .insert([{
-                ...formData,
-                status: 'pending'
-            }]);
+        // Validate input with Zod
+        const parsed = createReservationSchema.safeParse(formData);
+        if (!parsed.success) {
+            setFormError(formatZodErrors(parsed.error));
+            setLoading(false);
+            return;
+        }
 
-        if (error) {
-            alert("Error al enviar reserva: " + error.message);
-        } else {
-            setSuccess(true);
+        try {
+            const response = await fetch('/api/reservar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parsed.data)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.error('Reservation error:', result.error);
+                setFormError(result.error || "No se pudo enviar la reserva. Por favor, inténtalo de nuevo.");
+            } else {
+                setSuccess(true);
+            }
+        } catch (err) {
+            console.error('Network error:', err);
+            setFormError("Error de conexión. Revisa tu internet e inténtalo de nuevo.");
         }
         setLoading(false);
     };
@@ -81,6 +99,11 @@ export default function ReservarPage() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="bg-[#1A1A1A]/80 backdrop-blur-xl border-2 border-white/5 rounded-[3rem] p-8 sm:p-12 shadow-2xl space-y-8">
+                        {formError && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-red-400 text-sm font-bold text-center">
+                                {formError}
+                            </div>
+                        )}
                         <div className="grid sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-primary ml-1">Nombre Completo</label>
